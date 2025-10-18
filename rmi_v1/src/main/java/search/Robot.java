@@ -48,9 +48,6 @@ public class Robot extends UnicastRemoteObject implements RobotInterface {
                 for (Element link : links){
                     index.putNew(link.attr("abs:href"));
                 }
-                
-                //Todo: Read JSOUP documentation and parse the html to index the keywords. 
-                //Then send back to server via index.addToIndex(...)
             }
         } catch (Exception e) {
             e.printStackTrace();

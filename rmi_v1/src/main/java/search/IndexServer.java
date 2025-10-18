@@ -65,7 +65,7 @@ public class IndexServer extends UnicastRemoteObject implements Index {
     }
 
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
-        //TODO: not implemented
+        //todo: not implemented
         //System.out.println("Indexing " + word + " for " + url);
         if(indexedItems.containsKey(word)){
             //System.out.println("Already indexed " + word + ", adding new url");
