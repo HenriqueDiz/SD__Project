@@ -1,70 +1,62 @@
 package downloader;
 
-import java.io.IOException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.util.HashSet;
-import java.util.Set;
+import java.rmi.registry.*;
+import barrel.*;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.*;
+import org.jsoup.*;
+import org.jsoup.nodes.*;
+import org.jsoup.select.*;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+public class Downloader extends UnicastRemoteObject implements DownloaderInterface {
 
-import barrel.BarrelInterface;
-import common.PageInfo;
-
-public class Downloader {
-
-    private final BarrelInterface barrel;
-
-    public Downloader(String barrelHost, int barrelPort) throws Exception {
-        Registry registry = LocateRegistry.getRegistry(barrelHost, barrelPort);
-        this.barrel = (BarrelInterface) registry.lookup("BarrelService");
-        System.out.println("[Downloader] Ligado ao Barrel em " + barrelHost + ":" + barrelPort);
+    public Downloader() throws java.rmi.RemoteException {
+        super();
     }
 
-    public void downloadPage(String url) {
+    public void printOnWorker(String toPrint) throws java.rmi.RemoteException {
+        System.out.println(toPrint);
+    }
+
+    public static void main(String[] args) {
         try {
-            System.out.println("[Downloader] A descarregar: " + url);
-
-            Document doc = Jsoup.connect(url).get();
-
-            String title = doc.title();
-            String text = doc.body().text();
-
-            String snippet = text.length() > 200 ? text.substring(0, 200) + "..." : text;
-
-            Set<String> links = new HashSet<>();
-            Elements linkElements = doc.select("a[href]");
-            for (Element link : linkElements) {
-                String href = link.attr("abs:href");
-                if (href.startsWith("http"))
-                    links.add(href);
-            }
-
-            PageInfo page = new PageInfo(url, title, snippet, links);
-
-            barrel.addPage(page);
-
-            System.out.println("[Downloader] Página enviada para o Barrel: " + title + " (" + links.size() + " links)");
-
-        } catch (IOException e) {
-            System.err.println("[Downloader] Erro ao descarregar página: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("[Downloader] Erro RPC: " + e.getMessage());
-        }
-    }
-
-        public static void main(String[] args) {
-        if (args.length < 3) {
-            System.out.println("Uso: java Downloader <barrelHost> <barrelPort> <url>");
+            if (args.length < 3) {
+            System.out.println("Uso: java Downloader <palavra> <barrelPort> <url>");
             return;
-        }
+            }
+            Downloader robot = new Downloader();
+            int port = Integer.parseInt(args[1]);
+            BarrelInterface index = (BarrelInterface) LocateRegistry.getRegistry(port).lookup("index");
+            index.subscribeRobot(robot);
+            index.addToIndex(args[0],args[2]);
+            index.putNew(args[2]);
+            while (true) {
+                String url = index.takeNext();
+                if(url==""){
+                    try {
+                        System.out.println("No URLs, sleeping...");
+                        Thread.sleep(1000);
+                        continue;
+                    } catch (Exception e) {
+                        // todo: handle exception
+                    }
+                }
+                System.out.println(url);
+                Document doc = Jsoup.connect(url).get();
 
-        try {
-            Downloader d = new Downloader(args[0], Integer.parseInt(args[1]));
-            d.downloadPage(args[2]);
+                StringTokenizer tokens = new StringTokenizer(doc.text());
+
+                int countTokens = 0;
+                while (tokens.hasMoreElements()){
+                    String novaPalavra = tokens.nextToken().toLowerCase();
+                    index.addToIndex(novaPalavra, url);
+                }
+
+                Elements links = doc.select("a[href]");
+                for (Element link : links){
+                    index.putNew(link.attr("abs:href"));
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

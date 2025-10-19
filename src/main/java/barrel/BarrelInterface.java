@@ -1,10 +1,13 @@
 package barrel;
 
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-
-import common.PageInfo;
+import downloader.*;
+import java.rmi.*;
+import java.util.*;
 
 public interface BarrelInterface extends Remote {
-    void addPage(PageInfo page) throws RemoteException;
+    public String takeNext() throws RemoteException;
+    public void putNew(String url) throws java.rmi.RemoteException;
+    public void addToIndex(String word, String url) throws java.rmi.RemoteException;
+    public List<String> searchWord(String word) throws java.rmi.RemoteException;
+    public void subscribeRobot(DownloaderInterface robot) throws java.rmi.RemoteException;
 }
