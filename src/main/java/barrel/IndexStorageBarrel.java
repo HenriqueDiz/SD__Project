@@ -1,12 +1,17 @@
 package barrel;
 
-import downloader.*;
-import java.rmi.*;
-import java.rmi.server.*;
-import java.rmi.registry.*;
-import java.util.concurrent.*;
-import java.io.*;
-import java.util.*;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import downloader.DownloaderInterface;
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
@@ -21,27 +26,42 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                
     }
 
-    public static void main(String args[]) {
+   public static void main(String args[]) {
         try {
-            IndexStorageBarrel server = new IndexStorageBarrel(); //server object
-            Registry registry = LocateRegistry.createRegistry(1099); //registo de RMI
-            registry.rebind("index", server); //usa o regito para registar o objecto do server
-            System.out.println("Server ready. Waiting for input...");
-
-            //todo: This approach needs to become interactive. Use a Scanner(System.in) to create a rudimentary user interface to:
-            //1. Add urls for indexing
-            //2. search indexed urls
-            //server.putNew("https://pt.wikipedia.org/wiki/Wikip%C3%A9dia:P%C3%A1gina_principal");
-            Scanner keyboard = new Scanner(System.in);
-            String line;
-            while((line = keyboard.nextLine()) != "")
-                if(line.startsWith("http:") || line.startsWith("https:"))
-                    server.putNew(line);
-                else
-                    server.searchWord(line).forEach(System.out::println);
-
-            keyboard.close();
-        } catch (RemoteException e) {
+            IndexStorageBarrel server = new IndexStorageBarrel();
+            Registry registry = LocateRegistry.createRegistry(1099);
+            registry.rebind("index", server);
+            
+            System.out.println("Index Storage Barrel iniciado na porta 1099");
+            System.out.println("Aguardando conexões...");
+            System.out.println("Use Ctrl+C para encerrar o servidor");
+        
+            // Shutdown hook - executa quando o processo é terminado
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n\u001B[33mEncerrando servidor...\u001B[0m");
+            try {
+                // Unbind do registry
+                registry.unbind("index");
+                System.out.println("Servidor desregistrado do registry");
+                
+                // Cleanup adicional se necessário
+                if (server.robot != null) {
+                    System.out.println("\u001B[33mDesconectando downloader...\u001B[0m");
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Erro durante shutdown: " + e.getMessage());
+            }
+            System.out.println("\u001B[32mServidor encerrado com sucesso!\u001B[0m");
+            }));
+            
+            // Servidor fica em execução sem interface
+            Object lock = new Object();
+            synchronized (lock) {
+                lock.wait(); // Mantém o servidor ativo
+            }
+            
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -49,7 +69,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     private long counter = 0, timestamp = System.currentTimeMillis();
 
     public synchronized String takeNext() throws RemoteException {
-        //todo: not implemented fully. Prefer structures that return in a push/pop fashion
 
         String nextUrl = urlsToIndex.poll();
         if (nextUrl == null) {
@@ -65,15 +84,11 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
-        //todo: not implemented
-        //System.out.println("Indexing " + word + " for " + url);
         if(indexedItems.containsKey(word)){
-            //System.out.println("Already indexed " + word + ", adding new url");
             HashSet<String> palavrasParaUrls = indexedItems.get(word);
             palavrasParaUrls.add(url);
             indexedItems.put(word, palavrasParaUrls);
         }else {
-            //System.out.println("New word, adding to index");
             HashSet<String> palavrasNovas = new HashSet<String>();
             palavrasNovas.add(url);
             indexedItems.put(word, palavrasNovas);
@@ -82,11 +97,10 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     
     public synchronized List<String> searchWord(String word) throws java.rmi.RemoteException {
-        //todo: not implemented
-        System.out.println("Searching for " + word);
-        robot.printOnWorker("Given results of " + word + " to the client");
+        System.out.println("Procurando por " + word);
+        robot.printOnWorker("\u001B[33mResultados da palavra " + word + " dados ao cliente\u001B[0m");
+        System.out.println("\u001B[33mResultados da palavra " + word + " dados ao cliente\u001B[0m");
         if(indexedItems.containsKey(word)){
-            System.out.println("Found " + indexedItems.get(word).size() + " results");
             ArrayList<String> resultadoPesquisa = new ArrayList<String>(indexedItems.get(word));
             return resultadoPesquisa;
         }

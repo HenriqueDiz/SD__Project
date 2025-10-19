@@ -34,7 +34,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                 String url = index.takeNext();
                 if(url==""){
                     try {
-                        System.out.println("No URLs, sleeping...");
+                        System.out.println("Nenhum URLs, dormindo...");
                         Thread.sleep(1000);
                         continue;
                     } catch (Exception e) {
