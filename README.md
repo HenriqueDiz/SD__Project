@@ -1,8 +1,8 @@
 # How to compile/run
 
-`mvn clean compile` Limpa e compila os ficheiros
-`make run-d` Corre o Downloader
-`make run-b` Corre o Barrel
+- `mvn clean compile` Limpa e compila os ficheiros
+- `make run-d` Corre o Downloader
+- `make run-b` Corre o Barrel
 
 Por agora, correr primeiro o barrel e depois o downloader noutro terminal
 
