@@ -4,6 +4,7 @@
 - `make run-d` Corre o Downloader
 - `make run-b` Corre o Barrel
 - `make run-c` Corre o Cliente
+- `make clean` Limpa os ficheiros compilados
 
 Por agora, correr primeiro o barrel e depois o downloader noutro terminal
 

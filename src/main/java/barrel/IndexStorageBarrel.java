@@ -42,7 +42,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             try {
                 // Unbind do registry
                 registry.unbind("index");
-                System.out.println("Servidor desregistrado do registry");
+                System.out.println("\u001B[33mServidor desregistrado do registry\u001B[0m");
                 
                 // Cleanup adicional se necessário
                 if (server.robot != null) {
