@@ -68,7 +68,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     private long counter = 0, timestamp = System.currentTimeMillis();
 
-    public synchronized String takeNext() throws RemoteException {
+    public String takeNext() throws RemoteException {
 
         String nextUrl = urlsToIndex.poll();
         if (nextUrl == null) {
@@ -78,7 +78,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return nextUrl;
     }
 
-    public synchronized void putNew(String url) throws java.rmi.RemoteException {
+    public void putNew(String url) throws java.rmi.RemoteException {
         urlsToIndex.add(url);
 
     }
@@ -96,18 +96,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
     
-    public synchronized List<String> searchWord(String word) throws java.rmi.RemoteException {
+    public List<String> searchWord(String word) throws java.rmi.RemoteException {
         System.out.println("Procurando por " + word);
-        robot.printOnWorker("\u001B[33mResultados da palavra " + word + " dados ao cliente\u001B[0m");
         System.out.println("\u001B[33mResultados da palavra " + word + " dados ao cliente\u001B[0m");
         if(indexedItems.containsKey(word)){
             ArrayList<String> resultadoPesquisa = new ArrayList<String>(indexedItems.get(word));
             return resultadoPesquisa;
         }
         return new ArrayList<String>();
-    }
-
-    public void subscribeRobot(DownloaderInterface robot) throws java.rmi.RemoteException {
-        this.robot = robot;
     }
 }
