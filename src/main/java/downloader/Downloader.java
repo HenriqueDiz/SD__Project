@@ -31,20 +31,9 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
             int port = Integer.parseInt(args[1]);
             BarrelInterface index = (BarrelInterface) LocateRegistry.getRegistry(port).lookup("index");
             index.addToIndex(args[0],args[2]);
-            index.putNew(args[2]);
+            index.putNew(args[2],false);
             while (true) {
                 String url = index.takeNext();
-                // Ignora URLs vazias
-                if(url==""){
-                    try {
-                        System.out.println("Nenhum URLs, dormindo...");
-                        Thread.sleep(1000);
-                        continue;
-                    } catch (Exception e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-
                 System.out.println(url);
                 boolean success = false;
                 int attempts = 0;
@@ -69,7 +58,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                     for (Element link : links){
                         String linkUrl = link.attr("abs:href");
                         if (isValidUrl(linkUrl)) {
-                            index.putNew(linkUrl);
+                            index.putNew(linkUrl, false);
                         }
                     }
                     success = true;
@@ -77,6 +66,12 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                         attempts++;
                         if(attempts == 1) {
                             System.err.println("\n\u001B[31mErro ao processar " + url + ". Tentando novamente...\u001B[0m");
+                            System.out.println("\n" + "=".repeat(50));
+                            System.out.println("                     \u001B[31m\u001B[1mERRO\u001B[0m\u001B[0m");
+                            System.out.println("=".repeat(50));
+                            e.printStackTrace();
+                            System.out.println("=".repeat(50));
+
                         } 
                         if(attempts >= 3) {
                             System.err.println("\u001B[31mFalha ao processar " + url + " após 3 tentativas. Pulando...\u001B[0m");
@@ -96,7 +91,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
         }
     }
 
-      // Método auxiliar para validar URLs
+    // Método auxiliar para validar URLs
     private static boolean isValidUrl(String url) {
         if (url == null || url.isEmpty()) return false;
         
@@ -106,6 +101,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
         "twitter.com/intent", 
         "linkedin.com/sharing",
         "mailto:",
+        "lnkd.in/",
         "javascript:",
         "phabricator.wikimedia.org", // Adicionar sites problemáticos
         "#"

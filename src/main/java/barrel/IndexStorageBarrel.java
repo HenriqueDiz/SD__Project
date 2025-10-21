@@ -7,21 +7,19 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
-import downloader.DownloaderInterface;
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
-    private BlockingQueue<String> urlsToIndex;
+    private BlockingDeque<String> urlsToIndex;
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // Hashset for non repeated URLS
-    private DownloaderInterface robot;
 
     public IndexStorageBarrel() throws RemoteException {
         super();
-        urlsToIndex = new LinkedBlockingQueue<String>();
+        urlsToIndex = new LinkedBlockingDeque<String>();
         indexedItems = new ConcurrentHashMap<>();
                
     }
@@ -35,25 +33,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             System.out.println("Index Storage Barrel iniciado na porta 1099");
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar o servidor");
-        
-            // Shutdown hook - executa quando o processo é terminado
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\n\u001B[33mEncerrando servidor...\u001B[0m");
-            try {
-                // Unbind do registry
-                registry.unbind("index");
-                System.out.println("\u001B[33mServidor desregistrado do registry\u001B[0m");
-                
-                // Cleanup adicional se necessário
-                if (server.robot != null) {
-                    System.out.println("\u001B[33mDesconectando downloader...\u001B[0m");
-                }
-                
-            } catch (Exception e) {
-                System.err.println("Erro durante shutdown: " + e.getMessage());
-            }
-            System.out.println("\u001B[32mServidor encerrado com sucesso!\u001B[0m");
-            }));
             
             // Servidor fica em execução sem interface
             Object lock = new Object();
@@ -78,9 +57,18 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return nextUrl;
     }
 
-    public void putNew(String url) throws java.rmi.RemoteException {
-        urlsToIndex.add(url);
-
+    public void putNew(String url, boolean priority) throws java.rmi.RemoteException {
+        try {
+            if (priority) { // Quando o cliente adiciona mete em primeiro na queue
+                urlsToIndex.putFirst(url);
+            }
+            else { // Quando é o downloader a meter mete no fim
+                urlsToIndex.putLast(url);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException("Interrupted while adding URL to queue", e);
+        }
     }
 
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {

@@ -39,7 +39,7 @@ public class Client {
                         String url = keyboard.nextLine().trim();
                         
                         if (url.startsWith("http://") || url.startsWith("https://")) {
-                            server.putNew(url);
+                            server.putNew(url,true);
                             System.out.println(" URL adicionado com sucesso: " + url);
                         } else {
                             System.out.println("\nURL inválido! Deve começar com http:// ou https://");
