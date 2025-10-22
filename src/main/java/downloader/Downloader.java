@@ -3,7 +3,7 @@ package downloader;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.StringTokenizer;
-
+import queue.URLQueueInterface;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,27 +13,32 @@ import barrel.BarrelInterface;
 
 public class Downloader extends UnicastRemoteObject implements DownloaderInterface {
 
+    private static int counter = 0;
+
     public Downloader() throws java.rmi.RemoteException {
         super();
     }
 
-    public void printOnWorker(String toPrint) throws java.rmi.RemoteException {
-        System.out.println(toPrint);
+    public int getProcessorURLsCount () throws java.rmi.RemoteException {
+        return counter;
     }
 
     public static void main(String[] args) {
         try {
-            if (args.length < 3) {
-                System.out.println("Uso: java Downloader <palavra> <barrelPort> <url>");
+            if (args.length < 4) {
+                System.out.println("Uso: java Downloader <palavra> <barrelPort> <queuePort> <url>");
                 return;
             }
         
             int port = Integer.parseInt(args[1]);
-            BarrelInterface index = (BarrelInterface) LocateRegistry.getRegistry(port).lookup("index");
-            index.addToIndex(args[0],args[2]);
-            index.putNew(args[2],false);
+            int queuePort = Integer.parseInt(args[2]);
+        
+            BarrelInterface server = (BarrelInterface) LocateRegistry.getRegistry("localhost",port).lookup("index");
+            URLQueueInterface urlQueue = (URLQueueInterface) LocateRegistry.getRegistry("localhost", queuePort).lookup("urlqueue");
+            server.addToIndex(args[0],args[3]);
+            urlQueue.putNew(args[3],false);
             while (true) {
-                String url = index.takeNext();
+                String url = urlQueue.takeNext();
                 System.out.println(url);
                 boolean success = false;
                 int attempts = 0;
@@ -50,7 +55,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                     // Indexa as palavras da página
                     while (tokens.hasMoreElements()){
                         String novaPalavra = tokens.nextToken().toLowerCase();
-                        index.addToIndex(novaPalavra, url);
+                        server.addToIndex(novaPalavra, url);
                     }
 
                     // Extrai e indexa os links da página
@@ -58,10 +63,11 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                     for (Element link : links){
                         String linkUrl = link.attr("abs:href");
                         if (isValidUrl(linkUrl)) {
-                            index.putNew(linkUrl, false);
+                            urlQueue.putNew(linkUrl, false);
                         }
                     }
                     success = true;
+                    counter++;
                     } catch (Exception e) {
                         attempts++;
                         if(attempts == 1) {
@@ -73,7 +79,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                             System.out.println("=".repeat(50));
 
                         } 
-                        if(attempts >= 3) {
+                        if(attempts > 3) {
                             System.err.println("\u001B[31mFalha ao processar " + url + " após 3 tentativas. Pulando...\u001B[0m");
                         } else {
                             try {

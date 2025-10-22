@@ -7,19 +7,15 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
 
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
-    private BlockingDeque<String> urlsToIndex;
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // Hashset for non repeated URLS
 
     public IndexStorageBarrel() throws RemoteException {
         super();
-        urlsToIndex = new LinkedBlockingDeque<String>();
         indexedItems = new ConcurrentHashMap<>();
                
     }
@@ -45,31 +41,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         }
     }
 
-    private long counter = 0, timestamp = System.currentTimeMillis();
-
-    public String takeNext() throws RemoteException {
-
-        String nextUrl = urlsToIndex.poll();
-        if (nextUrl == null) {
-            nextUrl = "";
-        }
-
-        return nextUrl;
-    }
-
-    public void putNew(String url, boolean priority) throws java.rmi.RemoteException {
-        try {
-            if (priority) { // Quando o cliente adiciona mete em primeiro na queue
-                urlsToIndex.putFirst(url);
-            }
-            else { // Quando é o downloader a meter mete no fim
-                urlsToIndex.putLast(url);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RemoteException("Interrupted while adding URL to queue", e);
-        }
-    }
+    //private long counter = 0, timestamp = System.currentTimeMillis();
 
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
         if(indexedItems.containsKey(word)){

@@ -2,20 +2,24 @@ package client;
 
 import java.rmi.registry.*;
 import barrel.*;
+import queue.URLQueueInterface;
+
 import java.util.*;
 
 public class Client {
 
     public static void main(String[] args) {
         try {
-            if (args.length < 1) {
-                System.out.println("Uso: java Client <barrelPort>");
+            if (args.length < 2) {
+                System.out.println("Uso: java Client <barrelPort> <queuePort>");
                 return;
             }
             
-            int port = Integer.parseInt(args[0]);
-            BarrelInterface server = (BarrelInterface) LocateRegistry.getRegistry("localhost", port).lookup("index");
-            
+            int barrelPort = Integer.parseInt(args[0]);
+            int queuePort = Integer.parseInt(args[1]);
+
+            BarrelInterface server = (BarrelInterface) LocateRegistry.getRegistry("localhost", barrelPort).lookup("index");
+            URLQueueInterface urlQueue = (URLQueueInterface) LocateRegistry.getRegistry("localhost", queuePort).lookup("urlqueue");
             Scanner keyboard = new Scanner(System.in);
             
             while (true) {
@@ -39,7 +43,7 @@ public class Client {
                         String url = keyboard.nextLine().trim();
                         
                         if (url.startsWith("http://") || url.startsWith("https://")) {
-                            server.putNew(url,true);
+                            urlQueue.putNew(url,true);
                             System.out.println(" URL adicionado com sucesso: " + url);
                         } else {
                             System.out.println("\nURL inválido! Deve começar com http:// ou https://");
