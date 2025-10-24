@@ -19,7 +19,7 @@ public class Client {
             GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
             Scanner keyboard = new Scanner(System.in);
             
-            System.out.println("🚪 Conectado ao Gateway na porta " + gatewayPort);
+            System.out.println("Conectado ao Gateway na porta " + gatewayPort);
             
             while (true) {
                 System.out.println("\n" + "=".repeat(50));

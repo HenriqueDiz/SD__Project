@@ -28,10 +28,11 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         loadConfiguration();
     }
     
+    // Carregar configuração do ficheiro config.properties
     private void loadConfiguration() {
         config = new Properties();
         try {
-            // Carregar do classpath
+            // Carregar do classpath (getResourceAsStream() -> procura o recurso no mesmo pacote da classe (package gateway))
             InputStream configStream = getClass().getResourceAsStream("gateway.properties");
             if (configStream != null) {
                 config.load(configStream);
@@ -47,6 +48,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
     
+    // Definição de configuração padrão
     private void setDefaultConfiguration() {
         config.setProperty("gateway.host", "localhost");
         config.setProperty("gateway.port", "8183");
@@ -58,7 +60,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         config.setProperty("barrel1.port", "8182");
         config.setProperty("barrel1.name", "barrel1");
         config.setProperty("barrel2.host", "localhost");
-        config.setProperty("barrel2.port", "8183");
+        config.setProperty("barrel2.port", "8184");
         config.setProperty("barrel2.name", "barrel2");
     }
     
@@ -98,7 +100,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             System.out.println("Aguardando conexões de clientes...");
             System.out.println("Use Ctrl+C para encerrar");
             
-            // Shutdown hook
+            // Shutdown hook para limpeza
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("\nEncerrando Gateway...");
                 try {
@@ -120,9 +122,9 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             e.printStackTrace();
         }
     }
-    
-    
-    // Load balancer - round robin
+
+
+    // Load balancer - round robin - escolher próximo barrel para consulta, indexação, etc.
     private BarrelInterface getNextBarrel() {
         if (activeBarrels.isEmpty()) {
             return null;
@@ -132,6 +134,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return barrel;
     }
     
+    // Adicionar palavra ao índice (replicação em todos os barrels)
     public void addToIndex(String word, String url) throws RemoteException {
         
         List<BarrelInterface> failedBarrels = new ArrayList<>();
@@ -183,7 +186,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         
         return results != null ? results : new ArrayList<>();
     }
-    
+
+    // Consultar barrel com failover em caso de falha
     private List<String> searchWithFailover(String word) throws RemoteException {
         List<BarrelInterface> failedBarrels = new ArrayList<>();
         
@@ -213,16 +217,18 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return new ArrayList<>();
     }
     
+    // Adicionar URL à fila de URLs
     public void addURL(String url) throws RemoteException {
         System.out.println("Gateway: Adicionando URL '" + url + "'");
         if (urlQueue != null) {
             urlQueue.putNew(url, true); // Cliente tem prioridade
-            System.out.println("URL adicionado à fila com prioridade");
+            System.out.println("\u001B[32mURL adicionado à fila com prioridade\u001B[0m");
         } else {
             throw new RemoteException("URLQueue não disponível");
         }
     }
     
+    // Registrar novo barrel dinamicamente
     public void registerBarrel(String host, int port, String name) throws RemoteException {
         try {
             Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
@@ -246,7 +252,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 (map, entry) -> map.put(entry.getKey(), entry.getValue()),
                 LinkedHashMap::putAll);
     }
-    
+
+    //Todo: Consultar barrels ativos, não está thread-safe (acho eu), ver melhor isto
     public List<String> getActiveBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
         for (int i = 0; i < activeBarrels.size(); i++) {
@@ -259,6 +266,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return searchCache.size();
     }
     
+    // Todo: Usar este método para administração remota
     public void clearCache() throws RemoteException {
         searchCache.clear();
         System.out.println("Cache limpo pelo administrador");
