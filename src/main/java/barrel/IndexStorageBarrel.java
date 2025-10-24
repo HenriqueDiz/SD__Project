@@ -20,26 +20,37 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                
     }
 
-   public static void main(String args[]) {
-        try {
-            IndexStorageBarrel server = new IndexStorageBarrel();
-            Registry registry = LocateRegistry.createRegistry(1099);
-            registry.rebind("index", server);
-            
-            System.out.println("Index Storage Barrel iniciado na porta 1099");
-            System.out.println("Aguardando conexões...");
-            System.out.println("Use Ctrl+C para encerrar o servidor");
-            
-            // Servidor fica em execução sem interface
-            Object lock = new Object();
-            synchronized (lock) {
-                lock.wait(); // Mantém o servidor ativo
-            }
-            
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static void main(String args[]) {
+    try {
+        IndexStorageBarrel barrel = new IndexStorageBarrel();
+        
+        // MUDANÇA: Suportar porta como argumento
+        int port = 8182; // porta padrão
+        String name = "barrel1"; // nome padrão
+        
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
+            name = "barrel" + (port - 8181); // barrel1, barrel2, etc.
         }
+        
+        Registry registry = LocateRegistry.createRegistry(port);
+        registry.rebind(name, barrel);
+        
+        System.out.println("Index Storage Barrel iniciado:");
+        System.out.println("Porta: " + port);
+        System.out.println("Nome: " + name);
+        System.out.println("Aguardando conexões...");
+        System.out.println("Use Ctrl+C para encerrar");
+        
+        Object lock = new Object();
+        synchronized (lock) {
+            lock.wait();
+        }
+        
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
 
     //private long counter = 0, timestamp = System.currentTimeMillis();
 

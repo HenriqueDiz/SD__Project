@@ -19,14 +19,20 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
     public static void main(String args[]) {
         try {
             URLQueue urlQueue = new URLQueue();
-            Registry registry = LocateRegistry.createRegistry(1098);
-            registry.rebind("urlqueue", urlQueue);
             
-            System.out.println("URL Queue iniciado na porta 1098");
+            // MUDANÇA: Suportar porta como argumento
+            int port = 8181; // porta padrão
+            if (args.length > 0) {
+                port = Integer.parseInt(args[0]);
+            }
+            
+            Registry registry = LocateRegistry.createRegistry(port);
+            registry.rebind("urlqueue", urlQueue); // MUDANÇA: nome "queue" em vez de "urlqueue"
+            
+            System.out.println("URL Queue iniciado na porta " + port);
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
             
-            // Servidor fica em execução
             Object lock = new Object();
             synchronized (lock) {
                 lock.wait();
@@ -36,6 +42,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
             e.printStackTrace();
         }
     }
+
 
     public String takeNext() throws RemoteException {
         String nextUrl = urlsToIndex.poll();

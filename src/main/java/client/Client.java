@@ -1,37 +1,37 @@
 package client;
 
 import java.rmi.registry.*;
-import barrel.*;
-import queue.URLQueueInterface;
-
+import gateway.GatewayInterface;
 import java.util.*;
 
 public class Client {
 
     public static void main(String[] args) {
         try {
-            if (args.length < 2) {
-                System.out.println("Uso: java Client <barrelPort> <queuePort>");
+            if (args.length < 1) {
+                System.out.println("Uso: java Client <gatewayPort>");
+                System.out.println("Exemplo: java Client 8183");
                 return;
             }
             
-            int barrelPort = Integer.parseInt(args[0]);
-            int queuePort = Integer.parseInt(args[1]);
-
-            BarrelInterface server = (BarrelInterface) LocateRegistry.getRegistry("localhost", barrelPort).lookup("index");
-            URLQueueInterface urlQueue = (URLQueueInterface) LocateRegistry.getRegistry("localhost", queuePort).lookup("urlqueue");
+            int gatewayPort = Integer.parseInt(args[0]);
+            
+            GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
             Scanner keyboard = new Scanner(System.in);
             
+            System.out.println("🚪 Conectado ao Gateway na porta " + gatewayPort);
+            
             while (true) {
-                
                 System.out.println("\n" + "=".repeat(50));
                 System.out.println("                   \u001B[31m\u001B[1mCLIENT MENU\u001B[0m\u001B[0m");
                 System.out.println("=".repeat(50));
                 System.out.println("\u001B[31m1.\u001B[0m  Adicionar URL para indexar");
                 System.out.println("\u001B[31m2.\u001B[0m  Procurar uma palavra");
-                System.out.println("\u001B[31m3.\u001B[0m  Sair");
+                System.out.println("\u001B[31m3.\u001B[0m  Ver estatísticas");
+                System.out.println("\u001B[31m4.\u001B[0m  Ver barrels ativos");
+                System.out.println("\u001B[31m5.\u001B[0m  Sair");
                 System.out.println("=".repeat(50));
-                System.out.print("Escolha uma opção (1-3): ");
+                System.out.print("Escolha uma opção (1-5): ");
                 
                 String choice = keyboard.nextLine().trim();
                 
@@ -43,10 +43,10 @@ public class Client {
                         String url = keyboard.nextLine().trim();
                         
                         if (url.startsWith("http://") || url.startsWith("https://")) {
-                            urlQueue.putNew(url,true);
-                            System.out.println(" URL adicionado com sucesso: " + url);
+                            gateway.addURL(url);
+                            System.out.println("URL adicionado com sucesso: " + url);
                         } else {
-                            System.out.println("\nURL inválido! Deve começar com http:// ou https://");
+                            System.out.println("URL inválido! Deve começar com http:// ou https://");
                         }
                         break;
                         
@@ -57,7 +57,7 @@ public class Client {
                         String word = keyboard.nextLine().trim();
                         
                         if (!word.isEmpty()) {
-                            List<String> results = server.searchWord(word);
+                            List<String> results = gateway.searchWord(word);
                             if (results.isEmpty()) {
                                 System.out.println("Nenhum resultado encontrado para: " + word);
                             } else {
@@ -73,13 +73,38 @@ public class Client {
                         break;
                         
                     case "3":
+                        System.out.println("\n\u001B[33mTOP 10 PESQUISAS\u001B[0m");
+                        System.out.println("-".repeat(30));
+                        Map<String, Integer> top10 = gateway.getTop10Searches();
+                        if (top10.isEmpty()) {
+                            System.out.println("Ainda não há pesquisas registradas");
+                        } else {
+                            int rank = 1;
+                            for (Map.Entry<String, Integer> entry : top10.entrySet()) {
+                                System.out.println(rank + ". " + entry.getKey() + " (" + entry.getValue() + " pesquisas)");
+                                rank++;
+                            }
+                        }
+                        break;
+                        
+                    case "4":
+                        System.out.println("\n\u001B[33mBARRELS ATIVOS\u001B[0m");
+                        System.out.println("-".repeat(30));
+                        List<String> barrels = gateway.getActiveBarrels();
+                        for (String barrel : barrels) {
+                            System.out.println("Barrel -> " + barrel);
+                        }
+                        System.out.println("Cache size: " + gateway.getCacheSize() + " entradas");
+                        break;
+                        
+                    case "5":
                         System.out.println("\n\u001B[33mEncerrando o cliente...\u001B[0m");
                         keyboard.close();
                         System.exit(0);
                         break;
                         
                     default:
-                        System.out.println("Opção inválida! Por favor, escolha 1, 2 ou 3.");
+                        System.out.println("Opção inválida! Por favor, escolha 1-5.");
                         break;
                 }
                 
