@@ -57,6 +57,9 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         config.setProperty("barrel1.host", "localhost");
         config.setProperty("barrel1.port", "8182");
         config.setProperty("barrel1.name", "barrel1");
+        config.setProperty("barrel2.host", "localhost");
+        config.setProperty("barrel2.port", "8183");
+        config.setProperty("barrel2.name", "barrel2");
     }
     
     public static void main(String[] args) {
