@@ -1,13 +1,18 @@
 # How to compile/run
-
-- `mvn clean compile` Limpa e compila os ficheiros
-- `make run-d` Corre o Downloader
-- `make run-b` Corre o Barrel
-- `make run-c` Corre o Cliente
-- `make run-q` Corre o URL-queue
+#### Best commands:
+- `make all` Compila todos os componentes
+- `make stop-all` Para todos os componentes
 - `make clean` Limpa os ficheiros compilados
 
-Por agora, correr primeiro o barrel e depois o downloader noutro terminal
+#### Run commands:
+- `make run-g` Corre a Gateway
+- `make run-d` Corre o Downloader
+- `make run-b1` Corre o Barrel 1
+- `make run-b2` Corre o Barrel 2
+- `make run-c` Corre o Cliente
+- `make run-q` Corre o URL-queue
+
+
 
 # Componentes
 #### Gateway 
