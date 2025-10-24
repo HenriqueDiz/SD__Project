@@ -2,10 +2,10 @@ run-d:
 	mvn exec:java -Dexec.mainClass="downloader.Downloader" -Dexec.args="bola 8183 8181 https://pt.wikipedia.org/wiki/Wikipédia:Página_principal"
 
 run-b1:
-	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="8182"
+	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="8182 barrel1"
 
 run-b2:
-	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="8184"
+	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="8184 barrel2"
 
 run-c:
 	mvn exec:java -Dexec.mainClass="client.Client" -Dexec.args="8183"

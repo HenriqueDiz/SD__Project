@@ -13,6 +13,16 @@
 - `make run-q` Corre o URL-queue
 
 
+# Explicação do sistema
+Duas versões de cada método porque eles pertencem a componentes diferentes e com responsabilidades distintas:
+
+**Barrel.addToIndex / Barrel.searchWord**
+
+- Estão na interface/impl do barrel. É o código que realmente armazena e recupera dados (ConcurrentHashMap). Cada barrel é um servidor RMI que expõe esses métodos.
+
+**Gateway.addToIndex / Gateway.searchWord**
+
+- Estão na interface/impl do gateway. O gateway actua como fachada: recebe pedidos dos clients/downloader, faz load‑balancing/failover e depois chama os métodos dos barrels. No teu caso o gateway também replica indexação enviando para todos os barrels.
 
 # Componentes
 #### Gateway 

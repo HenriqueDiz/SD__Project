@@ -25,20 +25,29 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         IndexStorageBarrel barrel = new IndexStorageBarrel();
         
         // MUDANÇA: Suportar porta como argumento
-        int port = 8182; // porta padrão
-        String name = "barrel1"; // nome padrão
-        
+        int port = 8182;
+        String name = "barrel1";
+
         if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-            name = "barrel" + (port - 8181); // barrel1, barrel2, etc.
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.err.println("Porto inválido, usar 8182 por defeito");
+            }
+        }
+
+        // if provided, use explicit name (java IndexStorageBarrel <port> <name>)
+        if (args.length > 1 && args[1] != null && !args[1].isEmpty()) {
+            name = args[1];
         }
         
         Registry registry = LocateRegistry.createRegistry(port);
         registry.rebind(name, barrel);
-        
+        System.out.println("=".repeat(50));
         System.out.println("Index Storage Barrel iniciado:");
         System.out.println("Porta: " + port);
         System.out.println("Nome: " + name);
+        System.out.println("=".repeat(50));
         System.out.println("Aguardando conexões...");
         System.out.println("Use Ctrl+C para encerrar");
         
