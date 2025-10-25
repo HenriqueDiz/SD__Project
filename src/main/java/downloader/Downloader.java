@@ -10,6 +10,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import common.ConfigReader;
+import common.Utils;
 import gateway.GatewayInterface;
 import queue.URLQueueInterface;
 
@@ -32,8 +33,8 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
             int queuePort;
 
             if (args.length == 2) {
-                gatewayPort = Integer.parseInt(args[1]);
-                queuePort = Integer.parseInt(args[2]);
+                gatewayPort = Utils.validatePort(args[0]);
+                queuePort = Utils.validatePort(args[1]);
             } else {
                 gatewayPort = new ConfigReader("gateway").getPort();
                 queuePort = new ConfigReader("queue").getPort();

@@ -1,17 +1,19 @@
 # How to compile/run
 #### Best commands:
 - `make all` Compila todos os componentes
-- `make stop-all` Para todos os componentes
-- `make clean` Limpa os ficheiros compilados
+- `make run-all` Corre todos os componentes
+- `make stop-all` Para todos os componentes (Apenas macOs/linux)
+- `make clean` Limpa e compila o projeto
 
-#### Run commands:
-- `make run-g` Corre a Gateway
-- `make run-d` Corre o Downloader
-- `make run-b1` Corre o Barrel 1
-- `make run-b2` Corre o Barrel 2
-- `make run-c` Corre o Cliente
-- `make run-q` Corre o URL-queue
+#### Run commands for each componente individually :
+- Gateway: `make run-g`
+- Downloader: `make run-d` (Args: <gatewayPort> <queuePort> )
+- Barrel 1: `make run-b1` (Args: <barrel1Port> <barrel1Name>)
+- Barrel 2: `make run-b2` (Args: <barrel2Port> <barrel2Name>)
+- Client: `make run-c` (Args: <gatewayPort>)
+- URL-Queue: `make run-q` (Args: <queuePort>)
 
+(O uso de argumentos não é obrigatório, uma vez que host/port/name podem ser mudados no `\src\main\resources\Config.cfg`)
 
 # Explicação do sistema
 Duas versões de cada método porque eles pertencem a componentes diferentes e com responsabilidades distintas:

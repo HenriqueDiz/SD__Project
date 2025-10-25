@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import common.ConfigReader;
+import common.Utils;
 
 public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
 
@@ -24,7 +25,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
             int port;
 
             if (args.length == 1) {
-                port = ConfigReader.validatePort(args[0]);
+                port = Utils.validatePort(args[0]);
             } else {
                 port = new ConfigReader("queue").getPort();
             }

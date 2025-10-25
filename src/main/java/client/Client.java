@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import common.ConfigReader;
+import common.Utils;
 import gateway.GatewayInterface;
 
 public class Client {
@@ -15,7 +16,7 @@ public class Client {
             int gatewayPort;
 
             if (args.length == 1) {
-                gatewayPort = Integer.parseInt(args[0]);
+                gatewayPort = Utils.validatePort(args[0]);
             } else {
                 ConfigReader config = new ConfigReader("gateway");
                 gatewayPort = config.getPort();
@@ -27,13 +28,13 @@ public class Client {
             Scanner keyboard = new Scanner(System.in);
             while (true) {
                 System.out.println("\n" + "=".repeat(50));
-                System.out.println("                   \u001B[31m\u001B[1mCLIENT MENU\u001B[0m\u001B[0m");
+                System.out.println(Utils.red(Utils.bold("                   CLIENT MENU")));
                 System.out.println("=".repeat(50));
-                System.out.println("\u001B[31m1.\u001B[0m  Adicionar URL para indexar");
-                System.out.println("\u001B[31m2.\u001B[0m  Procurar uma palavra");
-                System.out.println("\u001B[31m3.\u001B[0m  Ver estatísticas");
-                System.out.println("\u001B[31m4.\u001B[0m  Ver barrels ativos");
-                System.out.println("\u001B[31m5.\u001B[0m  Sair");
+                System.out.println(Utils.red("1.") + "  Adicionar URL para indexar");
+                System.out.println(Utils.red("2.") + "  Procurar uma palavra");
+                System.out.println(Utils.red("3.") + "  Ver estatísticas");
+                System.out.println(Utils.red("4.") + "  Ver barrels ativos");
+                System.out.println(Utils.red("5.") + "  Sair");
                 System.out.println("=".repeat(50));
                 System.out.print("Escolha uma opção (1-5): ");
                 
@@ -41,7 +42,7 @@ public class Client {
                 
                 switch (choice) {
                     case "1": 
-                        System.out.println("\n\u001B[33mADICIONAR URL\u001B[0m");
+                        System.out.println("\n" + Utils.yellow("ADICIONAR URL"));
                         System.out.println("-".repeat(30));
                         System.out.print("Digite o URL (http:// ou https://): ");
                         String url = keyboard.nextLine().trim();
@@ -55,7 +56,7 @@ public class Client {
                         break;
                         
                     case "2": 
-                        System.out.println("\n\u001B[33mPROCURAR PALAVRA\u001B[0m");
+                        System.out.println("\n" + Utils.yellow("PROCURAR PALAVRA"));
                         System.out.println("-".repeat(30));
                         System.out.print("Digite a palavra a procurar: ");
                         String word = keyboard.nextLine().trim();
@@ -77,7 +78,7 @@ public class Client {
                         break;
                         
                     case "3":
-                        System.out.println("\n\u001B[33mTOP 10 PESQUISAS\u001B[0m");
+                        System.out.println("\n" + Utils.yellow("TOP 10 PESQUISAS"));
                         System.out.println("-".repeat(30));
                         Map<String, Integer> top10 = gateway.getTop10Searches();
                         if (top10.isEmpty()) {
@@ -92,7 +93,7 @@ public class Client {
                         break;
                         
                     case "4":
-                        System.out.println("\n\u001B[33mBARRELS ATIVOS\u001B[0m");
+                        System.out.println("\n" + Utils.yellow("BARRELS ATIVOS"));
                         System.out.println("-".repeat(30));
                         List<String> barrels = gateway.getActiveBarrels();
                         for (String barrel : barrels) {
@@ -102,7 +103,7 @@ public class Client {
                         break;
                         
                     case "5":
-                        System.out.println("\n\u001B[33mEncerrando o cliente...\u001B[0m");
+                        System.out.println("\n" + Utils.yellow("Encerrando o cliente..."));
                         keyboard.close();
                         System.exit(0);
                         break;
@@ -112,7 +113,7 @@ public class Client {
                         break;
                 }
                 
-                System.out.println("\n\u001B[33mPressione Enter para continuar...\u001B[0m");
+                System.out.println("\n" + Utils.yellow("Pressione Enter para continuar..."));
                 keyboard.nextLine();
             }
             

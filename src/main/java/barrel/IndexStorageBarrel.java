@@ -1,7 +1,5 @@
 package barrel;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -13,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import common.ConfigReader;
+import common.Utils;
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
@@ -36,8 +35,8 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                     name = config.getName();
                 }
                 case 2 -> {
-                    port = ConfigReader.validatePort(args[0]);
-                    name = ConfigReader.validateName(args[1]);
+                    port = Utils.validatePort(args[0]);
+                    name = Utils.validateName(args[1]);
                 }
                 default -> {
                     System.out.println("Usage: java IndexStorageBarrel <port> <name> or java IndexStorageBarrel <barrelNumber>");
@@ -81,7 +80,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     public List<String> searchWord(String word) throws java.rmi.RemoteException {
         System.out.println("Procurando por " + word);
-        System.out.println("\u001B[33mResultados da palavra " + word + " dados ao cliente\u001B[0m");
+        System.out.println(Utils.yellow("Resultados da palavra " + word + " dados ao cliente"));
         if(indexedItems.containsKey(word)){
             ArrayList<String> resultadoPesquisa = new ArrayList<String>(indexedItems.get(word));
             return resultadoPesquisa;

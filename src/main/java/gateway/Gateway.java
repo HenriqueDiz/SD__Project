@@ -12,7 +12,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import barrel.BarrelInterface;
-import common.ConfigReader;
+import common.Utils;
 import queue.URLQueueInterface;
 
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
@@ -29,7 +29,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         activeBarrels = new ArrayList<>();
         searchCache = new ConcurrentHashMap<>();
         searchStats = new ConcurrentHashMap<>();
-        config = ConfigReader.loadConfiguration();
+        config = Utils.loadConfiguration();
     }
     
     public static void main(String[] args) {
@@ -47,7 +47,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             
             // Conectar ao URLQueue
             gateway.urlQueue = GatewayConnections.connectToURLQueue(gateway.config);
-            
             
             // Conectar aos Barrels
             List<BarrelInterface> barrels = GatewayConnections.connectToBarrels(gateway.config);
@@ -189,7 +188,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         System.out.println("Gateway: Adicionando URL '" + url + "'");
         if (urlQueue != null) {
             urlQueue.putNew(url, true); // Cliente tem prioridade
-            System.out.println("\u001B[32mURL adicionado à fila com prioridade\u001B[0m");
+            System.out.println(Utils.green("URL adicionado à fila com prioridade"));
         } else {
             throw new RemoteException("URLQueue não disponível");
         }
@@ -224,7 +223,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     public List<String> getActiveBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
         for (int i = 0; i < activeBarrels.size(); i++) {
-            barrelInfo.add("\u001B[32mBarrel " + (i + 1) + " - Ativo\u001B[0m");
+            barrelInfo.add(Utils.green("Barrel " + (i + 1) + " - Ativo"));
         }
         return barrelInfo;
     }
@@ -233,7 +232,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return searchCache.size();
     }
     
-    // Todo: Usar este método para administração remota
+    // Todo: Usar este método para administração remota ???
     public void clearCache() throws RemoteException {
         searchCache.clear();
         System.out.println("Cache limpo pelo administrador");
