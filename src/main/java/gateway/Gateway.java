@@ -4,11 +4,15 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.io.*;
 
 import barrel.BarrelInterface;
+import common.ConfigReader;
 import queue.URLQueueInterface;
 
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
@@ -25,50 +29,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         activeBarrels = new ArrayList<>();
         searchCache = new ConcurrentHashMap<>();
         searchStats = new ConcurrentHashMap<>();
-        loadConfiguration();
-    }
-    
-    // Carregar configuração do ficheiro config.properties
-    private void loadConfiguration() {
-        config = new Properties();
-        try {
-            // Carregar do classpath (getResourceAsStream() -> procura o recurso no mesmo pacote da classe (package gateway))
-            InputStream configStream = getClass().getResourceAsStream("gateway.properties");
-            if (configStream != null) {
-                config.load(configStream);
-                configStream.close();
-                System.out.println("Configuração carregada: gateway.properties");
-            } else {
-                throw new IOException("Ficheiro gateway.properties não encontrado");
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar configuração: " + e.getMessage());
-            System.err.println("Usando valores padrão");
-            setDefaultConfiguration();
-        }
-    }
-    
-    // Definição de configuração padrão
-    private void setDefaultConfiguration() {
-        config.setProperty("gateway.host", "localhost");
-        config.setProperty("gateway.port", "8183");
-        config.setProperty("gateway.name", "gateway");
-        config.setProperty("queue.host", "localhost");
-        config.setProperty("queue.port", "8181");
-        config.setProperty("queue.name", "queue");
-        config.setProperty("barrel1.host", "localhost");
-        config.setProperty("barrel1.port", "8182");
-        config.setProperty("barrel1.name", "barrel1");
-        config.setProperty("barrel2.host", "localhost");
-        config.setProperty("barrel2.port", "8184");
-        config.setProperty("barrel2.name", "barrel2");
+        config = ConfigReader.loadConfiguration();
     }
     
     public static void main(String[] args) {
         try {
             Gateway gateway = new Gateway();
             
-            // Ler configuração do Gateway
             String gatewayHost = gateway.config.getProperty("gateway.host");
             int gatewayPort = Integer.parseInt(gateway.config.getProperty("gateway.port"));
             String gatewayName = gateway.config.getProperty("gateway.name");

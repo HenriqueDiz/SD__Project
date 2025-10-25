@@ -3,12 +3,15 @@ package downloader;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.StringTokenizer;
-import queue.URLQueueInterface;
-import gateway.GatewayInterface;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import common.ConfigReader;
+import gateway.GatewayInterface;
+import queue.URLQueueInterface;
 
 public class Downloader extends UnicastRemoteObject implements DownloaderInterface {
 
@@ -24,21 +27,21 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
 
     public static void main(String[] args) {
         try {
-            if (args.length < 4) {
-                System.out.println("Uso: java Downloader <palavra> <gatewayPort> <queuePort> <url>");
-                return;
+
+            int gatewayPort;
+            int queuePort;
+
+            if (args.length == 2) {
+                gatewayPort = Integer.parseInt(args[1]);
+                queuePort = Integer.parseInt(args[2]);
+            } else {
+                gatewayPort = new ConfigReader("gateway").getPort();
+                queuePort = new ConfigReader("queue").getPort();
             }
-        
-            int gatewayPort = Integer.parseInt(args[1]);
-            int queuePort = Integer.parseInt(args[2]);
         
             // MUDANÇA: Conectar ao Gateway em vez do Barrel direto
             GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
             URLQueueInterface urlQueue = (URLQueueInterface) LocateRegistry.getRegistry("localhost", queuePort).lookup("urlqueue");
-            
-            // Adicionar palavra inicial via Gateway
-            gateway.addToIndex(args[0], args[3]); // Novo método no Gateway
-            urlQueue.putNew(args[3], false);
             
             System.out.println("Downloader iniciado");
             System.out.println("Conectado ao Gateway na porta " + gatewayPort);
@@ -46,7 +49,6 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
             
             while (true) {
                 String url = urlQueue.takeNext();
-                
                 if (url.equals("")) {
                     try {
                         System.out.println("Fila vazia, dormindo...");

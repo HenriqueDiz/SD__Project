@@ -1,14 +1,18 @@
 package barrel;
 
+import java.io.File;
+import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import common.ConfigReader;
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
@@ -21,47 +25,47 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
     public static void main(String args[]) {
-    try {
-        IndexStorageBarrel barrel = new IndexStorageBarrel();
-        
-        // MUDANÇA: Suportar porta como argumento
-        int port = 8182;
-        String name = "barrel1";
+        try {
+            int port;
+            String name;
 
-        if (args.length > 0) {
-            try {
-                port = Integer.parseInt(args[0]);
-            } catch (NumberFormatException e) {
-                System.err.println("Porto inválido, usar 8182 por defeito");
+            switch (args.length) {
+                case 1 -> {
+                    ConfigReader config = new ConfigReader(args[0]);
+                    port = config.getPort();
+                    name = config.getName();
+                }
+                case 2 -> {
+                    port = ConfigReader.validatePort(args[0]);
+                    name = ConfigReader.validateName(args[1]);
+                }
+                default -> {
+                    System.out.println("Usage: java IndexStorageBarrel <port> <name> or java IndexStorageBarrel <barrelNumber>");
+                    return;
+                }
             }
-        }
 
-        // if provided, use explicit name (java IndexStorageBarrel <port> <name>)
-        if (args.length > 1 && args[1] != null && !args[1].isEmpty()) {
-            name = args[1];
+            IndexStorageBarrel barrel = new IndexStorageBarrel();
+
+            Registry registry = LocateRegistry.createRegistry(port);
+            registry.rebind(name, barrel);
+            System.out.println("=".repeat(50));
+            System.out.println("Index Storage Barrel iniciado:");
+            System.out.println("Porta: " + port);
+            System.out.println("Nome: " + name);
+            System.out.println("=".repeat(50));
+            System.out.println("Aguardando conexões...");
+            System.out.println("Use Ctrl+C para encerrar");
+            
+            Object lock = new Object();
+            synchronized (lock) {
+                lock.wait();
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        
-        Registry registry = LocateRegistry.createRegistry(port);
-        registry.rebind(name, barrel);
-        System.out.println("=".repeat(50));
-        System.out.println("Index Storage Barrel iniciado:");
-        System.out.println("Porta: " + port);
-        System.out.println("Nome: " + name);
-        System.out.println("=".repeat(50));
-        System.out.println("Aguardando conexões...");
-        System.out.println("Use Ctrl+C para encerrar");
-        
-        Object lock = new Object();
-        synchronized (lock) {
-            lock.wait();
-        }
-        
-    } catch (Exception e) {
-        e.printStackTrace();
     }
-}
-
-    //private long counter = 0, timestamp = System.currentTimeMillis();
 
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
         if(indexedItems.containsKey(word)){
@@ -75,7 +79,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         }
     }
 
-    
     public List<String> searchWord(String word) throws java.rmi.RemoteException {
         System.out.println("Procurando por " + word);
         System.out.println("\u001B[33mResultados da palavra " + word + " dados ao cliente\u001B[0m");

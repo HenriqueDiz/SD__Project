@@ -1,26 +1,30 @@
 package client;
 
-import java.rmi.registry.*;
+import java.rmi.registry.LocateRegistry;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+import common.ConfigReader;
 import gateway.GatewayInterface;
-import java.util.*;
 
 public class Client {
 
     public static void main(String[] args) {
         try {
-            if (args.length < 1) {
-                System.out.println("Uso: java Client <gatewayPort>");
-                System.out.println("Exemplo: java Client 8183");
-                return;
+            int gatewayPort;
+
+            if (args.length == 1) {
+                gatewayPort = Integer.parseInt(args[0]);
+            } else {
+                ConfigReader config = new ConfigReader("gateway");
+                gatewayPort = config.getPort();
             }
-            
-            int gatewayPort = Integer.parseInt(args[0]);
-            
+                        
             GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
-            Scanner keyboard = new Scanner(System.in);
-            
             System.out.println("Conectado ao Gateway na porta " + gatewayPort);
             
+            Scanner keyboard = new Scanner(System.in);
             while (true) {
                 System.out.println("\n" + "=".repeat(50));
                 System.out.println("                   \u001B[31m\u001B[1mCLIENT MENU\u001B[0m\u001B[0m");

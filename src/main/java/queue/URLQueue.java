@@ -7,6 +7,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import common.ConfigReader;
+
 public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
 
     private BlockingDeque<String> urlsToIndex;
@@ -19,11 +21,12 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
     public static void main(String args[]) {
         try {
             URLQueue urlQueue = new URLQueue();
-            
-            // MUDANÇA: Suportar porta como argumento
-            int port = 8181; // porta padrão
-            if (args.length > 0) {
-                port = Integer.parseInt(args[0]);
+            int port;
+
+            if (args.length == 1) {
+                port = ConfigReader.validatePort(args[0]);
+            } else {
+                port = new ConfigReader("queue").getPort();
             }
             
             Registry registry = LocateRegistry.createRegistry(port);

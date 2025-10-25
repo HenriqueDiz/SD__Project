@@ -1,24 +1,27 @@
 run-d:
-	mvn exec:java -Dexec.mainClass="downloader.Downloader" -Dexec.args="bola 8183 8181 https://pt.wikipedia.org/wiki/Wikipédia:Página_principal"
+	mvn exec:java -Dexec.mainClass="downloader.Downloader"
 
 run-b1:
-	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="8182 barrel1"
+	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="barrel1"
 
 run-b2:
-	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="8184 barrel2"
+	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="barrel2"
 
 run-c:
-	mvn exec:java -Dexec.mainClass="client.Client" -Dexec.args="8183"
+	mvn exec:java -Dexec.mainClass="client.Client"
 
 run-q:
-	mvn exec:java -Dexec.mainClass="queue.URLQueue" -Dexec.args="8181"
+	mvn exec:java -Dexec.mainClass="queue.URLQueue"
 
 run-g:
 	mvn exec:java -Dexec.mainClass="gateway.Gateway"
 
-# Comando para abrir tudo de uma vez
 run-all:
-	@echo "Iniciando todos os serviços..."
+ifeq ($(OS),Windows_NT)
+	@echo "Inicializando todos os componentes (Windows)..."
+	@powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\runAllWt.ps1" "$(CURDIR)"
+else
+	@echo "Inicializando todos os componentes (macOS/Linux)..."
 	@echo "Abrindo terminais..."
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-q"'
 	sleep 2
@@ -31,18 +34,17 @@ run-all:
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-c"'
 	sleep 1
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-d"'
-	@echo "Todos os serviços iniciados!"
+	@echo "Todos os componentes iniciados!"
+endif
 
-# Comando para parar tudo
 stop-all:
-	@echo "Parando todos os serviços..."
+	@echo "Parando todos os componentes..."
 	pkill -f "downloader.Downloader" || true
 	pkill -f "barrel.IndexStorageBarrel" || true
 	pkill -f "client.Client" || true
 	pkill -f "queue.URLQueue" || true
 	pkill -f "gateway.Gateway" || true
-	@echo "Todos os serviços parados!"
-
+	@echo "Todos os componentes parados!"
 
 clean:
 	mvn clean compile
