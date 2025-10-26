@@ -7,11 +7,11 @@
 
 #### Run commands for each componente individually :
 - Gateway: `make run-g`
-- Downloader: `make run-d` (Args: <gatewayPort> <queuePort> )
-- Barrel 1: `make run-b1` (Args: <barrel1Port> <barrel1Name>)
-- Barrel 2: `make run-b2` (Args: <barrel2Port> <barrel2Name>)
-- Client: `make run-c` (Args: <gatewayPort>)
-- URL-Queue: `make run-q` (Args: <queuePort>)
+- Downloader: `make run-d` (Args: `<gatewayPort>` `<queuePort>`)
+- Barrel 1: `make run-b1` (Args: `<barrel1Port>` `<barrel1Name>`)
+- Barrel 2: `make run-b2` (Args: `<barrel2Port>` `<barrel2Name>`)
+- Client: `make run-c` (Args: `<gatewayPort>`)
+- URL-Queue: `make run-q` (Args: `<queuePort>`)
 
 (O uso de argumentos não é obrigatório, uma vez que host/port/name podem ser mudados no `\src\main\resources\Config.cfg`)
 
