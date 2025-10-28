@@ -12,8 +12,7 @@ public interface GatewayInterface extends Remote {
     // Estatísticas e administração
     public Map<String, Integer> getTop10Searches() throws RemoteException;
     public List<String> getActiveBarrels() throws RemoteException;
-    public int getCacheSize() throws RemoteException;
-    public void clearCache() throws RemoteException;
+  
     
     // Método para barrels se registrarem
     public void registerBarrel(String host, int port, String name) throws RemoteException;

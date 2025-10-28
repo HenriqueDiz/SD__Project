@@ -1,6 +1,5 @@
 # How to compile/run
 #### Best commands:
-- `make all` Compila todos os componentes
 - `make run-all` Corre todos os componentes
 - `make stop-all` Para todos os componentes (Apenas macOs/linux)
 - `make clean` Limpa e compila o projeto

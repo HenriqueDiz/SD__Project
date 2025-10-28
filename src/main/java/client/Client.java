@@ -99,7 +99,6 @@ public class Client {
                         for (String barrel : barrels) {
                             System.out.println("Barrel -> " + barrel);
                         }
-                        System.out.println("Cache size: " + gateway.getCacheSize() + " entradas");
                         break;
                         
                     case "5":

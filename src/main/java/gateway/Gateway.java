@@ -19,7 +19,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     
     private List<BarrelInterface> activeBarrels;
     private URLQueueInterface urlQueue;
-    private Map<String, List<String>> searchCache;
     private Map<String, Integer> searchStats;
     private int currentBarrelIndex = 0;
     private Properties config;
@@ -27,7 +26,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     public Gateway() throws RemoteException {
         super();
         activeBarrels = new ArrayList<>();
-        searchCache = new ConcurrentHashMap<>();
         searchStats = new ConcurrentHashMap<>();
         config = Utils.loadConfiguration();
     }
@@ -131,21 +129,9 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     public List<String> searchWord(String word) throws RemoteException {
         System.out.println("Gateway: Procurando '" + word + "'");
         
-        // 1. Verificar cache
-        if (searchCache.containsKey(word)) {
-            System.out.println("Cache HIT para '" + word + "'");
-            updateSearchStats(word);
-            return searchCache.get(word);
-        }
-        
-        // 2. Cache MISS - usar qualquer barrel (todos têm a mesma info)
-        System.out.println("Cache MISS para '" + word + "' - consultando barrel");
-        
         List<String> results = searchWithFailover(word);
         
-        // 3. Guardar no cache
         if (results != null) {
-            searchCache.put(word, results);
             updateSearchStats(word);
             System.out.println("Resultado cached para '" + word + "': " + results.size() + " resultado(s)");
         }
@@ -226,15 +212,5 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             barrelInfo.add(Utils.green("Barrel " + (i + 1) + " - Ativo"));
         }
         return barrelInfo;
-    }
-    
-    public int getCacheSize() throws RemoteException {
-        return searchCache.size();
-    }
-    
-    // Todo: Usar este método para administração remota ???
-    public void clearCache() throws RemoteException {
-        searchCache.clear();
-        System.out.println("Cache limpo pelo administrador");
     }
 }
