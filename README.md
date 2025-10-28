@@ -31,9 +31,9 @@ Duas versões de cada método porque eles pertencem a componentes diferentes e c
 
 #### Cliente
 - Aplicação, neste caso, de linha de comandos. Começa por ligar-se à gateway por RMI
+- Usar por exemplo este url para testar: `https://pt.wikipedia.org/wiki/Wikipédia:Página_principal`
 #### Barrels
 - São vários e partilham todos a mesma informação e podem comunicar entre eles ou através do gateway
-
 #### Downloaders
 - São os workers, os que vão às páginas buscar mais urls e outras informações, threads independentes
 #### URL-queue
