@@ -6,12 +6,15 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import common.ConfigReader;
 import common.Utils;
+import gateway.GatewayInterface;
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
@@ -55,6 +58,23 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             System.out.println("=".repeat(50));
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
+
+             // Buscar informações do Gateway ao ConfigReader
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            String gatewayHost = gatewayConfig.getHost();
+            int gatewayPort = gatewayConfig.getPort();
+            String gatewayName = gatewayConfig.getName();
+
+            System.out.println("Gateway host: " + gatewayHost);
+            System.out.println("Gateway port: " + gatewayPort);
+            System.out.println("Gateway name: " + gatewayName);
+
+
+            // Registrar-se dinamicamente no Gateway
+            Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
+            gateway.registerBarrel(gatewayHost, port, name);
+
             
             Object lock = new Object();
             synchronized (lock) {
@@ -86,5 +106,22 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             return resultadoPesquisa;
         }
         return new ArrayList<String>();
+    }
+
+    @Override
+    public synchronized void syncIndex(Map<String, HashSet<String>> otherIndex) throws RemoteException {
+        System.out.println("[Barrel] Índice original (" + indexedItems.size() + " entradas).");
+        for (Map.Entry<String, HashSet<String>> entry : otherIndex.entrySet()) {
+            String word = entry.getKey();
+            for (String url : entry.getValue()) {
+                addToIndex(word, url); // Usa o método existente para adicionar ao índice
+            }
+        }
+        System.out.println("[Barrel] Índice sincronizado com outro barrel (" + otherIndex.size() + " entradas).");
+    }
+
+    @Override
+    public synchronized Map<String, HashSet<String>> getIndex() throws RemoteException {
+        return new HashMap<>(indexedItems); // Retorna uma cópia do índice atual
     }
 }

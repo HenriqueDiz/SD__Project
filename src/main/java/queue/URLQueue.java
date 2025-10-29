@@ -31,7 +31,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
             }
             
             Registry registry = LocateRegistry.createRegistry(port);
-            registry.rebind("urlqueue", urlQueue); // MUDANÇA: nome "queue" em vez de "urlqueue"
+            registry.rebind("urlqueue", urlQueue); 
             
             System.out.println("URL Queue iniciado na porta " + port);
             System.out.println("Aguardando conexões...");

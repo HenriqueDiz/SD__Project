@@ -24,7 +24,17 @@ public class Client {
                         
             GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
             System.out.println("Conectado ao Gateway na porta " + gatewayPort);
-            
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            System.out.println(Utils.red(" ▄████  ▒█████   ▒█████    ▄████  ▒█████   ██▓    "));
+            System.out.println(Utils.red(" ██▒ ▀█▒▒██▒  ██▒▒██▒  ██▒ ██▒ ▀█▒▒██▒  ██▒▓██▒    "));
+            System.out.println(Utils.red("▒██░▄▄▄░▒██░  ██▒▒██░  ██▒▒██░▄▄▄░▒██░  ██▒▒██░    "));
+            System.out.println(Utils.red("░▓█  ██▓▒██   ██░▒██   ██░░▓█  ██▓▒██   ██░▒██░    "));
+            System.out.println(Utils.red("░▒▓███▀▒░ ████▓▒░░ ████▓▒░░▒▓███▀▒░ ████▓▒░░██████▒"));
+            System.out.println(Utils.red(" ░▒   ▒ ░ ▒░▒░▒░ ░ ▒░▒░▒░  ░▒   ▒ ░ ▒░▒░▒░ ░ ▒░▓  ░"));
+            System.out.println(Utils.red("  ░   ░   ░ ▒ ▒░   ░ ▒ ▒░   ░   ░   ░ ▒ ▒░ ░ ░ ▒  ░"));
+            System.out.println(Utils.red("░ ░   ░ ░ ░ ░ ▒  ░ ░ ░ ▒  ░ ░   ░ ░ ░ ░ ▒    ░ ░   "));
+            System.out.println(Utils.red("      ░     ░ ░      ░ ░        ░     ░ ░      ░  ░"));
+            System.out.println("\n" + "=".repeat(50) + "\n");
             Scanner keyboard = new Scanner(System.in);
             while (true) {
                 System.out.println("\n" + "=".repeat(50));

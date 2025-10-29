@@ -25,12 +25,10 @@ else
 	@echo "Abrindo terminais..."
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-q"'
 	sleep 2
+	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-g"'
+	sleep 5
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-b1"'
 	sleep 2
-	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-b2"'
-	sleep 2
-	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-g"'
-	sleep 3
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-c"'
 	sleep 1
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-d"'

@@ -45,16 +45,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             
             // Conectar ao URLQueue
             gateway.urlQueue = GatewayConnections.connectToURLQueue(gateway.config);
-            
-            // Conectar aos Barrels
-            List<BarrelInterface> barrels = GatewayConnections.connectToBarrels(gateway.config);
-            if (barrels != null) gateway.activeBarrels.addAll(barrels);
-            
-            if (gateway.activeBarrels.isEmpty()) {
-                System.err.println("Nenhum barrel conectado! Gateway não pode iniciar.");
-                return;
-            }
-            
             // Registrar o Gateway
             Registry registry = LocateRegistry.createRegistry(gatewayPort);
             registry.rebind(gatewayName, gateway);
@@ -180,15 +170,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
     
-    // Registrar novo barrel dinamicamente
+    @Override
     public void registerBarrel(String host, int port, String name) throws RemoteException {
-        try {
-            Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
-            BarrelInterface barrel = (BarrelInterface) barrelRegistry.lookup(name);
-            activeBarrels.add(barrel);
-            System.out.println("Novo barrel registrado: " + host + ":" + port + "/" + name);
-        } catch (Exception e) {
-            throw new RemoteException("Erro ao registrar barrel: " + e.getMessage());
+        BarrelInterface newBarrel = GatewayConnections.registerBarrel(host, port, name, activeBarrels);
+        if (newBarrel != null) {
+            activeBarrels.add(newBarrel);
+        } else {
+            throw new RemoteException("Falha ao registrar o barrel: " + name);
         }
     }
     

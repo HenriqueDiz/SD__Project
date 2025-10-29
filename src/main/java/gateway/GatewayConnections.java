@@ -29,34 +29,23 @@ public class GatewayConnections {
         }
     }
 
-    public static List<BarrelInterface> connectToBarrels(Properties config) {
-        List<BarrelInterface> barrels = new ArrayList<>();
-        for (String propertyName : config.stringPropertyNames()) {
-            if (propertyName.startsWith("barrel") && propertyName.endsWith(".host")) {
-                String barrelPrefix = propertyName.substring(0, propertyName.lastIndexOf(".host"));
-                BarrelInterface b = connectToBarrel(config, barrelPrefix);
-                if (b != null) barrels.add(b);
-            }
-        }
-        return barrels;
-    }
-
-    private static BarrelInterface connectToBarrel(Properties config, String barrelPrefix) {
+    public static BarrelInterface registerBarrel(String host, int port, String name, List<BarrelInterface> activeBarrels) {
         try {
-            String host = config.getProperty(barrelPrefix + ".host");
-            String portStr = config.getProperty(barrelPrefix + ".port");
-            String name = config.getProperty(barrelPrefix + ".name");
-            if (host == null || portStr == null || name == null) {
-                System.err.println("Propriedades incompletas para " + barrelPrefix);
-                return null;
-            }
-            int port = Integer.parseInt(portStr.trim());
             Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
-            BarrelInterface barrel = (BarrelInterface) barrelRegistry.lookup(name);
-            System.out.println("Conectado ao " + barrelPrefix + ": " + host + ":" + port + "/" + name);
-            return barrel;
+            BarrelInterface newBarrel = (BarrelInterface) barrelRegistry.lookup(name);
+
+            // Sincronizar dados do novo barrel com um barrel ativo (se existir)
+            if (!activeBarrels.isEmpty()) {
+                BarrelInterface sourceBarrel = activeBarrels.get(0); // Escolhe o primeiro barrel ativo
+                System.out.println("Sincronizando índice do novo barrel com " + sourceBarrel);
+                Map<String, HashSet<String>> sourceIndex = sourceBarrel.getIndex();
+                newBarrel.syncIndex(sourceIndex);
+            }
+
+            System.out.println("Novo barrel registrado: " + host + ":" + port + "/" + name);
+            return newBarrel;
         } catch (Exception e) {
-            System.err.println("Erro ao conectar ao " + barrelPrefix + ": " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.err.println("Erro ao registrar barrel: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return null;
         }
     }
