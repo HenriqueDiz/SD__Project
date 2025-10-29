@@ -89,11 +89,19 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     }
     
     // Adicionar palavra ao índice (replicação em todos os barrels)
-    public void addToIndex(String word, String url) throws RemoteException {
+    public synchronized void addToIndex(String word, String url) throws RemoteException {
         
         List<BarrelInterface> failedBarrels = new ArrayList<>();
         int successCount = 0;
-        
+        if (activeBarrels.isEmpty()) {
+            System.out.println(Utils.red("Nenhum Barrel ativo, parando todos os downloaders..."));
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println("Thread interrupted: " + e.getMessage());
+            }
+        }
         // Adicionar a TODOS os barrels ativos (REPLICAÇÃO)
         for (BarrelInterface barrel : activeBarrels) {
             try {
@@ -123,7 +131,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         
         if (results != null) {
             updateSearchStats(word);
-            System.out.println("Resultado cached para '" + word + "': " + results.size() + " resultado(s)");
+            System.out.println("Resultado para '" + word + "': " + results.size() + " resultado(s)");
         }
         
         return results != null ? results : new ArrayList<>();
@@ -171,10 +179,11 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     }
     
     @Override
-    public void registerBarrel(String host, int port, String name) throws RemoteException {
+    public synchronized void registerBarrel(String host, int port, String name) throws RemoteException {
         BarrelInterface newBarrel = GatewayConnections.registerBarrel(host, port, name, activeBarrels);
         if (newBarrel != null) {
             activeBarrels.add(newBarrel);
+            notifyAll();
         } else {
             throw new RemoteException("Falha ao registrar o barrel: " + name);
         }

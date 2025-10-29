@@ -7,6 +7,9 @@ run-b1:
 run-b2:
 	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="barrel2"
 
+run-b3:
+	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="barrel3"
+
 run-c:
 	mvn exec:java -Dexec.mainClass="client.Client"
 
@@ -28,6 +31,8 @@ else
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-g"'
 	sleep 5
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-b1"'
+	sleep 2
+	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-b2"'
 	sleep 2
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-c"'
 	sleep 1

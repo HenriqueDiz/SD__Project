@@ -99,15 +99,15 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                     } catch (Exception e) {
                         attempts++;
                         if (attempts == 1) {
-                            Utils.red("Erro ao processar " + url + ". Tentando novamente...");
-                            System.out.println("\n" + "=".repeat(50));
-                            Utils.red("        ERRO");
-                            System.out.println("=".repeat(50));
+                            System.out.println(Utils.red("Erro ao processar " + url + ". Tentando novamente..."));
+                            System.out.println("\n" + "=".repeat(70));
+                            System.out.println(Utils.red("                               ERRO"));
+                            System.out.println("=".repeat(70));
                             e.printStackTrace();
-                            System.out.println("=".repeat(50));
+                            System.out.println("=".repeat(70));
                         } 
                         if (attempts > 3) {
-                            Utils.red("Falha ao processar " + url + " após 3 tentativas. Pulando...");
+                            System.out.println(Utils.red("Falha ao processar " + url + " após 3 tentativas. Pulando..."));
                         } else {
                             try {
                                 Thread.sleep(2000);

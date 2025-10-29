@@ -65,11 +65,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             int gatewayPort = gatewayConfig.getPort();
             String gatewayName = gatewayConfig.getName();
 
-            System.out.println("Gateway host: " + gatewayHost);
-            System.out.println("Gateway port: " + gatewayPort);
-            System.out.println("Gateway name: " + gatewayName);
-
-
             // Registrar-se dinamicamente no Gateway
             Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
             GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
