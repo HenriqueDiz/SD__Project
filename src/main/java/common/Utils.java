@@ -1,7 +1,15 @@
 package common;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 
 public final class Utils {
@@ -52,6 +60,30 @@ public final class Utils {
             System.err.println("Usando valores padrão");
         }
         return propertiesTemp;
+    }
+
+    public static void saveBarrelProgress(String barrelName, Map<String, HashSet<String>> progress) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(barrelName + "_progress.dat"))) {
+            oos.writeObject(progress);
+            System.out.println(Utils.green("Progresso salvo para o barrel: " + barrelName));
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar progresso do barrel: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, HashSet<String>> loadBarrelProgress(String barrelName) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(barrelName + "_progress.dat"))) {
+            return (Map<String, HashSet<String>>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Erro ao carregar progresso do barrel: " + e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
+    public static boolean progressFileExists(String barrelName) {
+        File progressFile = new File(barrelName + "_progress.dat");
+        return progressFile.exists();
     }
 
     private static String color(String text, String code) {

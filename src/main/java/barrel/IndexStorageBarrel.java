@@ -19,11 +19,29 @@ import gateway.GatewayInterface;
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // Hashset for non repeated URLS
+    private final String name;
+    private final int port;
 
-    public IndexStorageBarrel() throws RemoteException {
+    public IndexStorageBarrel(String name, int port) throws RemoteException {
         super();
         indexedItems = new ConcurrentHashMap<>();
+        this.port = port;
+        this.name = name;
                
+    }
+
+    @Override
+    public String getName() throws RemoteException {
+        return name;
+    }
+
+    @Override
+    public int getPort() throws RemoteException {
+        return port;
+    }
+
+    public void setIndexedItems(Map<String, HashSet<String>> indexedItems) {
+        this.indexedItems = new ConcurrentHashMap<>(indexedItems);
     }
 
     public static void main(String args[]) {
@@ -47,7 +65,17 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 }
             }
 
-            IndexStorageBarrel barrel = new IndexStorageBarrel();
+            Map<String, HashSet<String>> indexedItems = new HashMap<>();
+            if (Utils.progressFileExists(name)) {
+                System.out.println(Utils.yellow("Carregando progresso do barrel: " + name));
+                indexedItems = Utils.loadBarrelProgress(name);
+                System.out.println(Utils.green("Progresso carregado com sucesso!"));
+            } else {
+                System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
+            }
+
+            IndexStorageBarrel barrel = new IndexStorageBarrel(name, port);
+            barrel.setIndexedItems(indexedItems);
 
             Registry registry = LocateRegistry.createRegistry(port);
             registry.rebind(name, barrel);
@@ -58,6 +86,19 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             System.out.println("=".repeat(50));
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
+
+            // Adicionar Shutdown Hook para salvar progresso ao encerrar
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println(Utils.yellow("Encerrando Barrel... Salvando progresso."));
+                try {
+                    Utils.saveBarrelProgress(name, barrel.getIndex());
+                } catch (RemoteException e) {
+                    System.err.println("Failed to save barrel progress: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                System.out.println(Utils.green("Progresso salvo com sucesso!"));
+            }));
+
 
              // Buscar informações do Gateway ao ConfigReader
             ConfigReader gatewayConfig = new ConfigReader("gateway");
@@ -104,15 +145,18 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
     @Override
-    public synchronized void syncIndex(Map<String, HashSet<String>> otherIndex) throws RemoteException {
-        System.out.println("[Barrel] Índice original (" + indexedItems.size() + " entradas).");
-        for (Map.Entry<String, HashSet<String>> entry : otherIndex.entrySet()) {
+    public synchronized void syncIndex(Map<String, HashSet<String>> newIndexes) throws RemoteException {
+        for (Map.Entry<String, HashSet<String>> entry : newIndexes.entrySet()) {
             String word = entry.getKey();
-            for (String url : entry.getValue()) {
-                addToIndex(word, url); // Usa o método existente para adicionar ao índice
+            HashSet<String> urls = entry.getValue();
+
+            if (!indexedItems.containsKey(word)) {
+                indexedItems.put(word, new HashSet<>(urls));
+            } else {
+                indexedItems.get(word).addAll(urls); // Adicionar URLs novos
             }
         }
-        System.out.println("[Barrel] Índice sincronizado com outro barrel (" + otherIndex.size() + " entradas).");
+        System.out.println(Utils.green("Índices sincronizados com sucesso!"));
     }
 
     @Override

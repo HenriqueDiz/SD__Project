@@ -1,7 +1,9 @@
 package downloader;
 
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.jsoup.Jsoup;
@@ -9,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import barrel.BarrelInterface;
 import common.ConfigReader;
 import common.Utils;
 import gateway.GatewayInterface;
@@ -71,14 +74,41 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36") 
                             .get();
                         StringTokenizer tokens = new StringTokenizer(doc.text());
-                        
+
+                        // Buscar lista de barrels ativos
+                        List<String> activeBarrels = gateway.getActiveBarrels();
+                        if (activeBarrels.isEmpty()) {
+                            System.out.println(Utils.red("Nenhum barrel ativo disponível. Aguardando..."));
+                            Thread.sleep(2000); // Espera antes de tentar novamente
+                            continue;
+                        }
+
                         int wordCount = 0;
                         while (tokens.hasMoreElements()) {
                             String novaPalavra = tokens.nextToken().toLowerCase();
                             novaPalavra = novaPalavra.replaceAll("[^a-zA-Z0-9]", "");
                             if (!novaPalavra.isEmpty() && novaPalavra.length() > 2) {
-                                gateway.addToIndex(novaPalavra, url);
-                                wordCount++;
+                                for (String barrel : activeBarrels) {
+                                    try {
+                                        // Validar o formato "nome:porta"
+                                        String[] barrelParts = barrel.split(":");
+                                        if (barrelParts.length != 2) {
+                                            System.err.println(Utils.red("Formato inválido para barrel: " + barrel));
+                                            continue;
+                                        }
+
+                                        String barrelName = barrelParts[0];
+                                        int barrelPort = Integer.parseInt(barrelParts[1]);
+
+                                        Registry barrelRegistry = LocateRegistry.getRegistry("localhost", barrelPort);
+                                        BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
+                                        barrelInterface.addToIndex(novaPalavra, url);
+                                    } catch (Exception e) {
+                                        System.err.println(Utils.red("Erro ao enviar palavra para o barrel: " + barrel));
+                                        e.printStackTrace();
+                                    }
+                                }
+                            wordCount++;
                             }
                         }
 

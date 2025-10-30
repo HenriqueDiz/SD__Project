@@ -38,3 +38,11 @@ Duas versões de cada método porque eles pertencem a componentes diferentes e c
 - São os workers, os que vão às páginas buscar mais urls e outras informações, threads independentes
 #### URL-queue
 - Os barrels é que guardam a informação da queue quando esta é fechada
+
+
+# Estatísticas:
+- indentificação dos barrels ativos + tamanho da hash map + tempo de resposta de pesquisa 
+
+- (Para guardar o tempo)
+- incrementar t1 + t2 + t3 --------> chega um -----------> incrementar t1 + t2 + t3 + t4
+- divisor 3                                                 divisor 4

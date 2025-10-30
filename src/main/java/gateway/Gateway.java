@@ -18,6 +18,7 @@ import queue.URLQueueInterface;
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     
     private List<BarrelInterface> activeBarrels;
+    private List<BarrelInterface> barrelsRegisters;
     private URLQueueInterface urlQueue;
     private Map<String, Integer> searchStats;
     private int currentBarrelIndex = 0;
@@ -26,6 +27,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     public Gateway() throws RemoteException {
         super();
         activeBarrels = new ArrayList<>();
+        barrelsRegisters = new ArrayList<>();
         searchStats = new ConcurrentHashMap<>();
         config = Utils.loadConfiguration();
     }
@@ -88,41 +90,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return barrel;
     }
     
-    // Adicionar palavra ao índice (replicação em todos os barrels)
-    public synchronized void addToIndex(String word, String url) throws RemoteException {
-        
-        List<BarrelInterface> failedBarrels = new ArrayList<>();
-        int successCount = 0;
-        if (activeBarrels.isEmpty()) {
-            System.out.println(Utils.red("Nenhum Barrel ativo, parando todos os downloaders..."));
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.err.println("Thread interrupted: " + e.getMessage());
-            }
-        }
-        // Adicionar a TODOS os barrels ativos (REPLICAÇÃO)
-        for (BarrelInterface barrel : activeBarrels) {
-            try {
-                barrel.addToIndex(word, url);
-                successCount++;
-            } catch (RemoteException e) {
-                System.err.println("Barrel falhou ao indexar '" + word + "': " + e.getMessage());
-                failedBarrels.add(barrel);
-            }
-        }
-        
-        // Remover barrels que falharam
-        if (!failedBarrels.isEmpty()) {
-            activeBarrels.removeAll(failedBarrels);
-            System.err.println("Removidos " + failedBarrels.size() + " barrel(s) falhado(s)");
-        }
-        
-        if (successCount == 0) {
-            throw new RemoteException("Todos os barrels falharam ao indexar '" + word + "'!");
-        }
-    }
     
     public List<String> searchWord(String word) throws RemoteException {
         System.out.println("Gateway: Procurando '" + word + "'");
@@ -180,15 +147,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     
     @Override
     public synchronized void registerBarrel(String host, int port, String name) throws RemoteException {
-        BarrelInterface newBarrel = GatewayConnections.registerBarrel(host, port, name, activeBarrels);
-        if (newBarrel != null) {
-            activeBarrels.add(newBarrel);
-            notifyAll();
-        } else {
-            throw new RemoteException("Falha ao registrar o barrel: " + name);
-        }
+        GatewayConnections.registerBarrel(host, port, name, activeBarrels, barrelsRegisters);
+        notifyAll(); // Retomar os downloaders
     }
-    
+
+    // __________________ STATISTICS _______________________ //
+
+
     private void updateSearchStats(String word) {
         searchStats.merge(word, 1, Integer::sum);
     }
@@ -202,12 +167,29 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 LinkedHashMap::putAll);
     }
 
-    //Todo: Consultar barrels ativos, não está thread-safe (acho eu), ver melhor isto
-    public List<String> getActiveBarrels() throws RemoteException {
+    @Override
+    public synchronized List<String> getActiveBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
-        for (int i = 0; i < activeBarrels.size(); i++) {
-            barrelInfo.add(Utils.green("Barrel " + (i + 1) + " - Ativo"));
+        List<BarrelInterface> failedBarrels = new ArrayList<>();
+
+        for (BarrelInterface barrel : activeBarrels) {
+            try {
+                // Supondo que cada barrel tem um método para obter o nome e a porta
+                String barrelName = barrel.getName();
+                int barrelPort = barrel.getPort();
+                barrelInfo.add(barrelName + ":" + barrelPort);
+            } catch (RemoteException e) {
+                System.err.println("Erro ao obter informações do barrel: " + e.getMessage());
+                failedBarrels.add(barrel); // Adiciona o Barrel à lista de falhados
+            }
         }
+
+        // Remove barrels falhados da lista de ativos
+        if (!failedBarrels.isEmpty()) {
+            activeBarrels.removeAll(failedBarrels);
+            System.err.println("Removidos " + failedBarrels.size() + " barrel(s) falhado(s)");
+        }
+
         return barrelInfo;
     }
 }
