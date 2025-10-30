@@ -205,4 +205,21 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
 
         return barrelInfo;
     }
+
+    @Override
+    public synchronized List<String> getRegisteredBarrels() throws RemoteException {
+        List<String> barrelInfo = new ArrayList<>();
+
+        for (BarrelInterface barrel : barrelsRegisters) {
+            try {
+                String barrelName = barrel.getName();
+                int barrelPort = barrel.getPort();
+                barrelInfo.add(barrelName + ":" + barrelPort);
+            } catch (RemoteException e) {
+                System.err.println("Erro ao obter informações do barrel registrado: " + e.getMessage());
+            }
+        }
+
+        return barrelInfo;
+    }
 }

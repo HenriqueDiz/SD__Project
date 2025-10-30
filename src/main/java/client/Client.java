@@ -43,7 +43,7 @@ public class Client {
                 System.out.println(Utils.red("1.") + "  Adicionar URL para indexar");
                 System.out.println(Utils.red("2.") + "  Procurar uma palavra");
                 System.out.println(Utils.red("3.") + "  Ver estatísticas");
-                System.out.println(Utils.red("4.") + "  Ver barrels ativos");
+                System.out.println(Utils.red("4.") + "  Ver barrels ativos/registrados");
                 System.out.println(Utils.red("5.") + "  Sair");
                 System.out.println("=".repeat(50));
                 System.out.print("Escolha uma opção (1-5): ");
@@ -105,9 +105,24 @@ public class Client {
                     case "4":
                         System.out.println("\n" + Utils.yellow("BARRELS ATIVOS"));
                         System.out.println("-".repeat(30));
-                        List<String> barrels = gateway.getActiveBarrels();
-                        for (String barrel : barrels) {
-                            System.out.println("Barrel -> " + barrel);
+                        List<String> activeBarrels = gateway.getActiveBarrels();
+                        if (activeBarrels.isEmpty()) {
+                            System.out.println("Nenhum barrel ativo no momento.");
+                        } else {
+                            for (String barrel : activeBarrels) {
+                                System.out.println("Barrel ativo -> " + barrel);
+                            }
+                        }
+
+                        System.out.println("\n" + Utils.yellow("BARRELS REGISTRADOS"));
+                        System.out.println("-".repeat(30));
+                        List<String> registeredBarrels = gateway.getRegisteredBarrels();
+                        if (registeredBarrels.isEmpty()) {
+                            System.out.println("Nenhum barrel registrado no momento.");
+                        } else {
+                            for (String barrel : registeredBarrels) {
+                                System.out.println("Barrel registrado -> " + barrel);
+                            }
                         }
                         break;
                         

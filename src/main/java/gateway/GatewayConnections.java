@@ -33,6 +33,7 @@ public class GatewayConnections {
 
     public static void registerBarrel(String host, int port, String name, List<BarrelInterface> activeBarrels, List<BarrelInterface> barrelsRegisters) throws RemoteException {
         try {
+            
             Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
             BarrelInterface newBarrel = (BarrelInterface) barrelRegistry.lookup(name);
 
