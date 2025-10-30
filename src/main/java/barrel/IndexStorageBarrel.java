@@ -66,42 +66,24 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 }
             }
 
-            // Registrar-se dinamicamente no Gateway
-            ConfigReader gatewayConfig = new ConfigReader("gateway");
-            String gatewayHost = gatewayConfig.getHost();
-            int gatewayPort = gatewayConfig.getPort();
-            String gatewayName = gatewayConfig.getName();
-
-            Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
-            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
-
-            // Verificar se o Barrel já foi registrado
-            boolean isRegistered = gateway.isBarrelRegistered(name, port);
+            // Carregar progresso se existir
             Map<String, HashSet<String>> indexedItems = new HashMap<>();
-            Registry registry;
-
-            if (isRegistered) {
-                registry = LocateRegistry.getRegistry(port); // Obter o Registry existente
-                System.out.println(Utils.green("Registry existente obtido para o Barrel: " + name));
-                if (Utils.progressFileExists(name)) {
-                    System.out.println(Utils.yellow("Carregando progresso do barrel: " + name));
-                    indexedItems = Utils.loadBarrelProgress(name);
-                    System.out.println(Utils.green("Progresso carregado com sucesso!"));
-                } else {
-                    System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando barrel com dados existentes no Gateway."));
-                }
+            if (Utils.progressFileExists(name)) {
+                System.out.println(Utils.yellow("Carregando progresso do barrel: " + name));
+                indexedItems = Utils.loadBarrelProgress(name);
+                System.out.println(Utils.green("Progresso carregado com sucesso!"));
             } else {
-                registry = LocateRegistry.createRegistry(port); // Criar um novo Registro
-                System.out.println(Utils.yellow("Registrando novo barrel no Gateway: " + name));
+                System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
             }
 
-            
-            // Criar o Barrel com os dados carregados ou novos
+            // Criar o Barrel
             IndexStorageBarrel barrel = new IndexStorageBarrel(name, port);
             barrel.setIndexedItems(indexedItems);
 
-            // Registrar o Barrel no Registry
+            // Criar Registry
+            Registry registry = LocateRegistry.createRegistry(port);
             registry.rebind(name, barrel);
+            
             System.out.println("=".repeat(50));
             System.out.println("Index Storage Barrel iniciado:");
             System.out.println("Porta: " + port);
@@ -110,11 +92,19 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
 
-            // Chamar registerBarrel sempre, mesmo que já esteja registrado
-            gateway.registerBarrel(gatewayHost, port, name);
-            System.out.println(Utils.green("Barrel atualizado/adicionado à lista de ativos no Gateway."));
+            // Registrar no Gateway
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            String gatewayHost = gatewayConfig.getHost();
+            int gatewayPort = gatewayConfig.getPort();
+            String gatewayName = gatewayConfig.getName();
 
-            // Adicionar Shutdown Hook para salvar progresso ao encerrar
+            Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
+            
+            gateway.registerBarrel(gatewayHost, port, name);
+            System.out.println(Utils.green("Barrel registrado no Gateway!"));
+
+            // Shutdown Hook
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println(Utils.yellow("Encerrando Barrel... Salvando progresso."));
                 try {

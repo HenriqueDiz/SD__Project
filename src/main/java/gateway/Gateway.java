@@ -5,6 +5,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private List<BarrelInterface> activeBarrels;
     private List<BarrelInterface> barrelsRegisters;
     private URLQueueInterface urlQueue;
+    private Map<String, Integer> registeredBarrelInfo;
     private Map<String, Integer> searchStats;
     private int currentBarrelIndex = 0;
     private Properties config;
@@ -28,6 +30,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         super();
         activeBarrels = new ArrayList<>();
         barrelsRegisters = new ArrayList<>();
+        registeredBarrelInfo = new ConcurrentHashMap<>();
         searchStats = new ConcurrentHashMap<>();
         config = Utils.loadConfiguration();
     }
@@ -105,11 +108,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     }
 
     // Consultar barrel com failover em caso de falha
-    private List<String> searchWithFailover(String word) throws RemoteException {
-        List<BarrelInterface> failedBarrels = new ArrayList<>();
+   private List<String> searchWithFailover(String word) throws RemoteException {
+        List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);
         
-        // Como todos os barrels têm a mesma info, basta um responder
-        for (int attempt = 0; attempt < activeBarrels.size(); attempt++) {
+        for (int attempt = 0; attempt < activeBarrelsCopy.size(); attempt++) {
             BarrelInterface barrel = getNextBarrel();
             if (barrel == null) break;
             
@@ -119,13 +121,17 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 return results;
                 
             } catch (RemoteException e) {
-                System.err.println("Barrel " + (attempt + 1) + " falhou, tentando próximo...");
-                failedBarrels.add(barrel);
+                try {
+                    String barrelName = barrel.getName();
+                    int barrelPort = barrel.getPort();
+                    System.err.println("Barrel " + barrelName + ":" + barrelPort + " falhou, tentando próximo...");
+                } catch (RemoteException ex) {
+                    System.err.println("Barrel " + (attempt + 1) + " falhou, tentando próximo...");
+                    // Remove pela referência se não conseguir obter nome/porta
+                    activeBarrels.remove(barrel);
+                }
             }
         }
-        
-        // Remover barrels falhados
-        activeBarrels.removeAll(failedBarrels);
         
         if (activeBarrels.isEmpty()) {
             throw new RemoteException("Todos os barrels falharam!");
@@ -147,18 +153,24 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     
     @Override
     public synchronized void registerBarrel(String host, int port, String name) throws RemoteException {
-        GatewayConnections.registerBarrel(host, port, name, activeBarrels, barrelsRegisters);
+        GatewayConnections.registerBarrel(host, port, name, activeBarrels, barrelsRegisters, registeredBarrelInfo);
         notifyAll(); // Retomar os downloaders
     }
 
     @Override
     public synchronized boolean isBarrelRegistered(String name, int port) throws RemoteException {
+        // Verificar primeiro no mapa de informações (mais confiável)
+        Integer registeredPort = registeredBarrelInfo.get(name);
+        if (registeredPort != null && registeredPort == port) {
+            return true;
+        }
+        
+        // Verificar na lista como backup
         return barrelsRegisters.stream()
             .anyMatch(barrel -> {
                 try {
                     return barrel.getName().equals(name) && barrel.getPort() == port;
                 } catch (RemoteException e) {
-                    System.err.println("Erro ao verificar registro do barrel: " + e.getMessage());
                     return false;
                 }
             });
@@ -183,24 +195,30 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     @Override
     public synchronized List<String> getActiveBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
-        List<BarrelInterface> failedBarrels = new ArrayList<>();
+        List<String> failedBarrelNames = new ArrayList<>();
 
-        for (BarrelInterface barrel : activeBarrels) {
+        // Usar iterator para evitar ConcurrentModificationException
+        Iterator<BarrelInterface> iterator = activeBarrels.iterator();
+        while (iterator.hasNext()) {
+            BarrelInterface barrel = iterator.next();
             try {
-                // Supondo que cada barrel tem um método para obter o nome e a porta
                 String barrelName = barrel.getName();
                 int barrelPort = barrel.getPort();
                 barrelInfo.add(barrelName + ":" + barrelPort);
             } catch (RemoteException e) {
-                System.err.println("Erro ao obter informações do barrel: " + e.getMessage());
-                failedBarrels.add(barrel); // Adiciona o Barrel à lista de falhados
+                try {
+                    String failedName = barrel.getName() + ":" + barrel.getPort();
+                    failedBarrelNames.add(failedName);
+                } catch (RemoteException ex) {
+                    failedBarrelNames.add("unknown_barrel");
+                }
+                System.err.println("Erro ao obter informações do barrel ativo: " + e.getMessage());
+                iterator.remove(); // Remove apenas da lista de ativos
             }
         }
 
-        // Remove barrels falhados da lista de ativos
-        if (!failedBarrels.isEmpty()) {
-            activeBarrels.removeAll(failedBarrels);
-            System.err.println("Removidos " + failedBarrels.size() + " barrel(s) falhado(s)");
+        if (!failedBarrelNames.isEmpty()) {
+            System.err.println("Removidos " + failedBarrelNames.size() + " barrel(s) falhado(s) da lista de ativos: " + failedBarrelNames);
         }
 
         return barrelInfo;
@@ -210,16 +228,28 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     public synchronized List<String> getRegisteredBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
 
-        for (BarrelInterface barrel : barrelsRegisters) {
-            try {
-                String barrelName = barrel.getName();
-                int barrelPort = barrel.getPort();
-                barrelInfo.add(barrelName + ":" + barrelPort);
-            } catch (RemoteException e) {
-                System.err.println("Erro ao obter informações do barrel registrado: " + e.getMessage());
+        // Usar o mapa de informações registradas como fonte principal
+        for (Map.Entry<String, Integer> entry : registeredBarrelInfo.entrySet()) {
+            String name = entry.getKey();
+            Integer port = entry.getValue();
+            barrelInfo.add(name + ":" + port);
+        }
+
+        // Se o mapa estiver vazio, usar a lista como fallback
+        if (barrelInfo.isEmpty()) {
+            for (BarrelInterface barrel : barrelsRegisters) {
+                try {
+                    String barrelName = barrel.getName();
+                    int barrelPort = barrel.getPort();
+                    barrelInfo.add(barrelName + ":" + barrelPort);
+                } catch (RemoteException e) {
+                    System.err.println("Erro ao obter informações do barrel registrado: " + e.getMessage());
+                    // Não remover da lista de registrados aqui
+                }
             }
         }
 
         return barrelInfo;
     }
+
 }
