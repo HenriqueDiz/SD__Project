@@ -151,6 +151,19 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         notifyAll(); // Retomar os downloaders
     }
 
+    @Override
+    public synchronized boolean isBarrelRegistered(String name, int port) throws RemoteException {
+        return barrelsRegisters.stream()
+            .anyMatch(barrel -> {
+                try {
+                    return barrel.getName().equals(name) && barrel.getPort() == port;
+                } catch (RemoteException e) {
+                    System.err.println("Erro ao verificar registro do barrel: " + e.getMessage());
+                    return false;
+                }
+            });
+    }
+
     // __________________ STATISTICS _______________________ //
 
 

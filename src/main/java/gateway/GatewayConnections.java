@@ -36,86 +36,20 @@ public class GatewayConnections {
             Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
             BarrelInterface newBarrel = (BarrelInterface) barrelRegistry.lookup(name);
 
-            // Verificar se o barrel já foi registrado
-            boolean isRegistered = barrelsRegisters.stream()
-                .anyMatch(barrel -> {
-                    try {
-                        String registeredName = barrel.getName();
-                        int registeredPort = barrel.getPort();
-                        String newBarrelName = newBarrel.getName();
-                        int newBarrelPort = newBarrel.getPort();
-
-                        System.out.println("Comparando Barrel:");
-                        System.out.println("Registrado -> Nome: " + registeredName + ", Porta: " + registeredPort);
-                        System.out.println("Novo -> Nome: " + newBarrelName + ", Porta: " + newBarrelPort);
-
-                        return registeredName.equals(newBarrelName) && registeredPort == newBarrelPort;
-                    } catch (RemoteException e) {
-                        System.err.println("Erro ao comparar barrels: " + e.getMessage());
-                        return false;
-                    }
-                });
-
-            if (isRegistered) {
-                System.out.println(Utils.green("Barrel já registrado: " + name));
-                // Carregar progresso salvo do ficheiro de objetos
-                Map<String, HashSet<String>> savedProgress = Utils.loadBarrelProgress(name);
-                newBarrel.syncIndex(savedProgress);
-
-                // Sincronizar apenas os índices que faltam
-                if (!activeBarrels.isEmpty()) {
-                    BarrelInterface sourceBarrel = activeBarrels.get(0); // Escolhe o primeiro barrel ativo
-                    Map<String, HashSet<String>> sourceIndex = sourceBarrel.getIndex();
-                    Map<String, HashSet<String>> missingIndexes = getMissingIndexes(savedProgress, sourceIndex);
-                    newBarrel.syncIndex(missingIndexes);
-                }
-
-                System.out.println(Utils.green("Dados sincronizados para o barrel: " + name));
-            } else {
-                System.out.println(Utils.yellow("Registrando novo barrel: " + name));
+            // Adicionar o Barrel à lista de registrados, se ainda não estiver
+            if (!barrelsRegisters.contains(newBarrel)) {
                 barrelsRegisters.add(newBarrel);
-                System.out.println("Barrel adicionado à lista de registrados: " + name);
-
-                // Sincronizar todos os dados com um barrel ativo (se existir)
-                if (!activeBarrels.isEmpty()) {
-                    BarrelInterface sourceBarrel = activeBarrels.get(0); // Escolhe o primeiro barrel ativo
-                    Map<String, HashSet<String>> sourceIndex = sourceBarrel.getIndex();
-                    newBarrel.syncIndex(sourceIndex);
-                    System.out.println(Utils.green("Dados sincronizados com o barrel ativo: " + sourceBarrel));
-                }
+                System.out.println(Utils.green("Barrel registrado: " + name));
             }
 
-            // Adicionar o novo barrel à lista de barrels ativos
+            // Adicionar o Barrel à lista de ativos, se ainda não estiver
             if (!activeBarrels.contains(newBarrel)) {
                 activeBarrels.add(newBarrel);
+                System.out.println(Utils.green("Barrel ativo: " + name));
             }
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RemoteException("Erro ao registrar barrel: " + e.getMessage());
-            
         }
-    }
-
-    private static Map<String, HashSet<String>> getMissingIndexes(Map<String, HashSet<String>> savedProgress, Map<String, HashSet<String>> sourceIndex) {
-        Map<String, HashSet<String>> missingIndexes = new HashMap<>();
-
-        for (Map.Entry<String, HashSet<String>> entry : sourceIndex.entrySet()) {
-            String word = entry.getKey();
-            HashSet<String> urls = entry.getValue();
-
-            if (!savedProgress.containsKey(word)) {
-                // Palavra não existe no progresso salvo, adicionar tudo
-                missingIndexes.put(word, new HashSet<>(urls));
-            } else {
-                // Palavra existe, adicionar apenas URLs que faltam
-                HashSet<String> savedUrls = savedProgress.get(word);
-                HashSet<String> newUrls = new HashSet<>(urls);
-                newUrls.removeAll(savedUrls); // Remover URLs já existentes
-                if (!newUrls.isEmpty()) {
-                    missingIndexes.put(word, newUrls);
-                }
-            }
-        }
-
-        return missingIndexes;
     }
 }

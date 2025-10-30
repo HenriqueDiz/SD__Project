@@ -65,6 +65,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 }
             }
 
+            // Verificar se o ficheiro de progresso existe
             Map<String, HashSet<String>> indexedItems = new HashMap<>();
             if (Utils.progressFileExists(name)) {
                 System.out.println(Utils.yellow("Carregando progresso do barrel: " + name));
@@ -74,9 +75,11 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
             }
 
+            // Criar o Barrel com os dados carregados ou novos
             IndexStorageBarrel barrel = new IndexStorageBarrel(name, port);
             barrel.setIndexedItems(indexedItems);
 
+            // Criar o Registry do Barrel antes de registrar no Gateway
             Registry registry = LocateRegistry.createRegistry(port);
             registry.rebind(name, barrel);
             System.out.println("=".repeat(50));
@@ -86,6 +89,24 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             System.out.println("=".repeat(50));
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
+
+            // Registrar-se dinamicamente no Gateway
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            String gatewayHost = gatewayConfig.getHost();
+            int gatewayPort = gatewayConfig.getPort();
+            String gatewayName = gatewayConfig.getName();
+
+            Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
+
+            // Verificar se o Barrel já foi registrado
+            boolean isRegistered = gateway.isBarrelRegistered(name, port);
+            if (isRegistered) {
+                System.out.println(Utils.green("Barrel já registrado no Gateway: " + name));
+            } else {
+                System.out.println(Utils.yellow("Registrando novo barrel no Gateway: " + name));
+                gateway.registerBarrel(gatewayHost, port, name);
+            }
 
             // Adicionar Shutdown Hook para salvar progresso ao encerrar
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -99,25 +120,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 System.out.println(Utils.green("Progresso salvo com sucesso!"));
             }));
 
-
-             // Buscar informações do Gateway ao ConfigReader
-            ConfigReader gatewayConfig = new ConfigReader("gateway");
-            String gatewayHost = gatewayConfig.getHost();
-            int gatewayPort = gatewayConfig.getPort();
-            String gatewayName = gatewayConfig.getName();
-
-            // Registrar-se dinamicamente no Gateway
-            Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
-            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
-            gateway.registerBarrel(gatewayHost, port, name);
-
-            
             Object lock = new Object();
             synchronized (lock) {
                 lock.wait();
             }
-            
+
         } catch (Exception e) {
+            System.err.println(Utils.red("Erro fatal no Barrel: " + e.getMessage()));
             e.printStackTrace();
         }
     }
