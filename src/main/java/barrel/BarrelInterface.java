@@ -14,6 +14,7 @@ public interface BarrelInterface extends Remote {
     public void syncIndex(Map<String, HashSet<String>> otherIndex) throws RemoteException;
     String getName() throws RemoteException;
     int getPort() throws RemoteException;
+    String getHost() throws RemoteException;
 
     // Novo método: obter índice atual
     public Map<String, HashSet<String>> getIndex() throws RemoteException;

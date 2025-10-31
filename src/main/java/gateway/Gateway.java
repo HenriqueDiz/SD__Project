@@ -209,11 +209,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             BarrelInterface barrel = iterator.next();
             try {
                 String barrelName = barrel.getName();
-                int barrelPort = barrel.getPort();// todo: Passar isto
-                barrelInfo.add(barrelName + ":" + barrelPort);
+                int barrelPort = barrel.getPort();
+                String barrelHost = barrel.getHost();
+                barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost);
             } catch (RemoteException e) {
                 try {
-                    String failedName = barrel.getName() + ":" + barrel.getPort();
+                    String failedName = barrel.getName() + ":" + barrel.getPort() + ":" + barrel.getHost();
                     failedBarrelNames.add(failedName);
                 } catch (RemoteException ex) {
                     failedBarrelNames.add("unknown_barrel");
@@ -238,7 +239,25 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         for (Map.Entry<String, Integer> entry : registeredBarrelInfo.entrySet()) {
             String name = entry.getKey();
             Integer port = entry.getValue();
-            barrelInfo.add(name + ":" + port);
+            // Procura o host correspondente na lista de barrelsRegisters
+            String host = barrelsRegisters.stream()
+                .filter(b -> {
+                    try {
+                        return b.getName().equals(name) && b.getPort() == port;
+                    } catch (RemoteException e) {
+                        return false;
+                    }
+                })
+                .findFirst()
+                .map(b -> {
+                    try {
+                        return b.getHost();
+                    } catch (RemoteException e) {
+                        return "unknown_host";
+                    }
+                })
+                .orElse("unknown_host");
+            barrelInfo.add(name + ":" + port + ":" + host);
         }
 
         // Se o mapa estiver vazio, usar a lista como fallback
@@ -247,10 +266,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 try {
                     String barrelName = barrel.getName();
                     int barrelPort = barrel.getPort();
-                    barrelInfo.add(barrelName + ":" + barrelPort);
+                    String barrelHost = barrel.getHost();
+                    barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost);
                 } catch (RemoteException e) {
                     System.err.println("Erro ao obter informações do barrel registrado: " + e.getMessage());
-                    // Não remover da lista de registrados aqui
                 }
             }
         }

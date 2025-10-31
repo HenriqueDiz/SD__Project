@@ -21,12 +21,15 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // Hashset for non repeated URLS
     private final String name;
     private final int port;
+    private final String host;
 
-    public IndexStorageBarrel(String name, int port) throws RemoteException {
+
+    public IndexStorageBarrel(String name, int port, String host) throws RemoteException {
         super();
         indexedItems = new ConcurrentHashMap<>();
         this.port = port;
         this.name = name;
+        this.host = host;
                
     }
 
@@ -40,6 +43,10 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return port;
     }
 
+    @Override
+    public String getHost() throws RemoteException {
+        return host;
+    }
 
     public void setIndexedItems(Map<String, HashSet<String>> indexedItems) {
         this.indexedItems = new ConcurrentHashMap<>(indexedItems);
@@ -81,7 +88,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             }
 
             // Criar o Barrel
-            IndexStorageBarrel barrel = new IndexStorageBarrel(name, port);
+            IndexStorageBarrel barrel = new IndexStorageBarrel(name, port, host);
             barrel.setIndexedItems(indexedItems);
 
             System.setProperty("java.rmi.server.hostname", host);

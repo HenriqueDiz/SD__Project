@@ -34,18 +34,27 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
 
             int gatewayPort;
             int queuePort;
+            String gatewayHost;
+            String queueHost;
 
-            if (args.length == 2) {
+            if (args.length == 4) {
                 gatewayPort = Utils.validatePort(args[0]);
                 queuePort = Utils.validatePort(args[1]);
+                gatewayHost = args[2];
+                queueHost = args[3];
             } else {
-                gatewayPort = new ConfigReader("gateway").getPort();
-                queuePort = new ConfigReader("queue").getPort();
+                ConfigReader gatewayConfig = new ConfigReader("gateway");
+                gatewayPort = gatewayConfig.getPort();
+                gatewayHost = gatewayConfig.getHost();
+
+                ConfigReader queueConfig = new ConfigReader("queue");
+                queueHost = queueConfig.getHost();
+                queuePort = queueConfig.getPort();
             }
         
             // MUDANÇA: Conectar ao Gateway em vez do Barrel direto
-            GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
-            URLQueueInterface urlQueue = (URLQueueInterface) LocateRegistry.getRegistry("localhost", queuePort).lookup("urlqueue");
+            GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry(gatewayHost, gatewayPort).lookup("gateway");
+            URLQueueInterface urlQueue = (URLQueueInterface) LocateRegistry.getRegistry(queueHost, queuePort).lookup("urlqueue");
             
             System.out.println("Downloader iniciado");
             System.out.println("Conectado ao Gateway na porta " + gatewayPort);
@@ -92,15 +101,15 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                                     try {
                                         // Validar o formato "nome:porta"
                                         String[] barrelParts = barrel.split(":");
-                                        if (barrelParts.length != 2) {
+                                        if (barrelParts.length != 3) {
                                             System.err.println(Utils.red("Formato inválido para barrel: " + barrel));
                                             continue;
                                         }
 
                                         String barrelName = barrelParts[0];
                                         int barrelPort = Integer.parseInt(barrelParts[1]);
-
-                                        Registry barrelRegistry = LocateRegistry.getRegistry("localhost", barrelPort);
+                                        String barrelHost = barrelParts[2];
+                                        Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
                                         BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
                                         barrelInterface.addToIndex(novaPalavra, url);
                                     } catch (Exception e) {
