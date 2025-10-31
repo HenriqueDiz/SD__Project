@@ -13,17 +13,24 @@ public class Client {
 
     public static void main(String[] args) {
         try {
+            String gatewayHost;
             int gatewayPort;
+            String gatewayName;
 
             if (args.length == 1) {
                 gatewayPort = Utils.validatePort(args[0]);
+                ConfigReader config = new ConfigReader("gateway");
+                gatewayHost = config.getHost();
+                gatewayName = config.getName();
             } else {
                 ConfigReader config = new ConfigReader("gateway");
+                gatewayHost = config.getHost();
                 gatewayPort = config.getPort();
+                gatewayName = config.getName();
             }
-                        
-            GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry("localhost", gatewayPort).lookup("gateway");
-            System.out.println("Conectado ao Gateway na porta " + gatewayPort);
+
+            GatewayInterface gateway = (GatewayInterface) LocateRegistry.getRegistry(gatewayHost, gatewayPort).lookup(gatewayName);
+            System.out.println("Conectado ao Gateway em " + gatewayHost + ":" + gatewayPort);
             System.out.println("\n" + "=".repeat(50) + "\n");
             System.out.println(Utils.red(" ▄████  ▒█████   ▒█████    ▄████  ▒█████   ██▓    "));
             System.out.println(Utils.red(" ██▒ ▀█▒▒██▒  ██▒▒██▒  ██▒ ██▒ ▀█▒▒██▒  ██▒▓██▒    "));
