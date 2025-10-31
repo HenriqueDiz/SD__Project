@@ -23,25 +23,34 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
         try {
             URLQueue urlQueue = new URLQueue();
             int port;
+            String host;
+            String name;
 
-            if (args.length == 1) {
-                port = Utils.validatePort(args[0]);
+            if (args.length == 3) {
+                host = args[0];
+                port = Utils.validatePort(args[1]);
+                name = Utils.validateName(args[2]);
             } else {
-                port = new ConfigReader("queue").getPort();
+                ConfigReader config = new ConfigReader("queue");
+                host = config.getHost();
+                port = config.getPort();
+                name = config.getName();
             }
-            
+
+            System.setProperty("java.rmi.server.hostname", host);
+
             Registry registry = LocateRegistry.createRegistry(port);
-            registry.rebind("urlqueue", urlQueue); 
-            
-            System.out.println("URL Queue iniciado na porta " + port);
+            registry.rebind(name, urlQueue);
+
+            System.out.println("URL Queue iniciado em " + host + ":" + port + " com nome '" + name + "'");
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
-            
+
             Object lock = new Object();
             synchronized (lock) {
                 lock.wait();
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }

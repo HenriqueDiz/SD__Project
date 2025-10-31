@@ -49,6 +49,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         try {
             int port;
             String name;
+            String host;
 
             // Configuração inicial
             switch (args.length) {
@@ -56,10 +57,12 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                     ConfigReader config = new ConfigReader(args[0]);
                     port = config.getPort();
                     name = config.getName();
+                    host = config.getHost();
                 }
-                case 2 -> {
+                case 3 -> {
                     port = Utils.validatePort(args[0]);
                     name = Utils.validateName(args[1]);
+                    host = args[2];
                 }
                 default -> {
                     System.out.println("Usage: java IndexStorageBarrel <port> <name> or java IndexStorageBarrel <barrelNumber>");
@@ -81,6 +84,8 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             IndexStorageBarrel barrel = new IndexStorageBarrel(name, port);
             barrel.setIndexedItems(indexedItems);
 
+            System.setProperty("java.rmi.server.hostname", host);
+
             // Criar Registry
             Registry registry = LocateRegistry.createRegistry(port);
             registry.rebind(name, barrel);
@@ -89,6 +94,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             System.out.println("Index Storage Barrel iniciado:");
             System.out.println("Porta: " + port);
             System.out.println("Nome: " + name);
+            System.out.println("Host: " + host);
             System.out.println("=".repeat(50));
             System.out.println("Aguardando conexões...");
             System.out.println("Use Ctrl+C para encerrar");
@@ -102,7 +108,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayHost, gatewayPort);
             GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayName);
             
-            gateway.registerBarrel(gatewayHost, port, name);
+            gateway.registerBarrel(host, port, name);
             System.out.println(Utils.green("Barrel registrado no Gateway!"));
 
             // Shutdown Hook
