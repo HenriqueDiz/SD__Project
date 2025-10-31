@@ -43,11 +43,9 @@ public class Client {
                 System.out.println(Utils.red("1.") + "  Adicionar URL para indexar");
                 System.out.println(Utils.red("2.") + "  Procurar uma palavra");
                 System.out.println(Utils.red("3.") + "  Ver estatísticas");
-                System.out.println(Utils.red("4.") + "  Ver barrels ativos/registrados");
-                System.out.println(Utils.red("5.") + "  Tempo médio de resposta por barrel");
-                System.out.println(Utils.red("6.") + "  Sair");
+                System.out.println(Utils.red("4.") + "  Sair");
                 System.out.println("=".repeat(50));
-                System.out.print("Escolha uma opção (1-6): ");
+                System.out.print("Escolha uma opção (1-4): ");
                 
                 String choice = keyboard.nextLine().trim();
                 
@@ -101,9 +99,6 @@ public class Client {
                                 rank++;
                             }
                         }
-                        break;
-                        
-                    case "4":
                         System.out.println("\n" + Utils.yellow("BARRELS ATIVOS"));
                         System.out.println("-".repeat(30));
                         List<String> activeBarrels = gateway.getActiveBarrels();
@@ -125,9 +120,7 @@ public class Client {
                                 System.out.println("Barrel registrado -> " + barrel);
                             }
                         }
-                        break;
 
-                    case "5":
                         System.out.println("\n" + Utils.yellow("TEMPO MÉDIO DE RESPOSTA POR BARREL"));
                         System.out.println("-".repeat(30));
                         Map<String, Long> responseTimes = gateway.getAverageResponseTime();
@@ -138,9 +131,10 @@ public class Client {
                                 System.out.println("Barrel: " + entry.getKey() + " - Tempo médio: " + entry.getValue() + " ns");
                             }
                         }
+
                         break;
 
-                    case "6":
+                    case "4":
                         System.out.println("\n" + Utils.yellow("Encerrando o cliente..."));
                         keyboard.close();
                         System.exit(0);

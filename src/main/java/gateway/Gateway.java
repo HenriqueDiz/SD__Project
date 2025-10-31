@@ -210,7 +210,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             try {
                 String barrelName = barrel.getName();
                 int barrelPort = barrel.getPort();
-                long indexSize = barrel.getIndexSize(); // TO DO: Passar isto
+                long indexSize = barrel.getIndexSize(); // todo: Passar isto
                 barrelInfo.add(barrelName + ":" + barrelPort);
             } catch (RemoteException e) {
                 try {
