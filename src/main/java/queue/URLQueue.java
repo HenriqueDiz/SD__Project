@@ -4,7 +4,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Set;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import common.ConfigReader;
@@ -13,10 +15,12 @@ import common.Utils;
 public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
 
     private BlockingDeque<String> urlsToIndex;
+    private Set<String> seenUrls;
 
     public URLQueue() throws RemoteException {
         super();
         urlsToIndex = new LinkedBlockingDeque<String>();
+        seenUrls = ConcurrentHashMap.newKeySet();
     }
 
     public static void main(String args[]) {
@@ -66,6 +70,12 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
     }
 
     public void putNew(String url, boolean priority) throws RemoteException {
+        if (url == null || url.isEmpty()) {
+            return;
+        }
+        if (!seenUrls.add(url)) {
+            return;
+        }
         try {
             if (priority) { // Quando o cliente adiciona mete em primeiro na queue
                 urlsToIndex.putFirst(url);
