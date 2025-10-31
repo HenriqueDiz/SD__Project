@@ -3,10 +3,14 @@ package common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,6 +26,8 @@ public final class Utils {
     private static final String BOLD = "\u001B[1m";
 
     private static final String CONFIG_FILE_PATH = "/Config.cfg";
+    private static final String LOG_EXCEPTIONS_FILE_PATH = "/Log_Exceptions.txt";
+    private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private Utils() {}
 
@@ -84,6 +90,28 @@ public final class Utils {
     public static boolean progressFileExists(String barrelName) {
         File progressFile = new File(barrelName + "_progress.dat");
         return progressFile.exists();
+    }
+
+    public static void printLogException(String msg, Throwable t) {
+        if (t == null && (msg == null || msg.isBlank())) return;
+
+        String ts = LocalDateTime.now().format(TS_FMT);
+        String header = "[" + ts + "] " + msg + ": " + t.getMessage();
+
+        System.err.println(red(header));
+        t.printStackTrace(System.err);
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter(LOG_EXCEPTIONS_FILE_PATH, true))) {
+            pw.println(header);
+            t.printStackTrace(pw);
+            pw.println();
+        } catch (IOException ioe) {
+            System.err.println(red("Falha ao escrever no log: " + ioe.getMessage()));
+        }
+    }
+
+    public static void printLogException(Throwable t) {
+        printLogException(null, t);
     }
 
     private static String color(String text, String code) {

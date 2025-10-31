@@ -40,6 +40,15 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return port;
     }
 
+    @Override
+    public synchronized long getIndexSize() throws RemoteException {
+        long total = 0L;
+        for (HashSet<String> urls : indexedItems.values()) {
+            total += urls.size();
+        }
+        return total;
+    }
+
     public void setIndexedItems(Map<String, HashSet<String>> indexedItems) {
         this.indexedItems = new ConcurrentHashMap<>(indexedItems);
     }
@@ -110,8 +119,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 try {
                     Utils.saveBarrelProgress(name, barrel.getIndex());
                 } catch (RemoteException e) {
-                    System.err.println("Failed to save barrel progress: " + e.getMessage());
-                    e.printStackTrace();
+                    Utils.printLogException("Failed to save barrel progress", e);
                 }
                 System.out.println(Utils.green("Progresso salvo com sucesso!"));
             }));
@@ -122,8 +130,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             }
 
         } catch (Exception e) {
-            System.err.println(Utils.red("Erro fatal no Barrel: " + e.getMessage()));
-            e.printStackTrace();
+            Utils.printLogException("Erro no Index Storage Barrel", e);
         }
     }
 

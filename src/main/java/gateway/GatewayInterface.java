@@ -1,7 +1,9 @@
 package gateway;
 
-import java.rmi.*;
-import java.util.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.util.List;
+import java.util.Map;
 
 public interface GatewayInterface extends Remote {
     // Métodos principais para clientes
@@ -12,6 +14,7 @@ public interface GatewayInterface extends Remote {
     public Map<String, Integer> getTop10Searches() throws RemoteException;
     public List<String> getActiveBarrels() throws RemoteException;
     public List<String> getRegisteredBarrels() throws RemoteException;
+    public Map<String, Long> getAverageResponseTime() throws RemoteException;
   
     public boolean isBarrelRegistered(String name, int port) throws RemoteException;
     // Método para barrels se registrarem

@@ -26,6 +26,9 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private int currentBarrelIndex = 0;
     private Properties config;
     
+    private final Map<String, Long> barrelTotalNanos = new ConcurrentHashMap<>();
+    private final Map<String, Long> barrelCount = new ConcurrentHashMap<>();
+    
     public Gateway() throws RemoteException {
         super();
         activeBarrels = new ArrayList<>();
@@ -116,7 +119,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             if (barrel == null) break;
             
             try {
+                long start = System.nanoTime();
                 List<String> results = barrel.searchWord(word);
+                long elapsed = System.nanoTime() - start;
+                recordResponseTime(barrel, elapsed);
                 System.out.println("Barrel " + (attempt + 1) + " respondeu com " + results.size() + " resultado(s)");
                 return results;
                 
@@ -204,6 +210,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             try {
                 String barrelName = barrel.getName();
                 int barrelPort = barrel.getPort();
+                long indexSize = barrel.getIndexSize(); // TO DO: Passar isto
                 barrelInfo.add(barrelName + ":" + barrelPort);
             } catch (RemoteException e) {
                 try {
@@ -252,4 +259,31 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return barrelInfo;
     }
 
+    private void recordResponseTime(BarrelInterface barrel, long durationNanos) {
+        String key;
+        try {
+            key = barrel.getName() + ":" + barrel.getPort();
+        } catch (RemoteException e) {
+            key = "unknown_barrel";
+            Utils.printLogException("Erro ao obter nome/porta do barrel para estatísticas de tempo de resposta", e);
+        }
+        barrelTotalNanos.merge(key, durationNanos, Long::sum);
+        barrelCount.merge(key, 1L, Long::sum);
+    }
+
+    @Override
+    public synchronized Map<String, Long> getAverageResponseTime() throws RemoteException {
+        Map<String, Long> averages = new LinkedHashMap<>();
+        barrelCount.keySet().stream()
+            .sorted()
+            .forEach(key -> {
+                long count = barrelCount.getOrDefault(key, 0L);
+                long total = barrelTotalNanos.getOrDefault(key, 0L);
+                if (count > 0) {
+                    long avgNanos = total / count;
+                    averages.put(key, avgNanos);
+                }
+            });
+        return averages;
+    }
 }
