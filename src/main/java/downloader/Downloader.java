@@ -5,6 +5,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.HashSet;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -61,18 +62,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
             System.out.println("Conectado ao URLQueue na porta " + queuePort);
             
             while (true) {
-                String url = urlQueue.takeNext();
-                if (url.equals("")) {
-                    try {
-                        System.out.println("Fila vazia, dormindo...");
-                        Thread.sleep(1000);
-                        continue;
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
-                
+                String url = urlQueue.takeNext();                
                 System.out.println("Processando: " + url);
                 boolean success = false;
                 int attempts = 0;
@@ -92,6 +82,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                             continue;
                         }
 
+                        HashSet<String> linksFound = new HashSet<>();
                         int wordCount = 0;
                         while (tokens.hasMoreElements()) {
                             String novaPalavra = tokens.nextToken().toLowerCase();
@@ -99,7 +90,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                             if (!novaPalavra.isEmpty() && novaPalavra.length() > 2) {
                                 for (String barrel : activeBarrels) {
                                     try {
-                                        // Validar o formato "nome:porta"
+                                        // Validar o formato "nome:porta:host"
                                         String[] barrelParts = barrel.split(":");
                                         if (barrelParts.length != 3) {
                                             System.err.println(Utils.red("Formato inválido para barrel: " + barrel));
@@ -112,6 +103,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                                         Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
                                         BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
                                         barrelInterface.addToIndex(novaPalavra, url);
+                            
                                     } catch (Exception e) {
                                         System.err.println(Utils.red("Erro ao enviar palavra para o barrel: " + barrel));
                                         e.printStackTrace();
@@ -128,6 +120,28 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                             if (isValidUrl(linkUrl)) {
                                 urlQueue.putNew(linkUrl, false);
                                 linkCount++;
+                                linksFound.add(linkUrl);
+                            }
+                        }
+
+                        // Só agora associa os links encontrados ao URL (apenas uma vez por página!)
+                        for (String barrel : activeBarrels) {
+                            try {
+                                String[] barrelParts = barrel.split(":");
+                                if (barrelParts.length != 3) {
+                                    System.err.println(Utils.red("Formato inválido para barrel: " + barrel));
+                                    continue;
+                                }
+
+                                String barrelName = barrelParts[0];
+                                int barrelPort = Integer.parseInt(barrelParts[1]);
+                                String barrelHost = barrelParts[2];
+                                Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
+                                BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
+                                barrelInterface.addUrlsForIndexedUrl(url, linksFound);
+                            } catch (Exception e) {
+                                System.err.println(Utils.red("Erro ao enviar URLs para o barrel: " + barrel));
+                                e.printStackTrace();
                             }
                         }
                         

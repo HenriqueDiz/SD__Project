@@ -130,6 +130,8 @@ public class GatewayConnections {
                 System.out.println("Palavras antes: " + newBarrelIndex.size());
                 System.out.println("Palavras depois: " + finalIndex.size());
                 System.out.println("Palavras adicionadas: " + (finalIndex.size() - newBarrelIndex.size()));
+                System.out.println("\n" + "=".repeat(70));
+
                 
             } else {
                 System.out.println(Utils.green("Barrel já está atualizado - nenhuma sincronização necessária"));

@@ -25,7 +25,7 @@ public final class Utils {
     private static final String BLUE = "\u001B[34m";
     private static final String BOLD = "\u001B[1m";
 
-    private static final String CONFIG_FILE_PATH = "/Config.cfg";
+    private static final String CONFIG_FILE_PATH = "/Config.properties";
     private static final String LOG_EXCEPTIONS_FILE_PATH = "/Log_Exceptions.txt";
     private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 

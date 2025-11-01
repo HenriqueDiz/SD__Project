@@ -62,9 +62,12 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
 
 
     public String takeNext() throws RemoteException {
-        String nextUrl = urlsToIndex.poll();
-        if (nextUrl == null) {
-            nextUrl = "";
+        String nextUrl = "";
+        try {
+            nextUrl = urlsToIndex.take();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException("Interrupted while taking URL from queue", e);
         }
         return nextUrl;
     }

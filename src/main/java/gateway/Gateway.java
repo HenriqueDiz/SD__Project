@@ -5,6 +5,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -163,24 +164,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         notifyAll(); // Retomar os downloaders
     }
 
-    @Override
-    public synchronized boolean isBarrelRegistered(String name, int port) throws RemoteException {
-        // Verificar primeiro no mapa de informações (mais confiável)
-        Integer registeredPort = registeredBarrelInfo.get(name);
-        if (registeredPort != null && registeredPort == port) {
-            return true;
-        }
-        
-        // Verificar na lista como backup
-        return barrelsRegisters.stream()
-            .anyMatch(barrel -> {
-                try {
-                    return barrel.getName().equals(name) && barrel.getPort() == port;
-                } catch (RemoteException e) {
-                    return false;
-                }
-            });
-    }
 
     // __________________ STATISTICS _______________________ //
 
@@ -201,7 +184,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     @Override
     public synchronized List<String> getActiveBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
-        List<String> failedBarrelNames = new ArrayList<>();
 
         // Usar iterator para evitar ConcurrentModificationException
         Iterator<BarrelInterface> iterator = activeBarrels.iterator();
@@ -213,21 +195,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 String barrelHost = barrel.getHost();
                 barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost);
             } catch (RemoteException e) {
-                try {
-                    String failedName = barrel.getName() + ":" + barrel.getPort() + ":" + barrel.getHost();
-                    failedBarrelNames.add(failedName);
-                } catch (RemoteException ex) {
-                    failedBarrelNames.add("unknown_barrel");
-                }
                 System.err.println("Erro ao obter informações do barrel ativo: " + e.getMessage());
                 iterator.remove(); // Remove apenas da lista de ativos
             }
         }
-
-        if (!failedBarrelNames.isEmpty()) {
-            System.err.println("Removidos " + failedBarrelNames.size() + " barrel(s) falhado(s) da lista de ativos: " + failedBarrelNames);
-        }
-
         return barrelInfo;
     }
 
@@ -303,5 +274,30 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 }
             });
         return averages;
+    }
+
+    // Obtém os URLs associados a um URL indexado
+    public synchronized HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException {
+        List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);
+        HashSet<String> aggregatedUrls = new HashSet<>();
+        for (int attempt = 0; attempt < activeBarrelsCopy.size(); attempt++) {
+            BarrelInterface barrel = getNextBarrel();
+            if (barrel == null) break;
+            try {
+                HashSet<String> urls = barrel.getUrlsForIndexedUrl(url);
+                aggregatedUrls.addAll(urls);
+            } catch (RemoteException e) {
+                try {
+                    String barrelName = barrel.getName();
+                    int barrelPort = barrel.getPort();
+                    System.err.println("Barrel " + barrelName + ":" + barrelPort + " falhou ao obter URLs, tentando próximo...");
+                } catch (RemoteException ex) {
+                    System.err.println("Barrel " + (attempt + 1) + " falhou ao obter URLs, tentando próximo...");
+                    activeBarrels.remove(barrel);
+                }
+            }
+
+        }
+        return aggregatedUrls;
     }
 }

@@ -4,6 +4,7 @@ import java.rmi.registry.LocateRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.HashSet;
 
 import common.ConfigReader;
 import common.Utils;
@@ -50,9 +51,10 @@ public class Client {
                 System.out.println(Utils.red("1.") + "  Adicionar URL para indexar");
                 System.out.println(Utils.red("2.") + "  Procurar uma palavra");
                 System.out.println(Utils.red("3.") + "  Ver estatísticas");
-                System.out.println(Utils.red("4.") + "  Sair");
+                System.out.println(Utils.red("4.") + "  Consultar lista de ligações de uma página");
+                System.out.println(Utils.red("5.") + "  Sair");
                 System.out.println("=".repeat(50));
-                System.out.print("Escolha uma opção (1-4): ");
+                System.out.print("Escolha uma opção (1-5): ");
                 
                 String choice = keyboard.nextLine().trim();
                 
@@ -70,7 +72,6 @@ public class Client {
                             System.out.println("URL inválido! Deve começar com http:// ou https://");
                         }
                         break;
-                        
                     case "2": 
                         System.out.println("\n" + Utils.yellow("PROCURAR PALAVRA"));
                         System.out.println("-".repeat(30));
@@ -79,10 +80,42 @@ public class Client {
                         
                         if (!word.isEmpty()) {
                             List<String> results = gateway.searchWord(word);
-                            if (results.isEmpty()) {
+                            if (results == null || results.isEmpty()) {
                                 System.out.println("Nenhum resultado encontrado para: " + word);
+                                break;
+                            }
+
+                            System.out.println("Encontrados " + results.size() + " resultado(s) para: " + word);
+                            System.out.println("Como deseja visualizar?");
+                            System.out.println("1) Mostrar todos");
+                            System.out.println("2) Mostrar até um número máximo");
+                            System.out.print("Escolha (1-2): ");
+                            String viewChoice = keyboard.nextLine().trim();
+
+                            if ("2".equals(viewChoice)) {
+                                System.out.print("Digite o número máximo de urls a mostrar: ");
+                                String maxStr = keyboard.nextLine().trim();
+                                int maxResults;
+                                try {
+                                    maxResults = Integer.parseInt(maxStr);
+                                    if (maxResults <= 0) {
+                                        System.out.println("Valor inválido! Será utilizado o valor padrão: 10");
+                                        maxResults = 10;
+                                    }
+                                } catch (NumberFormatException ex) {
+                                    System.out.println("Entrada inválida! Será utilizado o valor padrão: 10");
+                                    maxResults = 10;
+                                }
+
+                                int toShow = Math.min(maxResults, results.size());
+                                if (results.size() < maxResults) {
+                                    System.out.println("Apenas " + results.size() + " resultado(s) encontrados (pedido: " + maxResults + ").");
+                                }
+                                System.out.println("-".repeat(50));
+                                for (int i = 0; i < toShow; i++) {
+                                    System.out.println((i + 1) + ". " + results.get(i));
+                                }
                             } else {
-                                System.out.println("Encontrados " + results.size() + " resultado(s) para: " + word);
                                 System.out.println("-".repeat(50));
                                 for (int i = 0; i < results.size(); i++) {
                                     System.out.println((i + 1) + ". " + results.get(i));
@@ -142,6 +175,34 @@ public class Client {
                         break;
 
                     case "4":
+                        System.out.println("\n" + Utils.yellow("CONSULTAR LISTA DE LIGAÇÕES DE UMA PÁGINA"));
+                        System.out.println("-".repeat(30));
+                        System.out.print("Digite o URL (http:// ou https://): ");
+                        String targetUrl = keyboard.nextLine().trim();
+
+                        if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
+                            System.out.println("URL inválido! Deve começar com http:// ou https://");
+                            break;
+                        }
+
+                        try {
+                            HashSet<String> links = gateway.getUrlsForIndexedUrl(targetUrl);
+                            if (links == null || links.isEmpty()) {
+                                System.out.println("Nenhuma ligação encontrada (página ainda não indexada ou sem links).");
+                            } else {
+                                System.out.println("Encontrados " + links.size() + " link(s):");
+                                System.out.println("-".repeat(50));
+                                int i = 1;
+                                for (String link : links) {
+                                    System.out.println(i++ + ". " + link);
+                                }
+                            }
+                        } catch (Exception e) {
+                            Utils.printLogException("Erro ao obter ligações para a página especificada (" + targetUrl + "): " + e.getMessage(), e);
+                        }
+                        break;
+
+                    case "5":
                         System.out.println("\n" + Utils.yellow("Encerrando o cliente..."));
                         keyboard.close();
                         System.exit(0);

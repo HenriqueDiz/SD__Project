@@ -18,7 +18,8 @@ import gateway.GatewayInterface;
 
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
-    private ConcurrentHashMap<String, HashSet<String>> indexedItems; // Hashset for non repeated URLS
+    private ConcurrentHashMap<String, HashSet<String>> indexedItems; // word -> set of urls
+    private ConcurrentHashMap<String, HashSet<String>> urlsIndexed; // url -> set of associated links
     private final String name;
     private final int port;
     private final String host;
@@ -27,6 +28,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     public IndexStorageBarrel(String name, int port, String host) throws RemoteException {
         super();
         indexedItems = new ConcurrentHashMap<>();
+        urlsIndexed = new ConcurrentHashMap<>();
         this.port = port;
         this.name = name;
         this.host = host;
@@ -50,6 +52,16 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     public void setIndexedItems(Map<String, HashSet<String>> indexedItems) {
         this.indexedItems = new ConcurrentHashMap<>(indexedItems);
+    }
+
+    // Adiciona um conjunto de URLs associados a um URL indexado
+    public synchronized void addUrlsForIndexedUrl(String url, HashSet<String> associatedUrls) throws RemoteException {
+        urlsIndexed.put(url, new HashSet<>(associatedUrls));
+    }
+
+    // Obtém os URLs associados a um URL indexado
+    public synchronized HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException {
+        return urlsIndexed.getOrDefault(url, new HashSet<>());
     }
 
     public static void main(String args[]) {
@@ -141,13 +153,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
         if(indexedItems.containsKey(word)){
-            HashSet<String> palavrasParaUrls = indexedItems.get(word);
-            palavrasParaUrls.add(url);
-            indexedItems.put(word, palavrasParaUrls);
+            HashSet<String> urlsForWord = indexedItems.get(word);
+            urlsForWord.add(url);
+            indexedItems.put(word, urlsForWord);
         }else {
-            HashSet<String> palavrasNovas = new HashSet<String>();
-            palavrasNovas.add(url);
-            indexedItems.put(word, palavrasNovas);
+            HashSet<String> newUrlsForWord = new HashSet<String>();
+            newUrlsForWord.add(url);
+            indexedItems.put(word, newUrlsForWord);
         }
     }
 
