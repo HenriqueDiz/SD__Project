@@ -3,14 +3,33 @@ package gateway;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import barrel.BarrelInterface;
 import common.Utils;
 import queue.URLQueueInterface;
 
+/**
+ * Classe utilitária para conexões do Gateway.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public class GatewayConnections {
 
+    /**
+     * Conecta-se ao URL Queue usando as propriedades fornecidas.
+     * 
+     * @param config    Propriedades de configuração contendo host, porta e nome da URL Queue
+     * @return          Instância remota da URL Queue ou null em caso de falha
+     */
     public static URLQueueInterface connectToURLQueue(Properties config) {
         try {
             String queueHost = config.getProperty("queue.host");
@@ -31,6 +50,16 @@ public class GatewayConnections {
         }
     }
 
+    /**
+     * Registra um barrel no Gateway.
+     * @param host
+     * @param port
+     * @param name
+     * @param activeBarrels
+     * @param barrelsRegisters
+     * @param registeredBarrelInfo
+     * @throws RemoteException
+    */
     public static void registerBarrel(String host, int port, String name, List<BarrelInterface> activeBarrels, List<BarrelInterface> barrelsRegisters, Map<String, Integer> registeredBarrelInfo) throws RemoteException {
         try {
             Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
@@ -66,6 +95,12 @@ public class GatewayConnections {
         }
     }
 
+    /**
+     * Sincroniza o índice do novo barrel com os outros barrels registrados.
+     * 
+     * @param newBarrel         O novo barrel a ser sincronizado
+     * @param barrelsRegisters  A lista de barrels registrados para comparação
+     */
     private static void syncBarrelWithOthers(BarrelInterface newBarrel, List<BarrelInterface> barrelsRegisters) {
         try {
             Map<String, HashSet<String>> newBarrelIndex = newBarrel.getIndex();
@@ -142,6 +177,13 @@ public class GatewayConnections {
         }
     }
 
+    /**
+     * Remove um barrel da lista com base no nome e porta.
+     * 
+     * @param barrelList    A lista de barrels
+     * @param name          O nome do barrel a ser removido
+     * @param port          A porta do barrel a ser removido
+     */
     private static void removeBarrelByNameAndPort(List<BarrelInterface> barrelList, String name, int port) {
         barrelList.removeIf(barrel -> {
             try {

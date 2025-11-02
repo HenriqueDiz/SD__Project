@@ -2,6 +2,16 @@ package common;
 
 import java.util.Properties;
 
+/**
+ * Classe responsável por ler e validar as configurações do sistema a partir de um ficheiro de propriedades.
+ * 
+ * @author João Francisco - 2023228417
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * 
+ * @version 1.0
+ */
+
 public final class ConfigReader {
 
     private final String host;

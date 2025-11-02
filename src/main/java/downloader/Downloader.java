@@ -20,18 +20,47 @@ import common.Utils;
 import gateway.GatewayInterface;
 import queue.URLQueueInterface;
 
+
+/**
+ * Classe responsável por baixar e processar páginas web.
+ * Conecta-se ao Gateway para obter a lista de barrels ativos e ao URLQueue para obter URLs a processar.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public class Downloader extends UnicastRemoteObject implements DownloaderInterface {
 
     private static int counter = 0;
 
+
+    /**
+     * Construtor da classe Downloader.
+     * 
+     * @throws java.rmi.RemoteException
+     */
     public Downloader() throws java.rmi.RemoteException {
         super();
     }
 
+
+    /**     * Obtém o número de URLs processadas pelo downloader.
+     * 
+     * @return Número de URLs processadas.
+     * @throws java.rmi.RemoteException
+     */
     public int getProcessorURLsCount () throws java.rmi.RemoteException {
         return counter;
     }
 
+
+    /**     * Método principal para iniciar o downloader.
+     * Conecta-se ao Gateway e ao URLQueue, processa URLs continuamente.
+     * 
+     * @param args Argumentos da linha de comando (opcionais: gatewayPort, queuePort, gatewayHost, queueHost)
+     */
     public static void main(String[] args) {
         try {
 
@@ -105,7 +134,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                                         String barrelHost = barrelParts[2];
                                         Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
                                         BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
-                                        barrelInterface.addToIndex(novaPalavra, url);
+                                        barrelInterface.addToIndex(novaPalavra, url, true);
                             
                                     } catch (Exception e) {
                                         System.err.println(Utils.red("Erro ao enviar palavra para o barrel: " + barrel));
@@ -186,6 +215,12 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
         }
     }
 
+
+    /** Valida uma URL para garantir que não contém padrões indesejados.
+     * 
+     * @param url URL a ser validada.
+     * @return true se a URL for válida, false caso contrário.
+     */
     private static boolean isValidUrl(String url) {
         if (url == null || url.isEmpty()) return false;
         

@@ -19,6 +19,8 @@ import common.Utils;
  * @author Rodrigo Manão - 2023207589
  * @author Henrique Diz - 2023213681
  * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
  */
 public class BarrelStopWords {
     
@@ -168,19 +170,16 @@ public class BarrelStopWords {
     /**
      * Imprime um relatório formatado das mudanças nas stopwords
      */
-    private void printStopwordsUpdate(Set<String> added, Set<String> removed, 
-                                     Map<String, Integer> contagemPalavras, 
-                                     int totalDocs, int limiar) {
+    private void printStopwordsUpdate(Set<String> added, Set<String> removed, Map<String, Integer> contagemPalavras, int totalDocs, int limiar) {
         System.out.println("\n" + "╔" + "═".repeat(68) + "╗");
         System.out.println("║" + Utils.bold(Utils.yellow(" ".repeat(20) + "STOPWORDS UPDATE" + " ".repeat(32))) + "║");
         System.out.println("╠" + "═".repeat(68) + "╣");
-        System.out.println("║ " + Utils.blue("Barrel:") + " " + Utils.bold(barrelName) + " ".repeat(61 - barrelName.length()) + "║");
-        System.out.println("║ " + Utils.blue("Total de documentos:") + " " + Utils.bold(String.valueOf(totalDocs)) + " ".repeat(47 - String.valueOf(totalDocs).length()) + "║");
-        System.out.println("║ " + Utils.blue("Limiar para stopwords:") + " " + Utils.bold(limiar + " documentos (" + (int)(STOPWORD_THRESHOLD * 100) + "%)") + " ".repeat(30 - String.valueOf(limiar).length()) + "║");
-        System.out.println("╠" + "═".repeat(68) + "╣");
+        System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName) + " ".repeat(61 - barrelName.length()));
+        System.out.println(Utils.blue("Total de documentos:") + " " + Utils.bold(String.valueOf(totalDocs)) + " ".repeat(47 - String.valueOf(totalDocs).length()));
+        System.out.println(Utils.blue("Limiar para stopwords:") + " " + Utils.bold(limiar + " documentos (" + (int)(STOPWORD_THRESHOLD * 100) + "%)") + " ".repeat(30 - String.valueOf(limiar).length()));
         
         if (!added.isEmpty()) {
-            System.out.println("║ " + Utils.green("ADICIONADAS") + " (" + added.size() + "):" + " ".repeat(49 - String.valueOf(added.size()).length()) + "║");
+            System.out.println(Utils.green("ADICIONADAS") + " (" + added.size() + "):" + " ".repeat(49 - String.valueOf(added.size()).length()));
             List<String> addedList = new ArrayList<>(added);
             addedList.sort(String::compareTo);
             
@@ -189,39 +188,36 @@ public class BarrelStopWords {
                 String word = addedList.get(i);
                 int count = contagemPalavras.get(word);
                 String line = "   - " + Utils.bold(word) + " (" + count + " docs)";
-                System.out.println("║ " + line + " ".repeat(67 - Utils.stripAnsi(line).length()) + "║");
+                System.out.println(line + " ".repeat(67 - Utils.stripAnsi(line).length()));
             }
             
             if (addedList.size() > 10) {
                 String more = "   ... e mais " + (addedList.size() - 10) + " palavra(s)";
-                System.out.println("║ " + Utils.yellow(more) + " ".repeat(67 - more.length()) + "║");
+                System.out.println(Utils.yellow(more) + " ".repeat(67 - more.length()));
             }
         }
         
         if (!removed.isEmpty()) {
             if (!added.isEmpty()) {
-                System.out.println("╠" + "─".repeat(68) + "╣");
             }
-            System.out.println("║ " + Utils.red("REMOVIDAS") + " (" + removed.size() + "):" + " ".repeat(51 - String.valueOf(removed.size()).length()) + "║");
+            System.out.println(Utils.red("REMOVIDAS") + " (" + removed.size() + "):" + " ".repeat(51 - String.valueOf(removed.size()).length()));
             List<String> removedList = new ArrayList<>(removed);
             removedList.sort(String::compareTo);
             
             int maxShow = Math.min(10, removedList.size());
             for (int i = 0; i < maxShow; i++) {
                 String word = removedList.get(i);
-                String line = "   • " + Utils.bold(word);
-                System.out.println("║ " + line + " ".repeat(67 - Utils.stripAnsi(line).length()) + "║");
+                String line = "   - " + Utils.bold(word);
+                System.out.println(line + " ".repeat(67 - Utils.stripAnsi(line).length()));
             }
             
             if (removedList.size() > 10) {
                 String more = "   ... e mais " + (removedList.size() - 10) + " palavra(s)";
-                System.out.println("║ " + Utils.yellow(more) + " ".repeat(67 - more.length()) + "║");
+                System.out.println(Utils.yellow(more) + " ".repeat(67 - more.length()));
             }
         }
         
-        System.out.println("╠" + "═".repeat(68) + "╣");
-        System.out.println("║ " + Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())) + " ".repeat(40 - String.valueOf(stopwords.size()).length()) + "║");
-        System.out.println("╚" + "═".repeat(68) + "╝\n");
+        System.out.println(Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())) + " ".repeat(40 - String.valueOf(stopwords.size()).length()));
     }
     
     /**

@@ -6,6 +6,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Interface remota para o Gateway.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public interface GatewayInterface extends Remote {
     // Métodos principais para clientes
     public List<String> searchWordGateway(String word) throws RemoteException;

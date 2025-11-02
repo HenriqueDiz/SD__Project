@@ -18,6 +18,15 @@ import barrel.BarrelInterface;
 import common.Utils;
 import queue.URLQueueInterface;
 
+/**
+ * Implementação do Gateway que gerencia a comunicação entre clientes e barrels.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     
     private List<BarrelInterface> activeBarrels;
@@ -31,6 +40,9 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private final Map<String, Long> barrelTotalNanos = new ConcurrentHashMap<>();
     private final Map<String, Long> barrelCount = new ConcurrentHashMap<>();
     
+    /**
+     * Construtor do Gateway.
+     */
     public Gateway() throws RemoteException {
         super();
         activeBarrels = new ArrayList<>();
@@ -71,7 +83,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                     registry.unbind(gatewayName);
                     System.out.println("Gateway desregistrado");
                 } catch (Exception e) {
-                    System.err.println("Erro durante shutdown: " + e.getMessage());
+                    Utils.printLogException("Erro ao desregistrar o Gateway", e);
                 }
                 System.out.println("Gateway encerrado!");
             }));
@@ -83,12 +95,15 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             }
             
         } catch (Exception e) {
-            e.printStackTrace();
+            Utils.printLogException("Erro ao iniciar o Gateway", e);
         }
     }
 
-
-    // Load balancer - round robin - escolher próximo barrel para consulta, indexação, etc.
+    /**
+     * Obtém o próximo barrel ativo em round-robin.
+     * 
+     * @return O próximo BarrelInterface ou null se não houver barrels ativos.
+     */
     private BarrelInterface getNextBarrel() {
         if (activeBarrels.isEmpty()) {
             return null;
@@ -98,7 +113,14 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return barrel;
     }
     
-    
+    /**
+     * Método de busca de palavra no Gateway.
+     * 
+     * @param word              A palavra a ser buscada.
+     * @return                  Lista de URLs que contêm a palavra.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */  
+    @Override
     public List<String> searchWordGateway(String word) throws RemoteException {
         System.out.println("Gateway: Procurando '" + word + "'");
         
@@ -112,7 +134,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return results != null ? results : new ArrayList<>();
     }
 
-    // Consultar barrel com failover em caso de falha
+    /**
+     * Realiza a busca com failover entre os barrels ativos.
+     * 
+     * @param word              A palavra a ser buscada.
+     * @return                  Lista de URLs que contêm a palavra.
+     * @throws RemoteException  Se todos os barrels falharem.
+     */
    private List<String> searchWithFailover(String word) throws RemoteException {
         List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);
         
@@ -150,6 +178,14 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return new ArrayList<>();
     }
 
+
+    /**
+     * Método de busca de múltiplas palavras no Gateway.
+     * 
+     * @param words             A lista de palavras a serem buscadas.
+     * @return                  Lista de arrays contendo URLs e contagens de inbound links.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public List<String[]> searchWords(List<String> words) throws RemoteException {
         if (words == null || words.isEmpty()) return new ArrayList<>();
@@ -198,6 +234,14 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return ranked;
     }
         
+    /**
+     * Método para adicionar uma URL ao Gateway.
+     * 
+     * @param url               A URL a ser adicionada.
+     * @param indexAnyway      Se true, força a reindexação mesmo que já esteja indexada.
+     * @return                  True se a URL já estava indexada, false se foi adicionada
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized boolean addURL(String url, boolean indexAnyway) throws RemoteException {
         if (url == null || url.isBlank()) {
@@ -226,6 +270,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return false;
     }
 
+    /**
+     * Verifica se uma URL já está indexada em qualquer barrel ativo.
+     * 
+     * @param url   A URL a ser verificada.
+     * @return      True se a URL estiver indexada, false caso contrário.
+     */
     private boolean isUrlIndexedAcrossBarrels(String url) {
         if (url == null || url.isBlank()) return false;
 
@@ -243,6 +293,14 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     return false;
 }
     
+    /**
+     * Método para registrar um barrel no Gateway.
+     * 
+     * @param host              O host do barrel.
+     * @param port              A porta do barrel.
+     * @param name              O nome do barrel.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized void registerBarrel(String host, int port, String name) throws RemoteException {
         GatewayConnections.registerBarrel(host, port, name, activeBarrels, barrelsRegisters, registeredBarrelInfo);
@@ -253,28 +311,22 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     // __________________ STATISTICS _______________________ //
 
 
-    private List<Map.Entry<String, Integer>> getTopInboundLinkedPages() throws RemoteException {
-        Map<String, Integer> totalInboundCounts = new HashMap<>();
-        for (BarrelInterface barrel : activeBarrels) {
-            try {
-                Map<String, Integer> barrelCounts = barrel.getInboundLinkCounts();
-                for (Map.Entry<String, Integer> entry : barrelCounts.entrySet()) {
-                    totalInboundCounts.merge(entry.getKey(), entry.getValue(), Integer::sum);
-                }
-            } catch (RemoteException e) {
-                // Ignorar barrels falhados
-            }
-        }
-        // Ordenar do maior para o menor
-        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(totalInboundCounts.entrySet());
-        sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
-        return sorted;
-    }
-
+    /**
+     * Atualiza as estatísticas de busca para uma palavra.
+     * 
+     * @param word  A palavra buscada.
+     */
     private void updateSearchStats(String word) {
         searchStats.merge(word, 1, Integer::sum);
     }
     
+    /**
+     * Obtém as 10 palavras mais buscadas.
+     * 
+     * @return                  Mapa das 10 palavras mais buscadas e suas contagens.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
+    @Override
     public Map<String, Integer> getTop10Searches() throws RemoteException {
         return searchStats.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
@@ -284,6 +336,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 LinkedHashMap::putAll);
     }
 
+    /**
+     * Obtém a lista de barrels ativos.
+     * 
+     * @return                  Lista de strings com informações dos barrels ativos.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized List<String> getActiveBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
@@ -306,6 +364,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return barrelInfo;
     }
 
+    /**
+     * Obtém a lista de barrels registrados.
+     * 
+     * @return                  Lista de strings com informações dos barrels registrados.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized List<String> getRegisteredBarrels() throws RemoteException {
         List<String> barrelInfo = new ArrayList<>();
@@ -352,6 +416,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return barrelInfo;
     }
 
+    /**
+     * Registra o tempo de resposta de um barrel.
+     * 
+     * @param barrel            O barrel que respondeu.
+     * @param durationNanos     A duração da resposta em nanossegundos.
+     */
     private void recordResponseTime(BarrelInterface barrel, long durationNanos) {
         String key;
         try {
@@ -364,6 +434,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         barrelCount.merge(key, 1L, Long::sum);
     }
 
+    /**
+     * Obtém o tempo médio de resposta dos barrels.
+     * 
+     * @return                  Mapa de nomes de barrels para tempos médios de resposta em nanos.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized Map<String, Long> getAverageResponseTime() throws RemoteException {
         Map<String, Long> averages = new LinkedHashMap<>();
@@ -379,8 +455,13 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             });
         return averages;
     }
-
-    // Obtém os URLs associados a um URL indexado
+    
+    /**
+     *  Obtém os URLs associados a um URL indexado.
+     * @param url               O URL a ser pesquisado.
+     * @return                  Lista de URLs associados.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+    */
     @Override
     public synchronized HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException {
         List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);

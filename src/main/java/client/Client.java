@@ -12,6 +12,17 @@ import common.PageInfo;
 import common.Utils;
 import gateway.GatewayInterface;
 
+/**
+ * Cliente que interage com o Gateway para realizar operações como adicionar URLs,
+ * procurar palavras, ver estatísticas e consultar ligações de páginas.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
+
 public class Client {
 
     public static void main(String[] args) {

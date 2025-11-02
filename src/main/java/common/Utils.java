@@ -8,6 +8,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
+/**
+ * Classe utilitária com métodos auxiliares para validação, carregamento de configuração e logging.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public final class Utils {
 
     private static final String RESET = "\u001B[0m";
@@ -22,8 +31,18 @@ public final class Utils {
     private static final String LOG_EXCEPTIONS_FILE_PATH = "/Log_Exceptions.txt";
     private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
+    /**
+     * Construtor privado para evitar instanciação da classe utilitária.
+     */
     private Utils() {}
 
+    /**
+     * Valida uma string de porta, garantindo que é um número inteiro válido entre 1 e 65535.
+     * 
+     * @param portStr      String representando a porta
+     * @return             Porta válida como inteiro
+     * 
+     */
     public static int validatePort(String portStr) {
         try {
             int portTemp = Integer.parseInt(portStr);
@@ -36,6 +55,13 @@ public final class Utils {
         }
     }
 
+    /**
+     * Valida uma string de nome, garantindo que não é nula ou vazia.
+     * 
+     * @param nameStr      String representando o nome
+     * @return             Nome válido como string
+     * 
+     */
     public static String validateName(String nameStr) {
         if (nameStr == null || nameStr.trim().isEmpty()) {
             throw new IllegalArgumentException("Nome inválido: não pode ser nulo ou vazio");
@@ -43,6 +69,11 @@ public final class Utils {
         return nameStr.trim();
     }
 
+    /**
+     * Carrega a configuração a partir do ficheiro Config.properties.
+     * 
+     * @return Propriedades carregadas do ficheiro de configuração
+     */
     public static Properties loadConfiguration() {
         Properties propertiesTemp = new Properties();
         try {
@@ -50,7 +81,7 @@ public final class Utils {
             if (configStream != null) {
                 propertiesTemp.load(configStream);
                 configStream.close();
-                System.out.println("Configuração carregada: " + CONFIG_FILE_PATH);
+                //System.out.println("Configuração carregada: " + CONFIG_FILE_PATH);
             } else {
                 throw new IOException("Ficheiro " + CONFIG_FILE_PATH + " não encontrado");
             }
@@ -61,6 +92,13 @@ public final class Utils {
         return propertiesTemp;
     }
 
+    /**
+     * Regista uma exceção no log de erros, incluindo uma mensagem opcional.
+     * 
+     * @param msg  Mensagem adicional para o log (pode ser null)
+     * @param t    Exceção a ser registada
+     * 
+     */
     public static void printLogException(String msg, Throwable t) {
         if (t == null && (msg == null || msg.isBlank())) return;
 
@@ -79,34 +117,82 @@ public final class Utils {
         }
     }
 
+    /**
+     * Regista uma exceção no log de erros sem mensagem adicional.
+     */
     public static void printLogException(Throwable t) {
         printLogException(null, t);
     }
 
+    /**
+     * Aplica uma cor ANSI ao texto fornecido.
+     * 
+     * @param text      Texto a ser colorido
+     * @param code      Código ANSI da cor
+     * @return          Texto colorido
+    */
     private static String color(String text, String code) {
         return code + text + RESET;
     }
 
+    /**
+     * Aplica a cor vermelha ao texto fornecido.
+     * 
+     * @param text      Texto a ser colorido
+     * @return          Texto colorido
+    */
     public static String red(String text) {
         return color(text, RED);
     }
 
+    
+    /**
+     * Aplica a cor amarela ao texto fornecido.
+     * 
+     * @param text      Texto a ser colorido
+     * @return          Texto colorido
+    */
     public static String yellow(String text) {
         return color(text, YELLOW);
     }
 
+
+    /**
+     * Aplica a cor verde ao texto fornecido.
+     * 
+     * @param text      Texto a ser colorido
+     * @return          Texto colorido
+    */
     public static String green(String text) {
         return color(text, GREEN);
     }
 
+    /**
+     * Aplica a cor azul ao texto fornecido.
+     * 
+     * @param text      Texto a ser colorido
+     * @return          Texto colorido
+    */
     public static String blue(String text) {
         return color(text, BLUE);
     }
 
+    /**
+     *  Aplica negrito ao texto fornecido.
+     * 
+     * @param text      Texto a ser destacado
+     * @return          Texto em negrito
+     */
     public static String bold(String text) {
         return color(text, BOLD);
     }
 
+    /**
+     * Aplica sublinhado ao texto fornecido.
+     * 
+     * @param text      Texto a ser sublinhado
+     * @return          Texto sublinhado
+     */
     public static String underline(String text) {
         return color(text, UNDERLINE);
     }

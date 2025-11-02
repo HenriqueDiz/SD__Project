@@ -7,9 +7,16 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import common.ConfigReader;
 import common.Utils;
@@ -30,9 +37,14 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     private final String name;
     private final int port;
     private final String host;
+    private Set<String> receivedMessages; // Para detectar duplicados
     private BarrelStopWords stopWordsManager; 
 
-
+    // Dados da Queue para backup
+    private BlockingDeque<String> queueBackup; // URLs pendentes da queue
+    private Set<String> queueSeenUrls; // URLs já vistas pela queue
+    
+    private final ExecutorService retransmitExecutor;
     /**
      * Construtor da classe IndexStorageBarrel.
      *
@@ -46,6 +58,10 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         indexedItems = new ConcurrentHashMap<>();
         urlsIndexed = new ConcurrentHashMap<>();
         stopWordsManager = new BarrelStopWords(name);
+        receivedMessages = ConcurrentHashMap.newKeySet(); // Thread-safe set
+        queueBackup = new LinkedBlockingDeque<>();
+        queueSeenUrls = ConcurrentHashMap.newKeySet();
+        retransmitExecutor = Executors.newFixedThreadPool(5);
         this.port = port;
         this.name = name;
         this.host = host;
@@ -196,9 +212,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println(Utils.yellow("Encerrando Barrel... Salvando progresso completo."));
                 try {
+
+                    // Desligar o executor de retransmissão
+                    barrel.retransmitExecutor.shutdown();
+
                     BarrelProgress.save(name, barrel.getProgress());
                 } catch (Exception e) {
-                    Utils.printLogException("Failed to save barrel progress", e);
+                    Utils.printLogException("Failed to save barrel progress on shutdown (" + name + "): " + e.getMessage(), e);
                 }
                 System.out.println(Utils.green("Progresso salvo com sucesso!"));
             }));
@@ -209,9 +229,55 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             }
 
         } catch (Exception e) {
-            Utils.printLogException("Erro no Index Storage Barrel", e);
+            Utils.printLogException("Erro no Index Storage Barrel: " + e.getMessage(), e);
         }
     }
+
+
+    /**
+     * Retransmite a adição de uma palavra e sua URL associada para outros barrels ativos.
+     * 
+     * @param word                  Progresso do barrel a ser carregado
+     * @param url                   URL associada à palavra
+     * @throws RemoteException      Se ocorrer um erro de comunicação remota
+     */
+    private void retransmitToOtherBarrels(String word, String url) {
+        try {
+            // Obter lista de barrels do gateway
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            Registry gatewayRegistry = LocateRegistry.getRegistry(
+                gatewayConfig.getHost(), 
+                gatewayConfig.getPort()
+            );
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayConfig.getName());
+            List<String> activeBarrels = gateway.getActiveBarrels();
+            
+            for (String barrelInfo : activeBarrels) {
+                String[] parts = barrelInfo.split(":");
+                String barrelName = parts[0];
+                int barrelPort = Integer.parseInt(parts[1]);
+                String barrelHost = parts[2];
+
+                // Não retransmitir para si mesmo
+                if (barrelName.equals(this.name) && barrelPort == this.port && barrelHost.equals(this.host)) {
+                    continue;
+                }
+                
+                try {
+                    Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
+                    BarrelInterface otherBarrel = (BarrelInterface) barrelRegistry.lookup(barrelName);
+                    otherBarrel.addToIndex(word, url,false); // Retransmite
+                } catch (Exception e) {
+                   Utils.printLogException("Erro ao retransmitir para o barrel " + barrelName + ": " + e.getMessage(), e);
+                }
+            }
+        } catch (Exception e) {
+            Utils.printLogException("Erro ao obter lista de barrels do gateway: " + e.getMessage(), e);
+        }
+    }
+
+    
+
 
     /**
      * Adiciona uma palavra e sua URL associada ao índice. 
@@ -222,7 +288,17 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
      * @throws RemoteException      Se ocorrer um erro de comunicação remota
      */
     @Override
-    public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
+    public synchronized void addToIndex(String word, String url, boolean shouldRetransmit) throws java.rmi.RemoteException {
+
+        String messageId = word + ":" + url; // ID único da mensagem
+    
+        // Verificar se já recebeu esta mensagem
+        if (receivedMessages.contains(messageId)) {
+            return; // Duplicado, ignorar
+        }
+        
+        // Marcar como recebida
+        receivedMessages.add(messageId);
 
         if (stopWordsManager.isStopword(word)) {
             return; // Ignorar stopwords
@@ -236,6 +312,11 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             HashSet<String> newUrlsForWord = new HashSet<String>();
             newUrlsForWord.add(url);
             indexedItems.put(word, newUrlsForWord);
+        }
+
+        // RETRANSMITIR de forma assíncrona (fora do synchronized)
+        if (shouldRetransmit) {
+            retransmitExecutor.submit(() -> retransmitToOtherBarrels(word, url));
         }
     }
 
@@ -356,6 +437,54 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     // <<<<<<<<<<<<<<<< Barrel Progress Methods >>>>>>>>>>>>>>
 
+     /**
+     * Salva o estado da Queue quando ela morre
+     * 
+     * @param pendingUrls               Fila de URLs pendentes
+     * @param seenUrls                  Conjunto de URLs já vistas
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public synchronized void backupQueueState(Queue<String> pendingUrls, Set<String> seenUrls) throws RemoteException {
+        this.queueBackup = new LinkedBlockingDeque<>(pendingUrls);
+        this.queueSeenUrls = new HashSet<>(seenUrls);
+        
+        System.out.println("┌" + "─".repeat(50) + "┐");
+        System.out.println("│" + Utils.bold(" BACKUP DA QUEUE RECEBIDO") + " ".repeat(25) + "│");
+        System.out.println("├" + "─".repeat(50) + "┤");
+        System.out.println("│ URLs pendentes: " + Utils.bold(String.valueOf(pendingUrls.size())) + " ".repeat(33 - String.valueOf(pendingUrls.size()).length()) + "│");
+        System.out.println("│ URLs vistas: " + Utils.bold(String.valueOf(seenUrls.size())) + " ".repeat(36 - String.valueOf(seenUrls.size()).length()) + "│");
+        System.out.println("└" + "─".repeat(50) + "┘");
+        
+        // Salvar imediatamente no disco
+        BarrelProgress.save(name, getProgress());
+    }
+
+    /**
+     * Restaura o estado da Queue a partir do backup
+     * 
+     * @return                          Mapa com o estado da Queue (pendingUrls e seenUrls)
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public synchronized Map<String, Object> restoreQueueState() throws RemoteException {
+        Map<String, Object> queueState = new HashMap<>();
+        queueState.put("pendingUrls", new LinkedList<>(queueBackup));
+        queueState.put("seenUrls", new HashSet<>(queueSeenUrls));
+        
+        System.out.println(Utils.green("Estado da Queue restaurado do backup!"));
+        System.out.println("URLs pendentes restauradas: " + queueBackup.size());
+        System.out.println("URLs vistas restauradas: " + queueSeenUrls.size());
+        
+        return queueState;
+    }
+
+    /**
+     * Obtém o progresso atual do barrel, incluindo itens indexados e estado da queue.
+     * 
+     * @return                          Objeto BarrelProgress com o estado atual
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
     public synchronized BarrelProgress getProgress() {
         Map<String, HashSet<String>> indexedItemsSnap = new HashMap<>();
         for (Map.Entry<String, HashSet<String>> e : indexedItems.entrySet()) {
@@ -366,9 +495,16 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         for (Map.Entry<String, HashSet<String>> e : urlsIndexed.entrySet()) {
             urlsIndexedSnap.put(e.getKey(), new HashSet<>(e.getValue()));
         }
-        return new BarrelProgress(indexedItemsSnap, urlsIndexedSnap);
+
+        return new BarrelProgress(indexedItemsSnap, urlsIndexedSnap, queueBackup, queueSeenUrls);
     }
 
+    /**
+     * Carrega o progresso do barrel a partir de um objeto BarrelProgress.
+     * 
+     * @param progress                  Objeto BarrelProgress com o estado a ser carregado
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
     public synchronized void loadProgress(BarrelProgress progress) {
         if (progress == null) return;
 
@@ -381,5 +517,12 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         for (Map.Entry<String, HashSet<String>> e : progress.getUrlsIndexed().entrySet()) {
             this.urlsIndexed.put(e.getKey(), new HashSet<>(e.getValue()));
         }
+
+        this.queueBackup = new LinkedBlockingDeque<>(progress.getUrlsToIndex());
+        this.queueSeenUrls = new HashSet<>(progress.getSeenUrls());
+
+        System.out.println(Utils.green("Queue backup carregado:"));
+        System.out.println("  - URLs pendentes: " + queueBackup.size());
+        System.out.println("  - URLs vistas: " + queueSeenUrls.size());
     }
 }
