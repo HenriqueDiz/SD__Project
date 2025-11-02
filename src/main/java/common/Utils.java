@@ -24,6 +24,7 @@ public final class Utils {
     private static final String GREEN = "\u001B[32m";
     private static final String BLUE = "\u001B[34m";
     private static final String BOLD = "\u001B[1m";
+    private static final String UNDERLINE = "\u001B[4m";
 
     private static final String CONFIG_FILE_PATH = "/Config.properties";
     private static final String LOG_EXCEPTIONS_FILE_PATH = "/Log_Exceptions.txt";
@@ -136,5 +137,9 @@ public final class Utils {
 
     public static String bold(String text) {
         return color(text, BOLD);
+    }
+
+    public static String underline(String text) {
+        return color(text, UNDERLINE);
     }
 }

@@ -1,3 +1,10 @@
+/**
+ * @author
+ * Rodrigo Manão - 2023207589
+ * Henrique Diz - 
+ * João Francisco -
+ */
+
 package barrel;
 
 import java.rmi.RemoteException;
@@ -25,6 +32,14 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     private final String host;
 
 
+    /**
+     * Construtor da classe IndexStorageBarrel.
+     *
+     * @param name Nome do barrel
+     * @param port Porta do barrel
+     * @param host Host do barrel
+     * @throws RemoteException Se ocorrer um erro de comunicação remota
+     */
     public IndexStorageBarrel(String name, int port, String host) throws RemoteException {
         super();
         indexedItems = new ConcurrentHashMap<>();
@@ -35,31 +50,68 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                
     }
 
+    /**
+     * Obtém o nome do barrel.
+     * 
+     * @return Nome do barrel
+     * @throws RemoteException Se ocorrer um erro de comunicação remota
+     */
     @Override
     public String getName() throws RemoteException {
         return name;
     }
 
+    /**
+     * Obtém a porta do barrel.
+     * 
+     * @return Porta do barrel
+     * @throws RemoteException Se ocorrer um erro de comunicação remota
+     */
     @Override
     public int getPort() throws RemoteException {
         return port;
     }
 
+    /**
+     * Obtém o host do barrel.
+     * 
+     * @return Host do barrel
+     * @throws RemoteException Se ocorrer um erro de comunicação remota
+     */
     @Override
     public String getHost() throws RemoteException {
         return host;
     }
 
+    /**
+     * Define os itens indexados.
+     * 
+     * @param indexedItems Mapa de itens indexados
+     */
     public void setIndexedItems(Map<String, HashSet<String>> indexedItems) {
         this.indexedItems = new ConcurrentHashMap<>(indexedItems);
     }
 
-    // Adiciona um conjunto de URLs associados a um URL indexado
+    /**
+     * Adiciona um conjunto de URLs associados a um URL indexado
+     * 
+     * @param url                   URL indexado
+     * @param associatedUrls        Conjunto de URLs associados
+     * @throws RemoteException      Se ocorrer um erro de comunicação remota
+     */
+    @Override
     public synchronized void addUrlsForIndexedUrl(String url, HashSet<String> associatedUrls) throws RemoteException {
         urlsIndexed.put(url, new HashSet<>(associatedUrls));
     }
 
-    // Obtém os URLs associados a um URL indexado
+    /**
+     * Obtém o conjunto de URLs associados a um URL indexado
+     * 
+     * @param url                   URL indexado
+     * @return                      Conjunto de URLs associados
+     * @throws RemoteException      Se ocorrer um erro de comunicação remota
+     */
+    @Override
     public synchronized HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException {
         return urlsIndexed.getOrDefault(url, new HashSet<>());
     }
@@ -151,6 +203,15 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         }
     }
 
+    /**
+     * Adiciona uma palavra e sua URL associada ao índice. 
+     * Verifica se a palavra já existe no índice, e atualiza o conjunto de URLs conforme necessário.
+     *
+     * @param word                  Palavra a ser adicionada
+     * @param url                   URL associada à palavra
+     * @throws RemoteException      Se ocorrer um erro de comunicação remota
+     */
+    @Override
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
         if(indexedItems.containsKey(word)){
             HashSet<String> urlsForWord = indexedItems.get(word);
@@ -163,6 +224,15 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         }
     }
 
+
+    /**
+     * Procura por uma palavra no índice e retorna a lista de URLs associados.
+     * 
+     * @param word                      Palavra a ser pesquisada
+     * @return                          Lista de URLs associadas à palavra
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
     public List<String> searchWord(String word) throws java.rmi.RemoteException {
         System.out.println("Procurando por " + word);
         System.out.println(Utils.yellow("Resultados da palavra " + word + " dados ao cliente"));
@@ -173,6 +243,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return new ArrayList<String>();
     }
 
+    /**
+     * Sincroniza o índice com novos dados recebidos, quando um barrel é adicionado/restaurado.
+     * Verifica cada entrada no mapa de novos índices e atualiza o índice existente conforme necessário.
+     * 
+     * @param newIndexes                Mapa de novos índices a serem sincronizados
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
     @Override
     public synchronized void syncIndex(Map<String, HashSet<String>> newIndexes) throws RemoteException {
         for (Map.Entry<String, HashSet<String>> entry : newIndexes.entrySet()) {
@@ -188,8 +265,25 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         System.out.println(Utils.green("Índices sincronizados com sucesso!"));
     }
 
+    /**
+     * Obtém o índice atual do barrel.
+     * 
+     * @return                          Mapa do índice atual
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
     @Override
     public synchronized Map<String, HashSet<String>> getIndex() throws RemoteException {
         return new HashMap<>(indexedItems); // Retorna uma cópia do índice atual
+    }
+
+    @Override
+    public Map<String, Integer> getInboundLinkCounts() throws RemoteException {
+        Map<String, Integer> inboundCounts = new HashMap<>();
+        for (HashSet<String> links : urlsIndexed.values()) {
+            for (String link : links) {
+                inboundCounts.merge(link, 1, Integer::sum);
+            }
+        }
+        return inboundCounts;
     }
 }

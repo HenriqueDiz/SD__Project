@@ -4,10 +4,12 @@ import java.rmi.registry.LocateRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import common.ConfigReader;
 import common.Utils;
+import common.PageInfo;
 import gateway.GatewayInterface;
 
 public class Client {
@@ -73,25 +75,27 @@ public class Client {
                         }
                         break;
                     case "2": 
-                        System.out.println("\n" + Utils.yellow("PROCURAR PALAVRA"));
+                        System.out.println("\n" + Utils.yellow("PROCURAR PALAVRA(S)"));
                         System.out.println("-".repeat(30));
-                        System.out.print("Digite a palavra a procurar: ");
+                        System.out.print("Digite a(s) palavra(s) a procurar: ");
                         String word = keyboard.nextLine().trim();
                         
                         if (!word.isEmpty()) {
-                            List<String> results = gateway.searchWord(word);
+                            List<String> words = Arrays.asList(word.split("\\s+"));
+                            List<String[]> results = gateway.searchWords(words);
                             if (results == null || results.isEmpty()) {
-                                System.out.println("Nenhum resultado encontrado para: " + word);
+                                System.out.println("Nenhum resultado encontrado para: " + words);
                                 break;
                             }
 
-                            System.out.println("Encontrados " + results.size() + " resultado(s) para: " + word);
+                            System.out.println("Encontrados " + results.size() + " resultado(s) para: " + words);
                             System.out.println("Como deseja visualizar?");
                             System.out.println("1) Mostrar todos");
                             System.out.println("2) Mostrar até um número máximo");
                             System.out.print("Escolha (1-2): ");
                             String viewChoice = keyboard.nextLine().trim();
 
+                            int toShow = results.size();
                             if ("2".equals(viewChoice)) {
                                 System.out.print("Digite o número máximo de urls a mostrar: ");
                                 String maxStr = keyboard.nextLine().trim();
@@ -107,19 +111,21 @@ public class Client {
                                     maxResults = 10;
                                 }
 
-                                int toShow = Math.min(maxResults, results.size());
+                                toShow = Math.min(maxResults, results.size());
                                 if (results.size() < maxResults) {
                                     System.out.println("Apenas " + results.size() + " resultado(s) encontrados (pedido: " + maxResults + ").");
                                 }
-                                System.out.println("-".repeat(50));
-                                for (int i = 0; i < toShow; i++) {
-                                    System.out.println((i + 1) + ". " + results.get(i));
-                                }
-                            } else {
-                                System.out.println("-".repeat(50));
-                                for (int i = 0; i < results.size(); i++) {
-                                    System.out.println((i + 1) + ". " + results.get(i));
-                                }
+                            }
+                            System.out.println(Utils.yellow("-".repeat(60)));
+                            for (int i = 0; i < toShow; i++) {
+                                String urlRes = results.get(i)[0];
+                                String refs = results.get(i)[1];
+
+                                System.out.println(Utils.bold(Utils.green("[" + (i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
+
+                                PageInfo info = new PageInfo(urlRes);
+                                System.out.println(info);
+                                System.out.println(Utils.bold("-".repeat(60)));
                             }
                         } else {
                             System.out.println("Por favor, digite uma palavra válida!");
@@ -191,10 +197,12 @@ public class Client {
                                 System.out.println("Nenhuma ligação encontrada (página ainda não indexada ou sem links).");
                             } else {
                                 System.out.println("Encontrados " + links.size() + " link(s):");
-                                System.out.println("-".repeat(50));
-                                int i = 1;
+                                System.out.println("-".repeat(60));
+                                int i = 0;
                                 for (String link : links) {
-                                    System.out.println(i++ + ". " + link);
+                                    System.out.println(Utils.bold(Utils.green("[" + (++i) + "]")));
+                                    System.out.println(new PageInfo(link));
+                                    System.out.println(Utils.bold("-".repeat(60)));
                                 }
                             }
                         } catch (Exception e) {

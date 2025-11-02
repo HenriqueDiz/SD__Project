@@ -5,6 +5,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -98,7 +99,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     }
     
     
-    public List<String> searchWord(String word) throws RemoteException {
+    public List<String> searchWordGateway(String word) throws RemoteException {
         System.out.println("Gateway: Procurando '" + word + "'");
         
         List<String> results = searchWithFailover(word);
@@ -146,7 +147,32 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         
         return new ArrayList<>();
     }
-    
+
+    @Override
+    public List<String[]> searchWords(List<String> words) throws RemoteException {
+        if (words == null || words.isEmpty()) return new ArrayList<>();
+        List<HashSet<String>> resultsPerWord = new ArrayList<>();
+        for (String word : words) {
+            List<String> result = searchWordGateway(word);
+            resultsPerWord.add(new HashSet<>(result));
+        }
+        // Intersect all sets
+        HashSet<String> intersection = resultsPerWord.get(0);
+        for (int i = 1; i < resultsPerWord.size(); i++) {
+            intersection.retainAll(resultsPerWord.get(i));
+        }
+
+        // Obter ranking das páginas mais referenciadas apenas entre os resultados encontrados
+        List<Map.Entry<String, Integer>> ranked = getTopInboundLinkedPages();
+        List<String[]> rankedFiltered = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : ranked) {
+            if (intersection.contains(entry.getKey())) {
+                rankedFiltered.add(new String[]{entry.getKey(), String.valueOf(entry.getValue())});
+            }
+        }
+        return rankedFiltered;
+    }
+        
     // Adicionar URL à fila de URLs
     public void addURL(String url) throws RemoteException {
         System.out.println("Gateway: Adicionando URL '" + url + "'");
@@ -167,6 +193,24 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
 
     // __________________ STATISTICS _______________________ //
 
+
+    private List<Map.Entry<String, Integer>> getTopInboundLinkedPages() throws RemoteException {
+        Map<String, Integer> totalInboundCounts = new HashMap<>();
+        for (BarrelInterface barrel : activeBarrels) {
+            try {
+                Map<String, Integer> barrelCounts = barrel.getInboundLinkCounts();
+                for (Map.Entry<String, Integer> entry : barrelCounts.entrySet()) {
+                    totalInboundCounts.merge(entry.getKey(), entry.getValue(), Integer::sum);
+                }
+            } catch (RemoteException e) {
+                // Ignorar barrels falhados
+            }
+        }
+        // Ordenar do maior para o menor
+        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(totalInboundCounts.entrySet());
+        sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+        return sorted;
+    }
 
     private void updateSearchStats(String word) {
         searchStats.merge(word, 1, Integer::sum);
