@@ -90,9 +90,9 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                             if (!novaPalavra.isEmpty() && novaPalavra.length() > 2) {
                                 for (String barrel : activeBarrels) {
                                     try {
-                                        // Validar o formato "nome:porta:host"
+                                        // Validar o formato "nome:porta:host:indexSize"
                                         String[] barrelParts = barrel.split(":");
-                                        if (barrelParts.length != 3) {
+                                        if (barrelParts.length != 4) {
                                             System.err.println(Utils.red("Formato inválido para barrel: " + barrel));
                                             continue;
                                         }
@@ -128,7 +128,7 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                         for (String barrel : activeBarrels) {
                             try {
                                 String[] barrelParts = barrel.split(":");
-                                if (barrelParts.length != 3) {
+                                if (barrelParts.length != 4) {
                                     System.err.println(Utils.red("Formato inválido para barrel: " + barrel));
                                     continue;
                                 }

@@ -41,8 +41,4 @@ Duas versões de cada método porque eles pertencem a componentes diferentes e c
 
 
 # Estatísticas:
-- indentificação dos barrels ativos + tamanho da hash map + tempo de resposta de pesquisa 
-
-- (Para guardar o tempo)
-- incrementar t1 + t2 + t3 --------> chega um -----------> incrementar t1 + t2 + t3 + t4
-- divisor 3                                                 divisor 4
+- Barrels ativos e o seu tamanho + (tamanho da hash map) + Tempo de resposta média por barrel

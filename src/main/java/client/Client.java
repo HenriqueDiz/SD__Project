@@ -124,8 +124,7 @@ public class Client {
                                 System.out.println(Utils.bold(Utils.green("[" + (i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
 
                                 PageInfo info = new PageInfo(urlRes);
-                                System.out.println(info);
-                                System.out.println(Utils.bold("-".repeat(60)));
+                                System.out.println(info + "\n");
                             }
                         } else {
                             System.out.println("Por favor, digite uma palavra válida!");
@@ -152,7 +151,11 @@ public class Client {
                             System.out.println("Nenhum barrel ativo no momento.");
                         } else {
                             for (String barrel : activeBarrels) {
-                                System.out.println("Barrel ativo -> " + barrel);
+                                String[] barrelParts = barrel.split(":");
+                                System.out.println("Barrel Ativo -> " + Utils.bold(barrelParts[0]));
+                                System.out.println("Porta: " + barrelParts[1]);
+                                System.out.println("Host: " + barrelParts[2]);
+                                System.out.println("Índice: " + barrelParts[3] + "\n");
                             }
                         }
 
@@ -163,7 +166,7 @@ public class Client {
                             System.out.println("Nenhum barrel registrado no momento.");
                         } else {
                             for (String barrel : registeredBarrels) {
-                                System.out.println("Barrel registrado -> " + barrel);
+                                System.out.println("Barrel Registrado -> " + barrel);
                             }
                         }
 
@@ -201,8 +204,7 @@ public class Client {
                                 int i = 0;
                                 for (String link : links) {
                                     System.out.println(Utils.bold(Utils.green("[" + (++i) + "]")));
-                                    System.out.println(new PageInfo(link));
-                                    System.out.println(Utils.bold("-".repeat(60)));
+                                    System.out.println(new PageInfo(link + "\n"));
                                 }
                             }
                         } catch (Exception e) {

@@ -13,6 +13,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,9 +28,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // word -> set of urls
     private ConcurrentHashMap<String, HashSet<String>> urlsIndexed; // url -> set of associated links
+    private List<String> stopwords;
     private final String name;
     private final int port;
     private final String host;
+    private static final int MIN_FOR_STOP_WORDS = 10_000;
+    private int numberOfIndexedWords = 0;
+    private Map<String, Integer> outlierCycles;
 
 
     /**
@@ -44,10 +49,12 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         super();
         indexedItems = new ConcurrentHashMap<>();
         urlsIndexed = new ConcurrentHashMap<>();
+        stopwords = new ArrayList<>();
+        outlierCycles = new HashMap<>();
         this.port = port;
         this.name = name;
         this.host = host;
-               
+
     }
 
     /**
@@ -213,14 +220,20 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
      */
     @Override
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
-        if(indexedItems.containsKey(word)){
+        if (indexedItems.containsKey(word)){
             HashSet<String> urlsForWord = indexedItems.get(word);
             urlsForWord.add(url);
             indexedItems.put(word, urlsForWord);
-        }else {
+        } else {
             HashSet<String> newUrlsForWord = new HashSet<String>();
             newUrlsForWord.add(url);
             indexedItems.put(word, newUrlsForWord);
+            numberOfIndexedWords++;
+        }
+
+        if (numberOfIndexedWords >= MIN_FOR_STOP_WORDS){
+            removeStopWordsAndIqrOutliers();
+            numberOfIndexedWords = 0;
         }
     }
 
@@ -277,6 +290,11 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
     @Override
+    public int getIndexSize() throws RemoteException {
+        return indexedItems.size();
+    }
+
+    @Override
     public Map<String, Integer> getInboundLinkCounts() throws RemoteException {
         Map<String, Integer> inboundCounts = new HashMap<>();
         for (HashSet<String> links : urlsIndexed.values()) {
@@ -285,5 +303,44 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             }
         }
         return inboundCounts;
+    }
+
+
+    private void removeStopWordsAndIqrOutliers() throws RemoteException {
+        Map<String, Integer> wordFreq = new HashMap<>();
+        for (Map.Entry<String, HashSet<String>> entry : indexedItems.entrySet()) {
+            wordFreq.put(entry.getKey(), entry.getValue().size());
+        }
+
+        List<Integer> freqs = new ArrayList<>(wordFreq.values());
+        Collections.sort(freqs);
+        int n = freqs.size();
+        if (n == 0) return;
+
+        int q1 = freqs.get(n / 4);
+        int q3 = freqs.get((3 * n) / 4);
+        int iqr = q3 - q1;
+        int upperFence = q3 + (int)(1.5 * iqr);
+
+        // Só remove as 10 palavras mais frequentes acima do upperFence
+        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(wordFreq.entrySet());
+        sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+        int removidos = 0;
+        for (Map.Entry<String, Integer> entry : sorted) {
+            String word = entry.getKey();
+            int freq = entry.getValue();
+            if (entry.getValue() > upperFence && removidos < 10) {
+                outlierCycles.put(word, outlierCycles.getOrDefault(word, 0) + 1);
+                if (outlierCycles.get(word) >= 3) {
+                    indexedItems.remove(word);
+                    stopwords.add(word);
+                    System.out.println(Utils.yellow("Stop word/outlier: ") + Utils.bold(word) + " (freq: " + freq + ")");
+                    outlierCycles.remove(word);
+                }
+                removidos++;
+            } else {
+                outlierCycles.remove(word); // reset se deixou de ser outlier
+            }
+        }
     }
 }

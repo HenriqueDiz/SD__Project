@@ -19,7 +19,8 @@ public interface BarrelInterface extends Remote {
     public int getPort() throws RemoteException;
     public String getHost() throws RemoteException;
 
-    // Novo método: obter índice atual
     public Map<String, HashSet<String>> getIndex() throws RemoteException;
     public Map<String, Integer> getInboundLinkCounts() throws RemoteException;
+
+    public int getIndexSize() throws RemoteException;
 }

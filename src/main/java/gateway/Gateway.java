@@ -237,7 +237,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 String barrelName = barrel.getName();
                 int barrelPort = barrel.getPort();
                 String barrelHost = barrel.getHost();
-                barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost);
+                int indexSize = barrel.getIndexSize();
+                barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost + ":" + indexSize);
             } catch (RemoteException e) {
                 System.err.println("Erro ao obter informações do barrel ativo: " + e.getMessage());
                 iterator.remove(); // Remove apenas da lista de ativos
