@@ -1,19 +1,11 @@
 package common;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Properties;
 
 public final class Utils {
@@ -69,30 +61,6 @@ public final class Utils {
         return propertiesTemp;
     }
 
-    public static void saveBarrelProgress(String barrelName, Map<String, HashSet<String>> progress) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(barrelName + "_progress.dat"))) {
-            oos.writeObject(progress);
-            System.out.println(Utils.green("Progresso salvo para o barrel: " + barrelName));
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar progresso do barrel: " + e.getMessage());
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static Map<String, HashSet<String>> loadBarrelProgress(String barrelName) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(barrelName + "_progress.dat"))) {
-            return (Map<String, HashSet<String>>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Erro ao carregar progresso do barrel: " + e.getMessage());
-            return new HashMap<>();
-        }
-    }
-
-    public static boolean progressFileExists(String barrelName) {
-        File progressFile = new File(barrelName + "_progress.dat");
-        return progressFile.exists();
-    }
-
     public static void printLogException(String msg, Throwable t) {
         if (t == null && (msg == null || msg.isBlank())) return;
 
@@ -141,5 +109,15 @@ public final class Utils {
 
     public static String underline(String text) {
         return color(text, UNDERLINE);
+    }
+
+    /**
+     * Remove códigos ANSI de uma string para calcular o tamanho real
+     * 
+     * @param text          String com códigos ANSI
+     * @return              String sem códigos ANSI
+    */
+    public static String stripAnsi(String text) {
+        return text.replaceAll("\u001B\\[[;\\d]*m", "");
     }
 }

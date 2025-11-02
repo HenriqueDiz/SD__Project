@@ -3,9 +3,11 @@ package downloader;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -83,11 +85,12 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                         }
 
                         HashSet<String> linksFound = new HashSet<>();
-                        int wordCount = 0;
+                        Map<String, Integer> wordCounts = new HashMap<>(); // Contador de frequência
                         while (tokens.hasMoreElements()) {
                             String novaPalavra = tokens.nextToken().toLowerCase();
                             novaPalavra = novaPalavra.replaceAll("[^a-zA-Z0-9]", "");
                             if (!novaPalavra.isEmpty() && novaPalavra.length() > 2) {
+                                wordCounts.merge(novaPalavra, 1, Integer::sum);
                                 for (String barrel : activeBarrels) {
                                     try {
                                         // Validar o formato "nome:porta:host:indexSize"
@@ -109,7 +112,6 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                                         e.printStackTrace();
                                     }
                                 }
-                            wordCount++;
                             }
                         }
 
@@ -139,13 +141,14 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                                 Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
                                 BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
                                 barrelInterface.addUrlsForIndexedUrl(url, linksFound);
+                                barrelInterface.addWordCounts(wordCounts, url);
                             } catch (Exception e) {
                                 System.err.println(Utils.red("Erro ao enviar URLs para o barrel: " + barrel));
                                 e.printStackTrace();
                             }
                         }
                         
-                        System.out.println("Processado: " + wordCount + " palavras, " + linkCount + " links");
+                        System.out.println("Processado: " + url + " | Palavras: " + wordCounts.size() + " | Links: " + linkCount);
                         success = true;
                         counter++;
                         

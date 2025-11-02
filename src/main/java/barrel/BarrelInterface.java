@@ -12,6 +12,9 @@ public interface BarrelInterface extends Remote {
 
     public void addUrlsForIndexedUrl(String url, HashSet<String> associatedUrls) throws RemoteException;
     public HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException;
+     
+    public void addWordCounts(Map<String, Integer> wordCounts, String url) throws RemoteException;
+    public boolean isStopword(String palavra) throws RemoteException;
 
     // Novo método: sincronizar índice com outro barrel
     public void syncIndex(Map<String, HashSet<String>> otherIndex) throws RemoteException;

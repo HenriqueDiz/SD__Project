@@ -1,19 +1,10 @@
-/**
- * @author
- * Rodrigo Manão - 2023207589
- * Henrique Diz - 
- * João Francisco -
- */
-
 package barrel;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,17 +15,22 @@ import common.ConfigReader;
 import common.Utils;
 import gateway.GatewayInterface;
 
+/**
+ * Implementação do Index Storage Barrel.
+ * Responsável por armazenar e gerenciar o índice invertido de palavras para URLs.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ */
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // word -> set of urls
     private ConcurrentHashMap<String, HashSet<String>> urlsIndexed; // url -> set of associated links
-    private List<String> stopwords;
     private final String name;
     private final int port;
     private final String host;
-    private static final int MIN_FOR_STOP_WORDS = 10_000;
-    private int numberOfIndexedWords = 0;
-    private Map<String, Integer> outlierCycles;
+    private BarrelStopWords stopWordsManager; 
 
 
     /**
@@ -49,12 +45,10 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         super();
         indexedItems = new ConcurrentHashMap<>();
         urlsIndexed = new ConcurrentHashMap<>();
-        stopwords = new ArrayList<>();
-        outlierCycles = new HashMap<>();
+        stopWordsManager = new BarrelStopWords(name);
         this.port = port;
         this.name = name;
         this.host = host;
-
     }
 
     /**
@@ -91,15 +85,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
     /**
-     * Define os itens indexados.
-     * 
-     * @param indexedItems Mapa de itens indexados
-     */
-    public void setIndexedItems(Map<String, HashSet<String>> indexedItems) {
-        this.indexedItems = new ConcurrentHashMap<>(indexedItems);
-    }
-
-    /**
      * Adiciona um conjunto de URLs associados a um URL indexado
      * 
      * @param url                   URL indexado
@@ -111,6 +96,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         urlsIndexed.put(url, new HashSet<>(associatedUrls));
     }
 
+    /**
+     * Verifica se um URL está indexado
+     * 
+     * @param url                   URL a ser verificado
+     * @return                      true se o URL estiver indexado, false caso contrário
+     * @throws RemoteException      Se ocorrer um erro de comunicação remota
+     */
     @Override
     public boolean hasIndexedUrl(String url) throws RemoteException {
         // Verificamos direto no mapa de URLs indexadas
@@ -160,19 +152,18 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 }
             }
 
-            // Carregar progresso se existir
-            Map<String, HashSet<String>> indexedItems = new HashMap<>();
-            if (Utils.progressFileExists(name)) {
+            // Criar o Barrel
+            IndexStorageBarrel barrel = new IndexStorageBarrel(name, port, host);
+
+            // Carregar progresso completo se existir (BarrelProgress)
+            if (BarrelProgress.exists(name)) {
                 System.out.println(Utils.yellow("Carregando progresso do barrel: " + name));
-                indexedItems = Utils.loadBarrelProgress(name);
+                BarrelProgress progress = BarrelProgress.load(name);
+                barrel.loadProgress(progress);
                 System.out.println(Utils.green("Progresso carregado com sucesso!"));
             } else {
                 System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
             }
-
-            // Criar o Barrel
-            IndexStorageBarrel barrel = new IndexStorageBarrel(name, port, host);
-            barrel.setIndexedItems(indexedItems);
 
             System.setProperty("java.rmi.server.hostname", host);
 
@@ -203,10 +194,10 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
             // Shutdown Hook
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                System.out.println(Utils.yellow("Encerrando Barrel... Salvando progresso."));
+                System.out.println(Utils.yellow("Encerrando Barrel... Salvando progresso completo."));
                 try {
-                    Utils.saveBarrelProgress(name, barrel.getIndex());
-                } catch (RemoteException e) {
+                    BarrelProgress.save(name, barrel.getProgress());
+                } catch (Exception e) {
                     Utils.printLogException("Failed to save barrel progress", e);
                 }
                 System.out.println(Utils.green("Progresso salvo com sucesso!"));
@@ -233,10 +224,10 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     @Override
     public synchronized void addToIndex(String word, String url) throws java.rmi.RemoteException {
 
-        if (stopwords.contains(word)) {
-            return;
+        if (stopWordsManager.isStopword(word)) {
+            return; // Ignorar stopwords
         }
-        
+
         if (indexedItems.containsKey(word)){
             HashSet<String> urlsForWord = indexedItems.get(word);
             urlsForWord.add(url);
@@ -245,12 +236,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             HashSet<String> newUrlsForWord = new HashSet<String>();
             newUrlsForWord.add(url);
             indexedItems.put(word, newUrlsForWord);
-            numberOfIndexedWords++;
-        }
-
-        if (numberOfIndexedWords >= MIN_FOR_STOP_WORDS){
-            removeStopWordsAndIqrOutliers();
-            numberOfIndexedWords = 0;
         }
     }
 
@@ -306,11 +291,23 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return new HashMap<>(indexedItems); // Retorna uma cópia do índice atual
     }
 
+    /**
+     * Obtém o tamanho do índice, ou seja, o número de palavras indexadas.
+     * 
+     * @return                          Tamanho do índice
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
     @Override
     public int getIndexSize() throws RemoteException {
         return indexedItems.size();
     }
 
+    /**
+     * Obtém as contagens de links inbound para cada URL indexada.
+     * 
+     * @return                          Mapa de URLs e suas contagens de links inbound
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
     @Override
     public Map<String, Integer> getInboundLinkCounts() throws RemoteException {
         Map<String, Integer> inboundCounts = new HashMap<>();
@@ -323,40 +320,66 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
 
 
-    private void removeStopWordsAndIqrOutliers() throws RemoteException {
-        Map<String, Integer> wordFreq = new HashMap<>();
-        for (Map.Entry<String, HashSet<String>> entry : indexedItems.entrySet()) {
-            wordFreq.put(entry.getKey(), entry.getValue().size());
+    /**
+     * Adiciona contagens de palavras para uma URL específica.
+     * 
+     * @param wordCounts                Mapa de palavras e suas contagens
+     * @param url                       URL associada às contagens
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public void addWordCounts(Map<String, Integer> wordCounts, String url) throws RemoteException {
+        stopWordsManager.addWordCounts(wordCounts, url);
+    }
+    
+    /**
+     * Verifica se uma palavra é uma stopword.
+     * 
+     * @param palavra                   Palavra a ser verificada
+     * @return                          true se for uma stopword, false caso contrário
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public boolean isStopword(String palavra) throws RemoteException {
+        return stopWordsManager.isStopword(palavra);
+    }
+    
+    /**
+     * Obtém a lista de stopwords gerenciadas pelo Barrel.
+     * 
+     * @return                          Lista de stopwords
+     */
+    public List<String> getStopwords() {
+        return stopWordsManager.getStopwords();
+    }
+
+
+    // <<<<<<<<<<<<<<<< Barrel Progress Methods >>>>>>>>>>>>>>
+
+    public synchronized BarrelProgress getProgress() {
+        Map<String, HashSet<String>> indexedItemsSnap = new HashMap<>();
+        for (Map.Entry<String, HashSet<String>> e : indexedItems.entrySet()) {
+            indexedItemsSnap.put(e.getKey(), new HashSet<>(e.getValue()));
         }
 
-        List<Integer> freqs = new ArrayList<>(wordFreq.values());
-        Collections.sort(freqs);
-        int n = freqs.size();
-        if (n == 0) return;
+        Map<String, HashSet<String>> urlsIndexedSnap = new HashMap<>();
+        for (Map.Entry<String, HashSet<String>> e : urlsIndexed.entrySet()) {
+            urlsIndexedSnap.put(e.getKey(), new HashSet<>(e.getValue()));
+        }
+        return new BarrelProgress(indexedItemsSnap, urlsIndexedSnap);
+    }
 
-        int q1 = freqs.get(n / 4);
-        int q3 = freqs.get((3 * n) / 4);
-        int iqr = q3 - q1;
-        int upperFence = q3 + (int)(1.5 * iqr);
+    public synchronized void loadProgress(BarrelProgress progress) {
+        if (progress == null) return;
 
-        // Só marca as 10 palavras mais frequentes acima do upperFence como stopwords
-        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(wordFreq.entrySet());
-        sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
-        int marcados = 0;
-        for (Map.Entry<String, Integer> entry : sorted) {
-            String word = entry.getKey();
-            int freq = entry.getValue();
-            if (entry.getValue() > upperFence && marcados < 10) {
-                outlierCycles.put(word, outlierCycles.getOrDefault(word, 0) + 1);
-                if (outlierCycles.get(word) >= 3) {
-                    stopwords.add(word);
-                    System.out.println(Utils.yellow("Stop word/outlier marcada: ") + Utils.bold(word) + " (freq: " + freq + ")");
-                    outlierCycles.remove(word);
-                }
-                marcados++;
-            } else {
-                outlierCycles.remove(word); // reset se deixou de ser outlier
-            }
+        this.indexedItems = new ConcurrentHashMap<>();
+        for (Map.Entry<String, HashSet<String>> e : progress.getIndexedItems().entrySet()) {
+            this.indexedItems.put(e.getKey(), new HashSet<>(e.getValue()));
+        }
+
+        this.urlsIndexed = new ConcurrentHashMap<>();
+        for (Map.Entry<String, HashSet<String>> e : progress.getUrlsIndexed().entrySet()) {
+            this.urlsIndexed.put(e.getKey(), new HashSet<>(e.getValue()));
         }
     }
 }
