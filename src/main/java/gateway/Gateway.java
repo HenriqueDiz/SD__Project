@@ -116,13 +116,15 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
    private List<String> searchWithFailover(String word) throws RemoteException {
         List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);
         
+        String normalized = word == null ? "" : word.toLowerCase();
+
         for (int attempt = 0; attempt < activeBarrelsCopy.size(); attempt++) {
             BarrelInterface barrel = getNextBarrel();
             if (barrel == null) break;
             
             try {
                 long start = System.nanoTime();
-                List<String> results = barrel.searchWord(word);
+                List<String> results = barrel.searchWord(normalized);
                 long elapsed = System.nanoTime() - start;
                 recordResponseTime(barrel, elapsed);
                 System.out.println("Barrel " + (attempt + 1) + " respondeu com " + results.size() + " resultado(s)");
@@ -151,38 +153,95 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     @Override
     public List<String[]> searchWords(List<String> words) throws RemoteException {
         if (words == null || words.isEmpty()) return new ArrayList<>();
+
+        // Normalizar palavras de pesquisa
+        List<String> norm = new ArrayList<>();
+        for (String w : words) {
+            if (w != null && !w.isBlank()) norm.add(w.toLowerCase());
+        }
+        if (norm.isEmpty()) return new ArrayList<>();
+
         List<HashSet<String>> resultsPerWord = new ArrayList<>();
-        for (String word : words) {
-            List<String> result = searchWordGateway(word);
+        for (String w : norm) {
+            List<String> result = searchWordGateway(w);
             resultsPerWord.add(new HashSet<>(result));
         }
-        // Intersect all sets
-        HashSet<String> intersection = resultsPerWord.get(0);
+
+        // Interseção
+        HashSet<String> intersection = new HashSet<>(resultsPerWord.get(0));
         for (int i = 1; i < resultsPerWord.size(); i++) {
             intersection.retainAll(resultsPerWord.get(i));
+            if (intersection.isEmpty()) break;
+        }
+        if (intersection.isEmpty()) return new ArrayList<>();
+
+        // Recolher contagens inbound (0 por omissão)
+        Map<String, Integer> inbound = new HashMap<>();
+        for (BarrelInterface barrel : new ArrayList<>(activeBarrels)) {
+            try {
+                Map<String, Integer> m = barrel.getInboundLinkCounts();
+                if (m != null) {
+                    for (Map.Entry<String, Integer> e : m.entrySet()) {
+                        inbound.merge(e.getKey(), e.getValue(), Integer::sum);
+                    }
+                }
+            } catch (RemoteException ignore) {}
         }
 
-        // Obter ranking das páginas mais referenciadas apenas entre os resultados encontrados
-        List<Map.Entry<String, Integer>> ranked = getTopInboundLinkedPages();
-        List<String[]> rankedFiltered = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : ranked) {
-            if (intersection.contains(entry.getKey())) {
-                rankedFiltered.add(new String[]{entry.getKey(), String.valueOf(entry.getValue())});
-            }
+        // Construir e ordenar
+        List<String[]> ranked = new ArrayList<>();
+        for (String url : intersection) {
+            int refs = inbound.getOrDefault(url, 0);
+            ranked.add(new String[]{url, String.valueOf(refs)});
         }
-        return rankedFiltered;
+        ranked.sort((a, b) -> Integer.compare(Integer.parseInt(b[1]), Integer.parseInt(a[1])));
+        return ranked;
     }
         
-    // Adicionar URL à fila de URLs
-    public void addURL(String url) throws RemoteException {
-        System.out.println("Gateway: Adicionando URL '" + url + "'");
-        if (urlQueue != null) {
-            urlQueue.putNew(url, true); // Cliente tem prioridade
-            System.out.println(Utils.green("URL adicionado à fila com prioridade"));
-        } else {
+    @Override
+    public synchronized boolean addURL(String url, boolean indexAnyway) throws RemoteException {
+        if (url == null || url.isBlank()) {
+            throw new RemoteException("URL inválido");
+        }
+
+        System.out.println("Gateway: Tentando adicionar URL '" + url + "'" + (indexAnyway ? " [reindex=true]" : ""));
+
+        if (urlQueue == null) {
             throw new RemoteException("URLQueue não disponível");
         }
+
+        // Se não for para forçar, só adiciona se ainda não estiver indexado
+        if (!indexAnyway) {
+            if (isUrlIndexedAcrossBarrels(url)) {
+                System.out.println(Utils.yellow("URL já indexado. Não será adicionado à fila: ") + url);
+                return true; // já visto
+            }
+        } else {
+            System.out.println(Utils.yellow("Forçando reindexação do URL: ") + url);
+        }
+
+        // Enfileirar (prioridade true para processamento preferencial)
+        urlQueue.putNew(url, true);
+        System.out.println(Utils.green("URL adicionado à fila" + (indexAnyway ? " para reindexação" : "")));
+        return false;
     }
+
+    private boolean isUrlIndexedAcrossBarrels(String url) {
+        if (url == null || url.isBlank()) return false;
+
+        HashSet<String> seen = new HashSet<>();
+        for (BarrelInterface barrel : activeBarrels) {
+            String key = "unknown";
+            try {
+                key = barrel.getName() + ":" + barrel.getPort();
+                if (!seen.add(key)) continue;
+                if (barrel.hasIndexedUrl(url)) return true;
+            } catch (Exception e) {
+                Utils.printLogException("Erro ao verificar URL ('" + url + "') no barrel " + key, e);
+            }
+        }
+    return false;
+}
     
     @Override
     public synchronized void registerBarrel(String host, int port, String name) throws RemoteException {
@@ -322,6 +381,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     }
 
     // Obtém os URLs associados a um URL indexado
+    @Override
     public synchronized HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException {
         List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);
         HashSet<String> aggregatedUrls = new HashSet<>();

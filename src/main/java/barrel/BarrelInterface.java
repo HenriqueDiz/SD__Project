@@ -23,4 +23,5 @@ public interface BarrelInterface extends Remote {
     public Map<String, Integer> getInboundLinkCounts() throws RemoteException;
 
     public int getIndexSize() throws RemoteException;
+    public boolean hasIndexedUrl(String url) throws java.rmi.RemoteException;
 }

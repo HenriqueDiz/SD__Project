@@ -1,15 +1,15 @@
 package client;
 
 import java.rmi.registry.LocateRegistry;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Arrays;
-import java.util.HashSet;
 
 import common.ConfigReader;
-import common.Utils;
 import common.PageInfo;
+import common.Utils;
 import gateway.GatewayInterface;
 
 public class Client {
@@ -58,25 +58,53 @@ public class Client {
                 System.out.println("=".repeat(50));
                 System.out.print("Escolha uma opção (1-5): ");
                 
+                List<String> activeBarrelsBeforeSearch;
                 String choice = keyboard.nextLine().trim();
                 
                 switch (choice) {
-                    case "1": 
+                    case "1" -> { 
+                        // Verificar se há barrels ativos antes de tentar a consulta
+                        activeBarrelsBeforeSearch = gateway.getActiveBarrels();
+                        if (activeBarrelsBeforeSearch == null || activeBarrelsBeforeSearch.isEmpty()) {
+                            System.out.println(Utils.red("Não foi possível fazer a consulta: não há barrels ativos."));
+                            break;
+                        }
                         System.out.println("\n" + Utils.yellow("ADICIONAR URL"));
                         System.out.println("-".repeat(30));
                         System.out.print("Digite o URL (http:// ou https://): ");
                         String url = keyboard.nextLine().trim();
                         
                         if (url.startsWith("http://") || url.startsWith("https://")) {
-                            gateway.addURL(url);
-                            System.out.println("URL adicionado com sucesso: " + url);
+                            boolean alreadySeen = gateway.addURL(url, false);
+                            if (alreadySeen) {
+                                System.out.println("URL já foi indexado anteriormente: " + url);
+                                System.out.print("Pretende reindexar mesmo assim? (S/N): ");
+                                String resp = keyboard.nextLine().trim().toLowerCase();
+                                if (resp.equals("s") || resp.equals("sim") || resp.equals("y") || resp.equals("yes")) {
+                                    gateway.addURL(url, true);
+                                    System.out.println("URL adicionado novamente para reindexação: " + url);
+                                } else {
+                                    System.out.println("Reindexação cancelada.");
+                                }
+                            } else {
+                                System.out.println("URL adicionado com sucesso: " + url);
+                            }
                         } else {
                             System.out.println("URL inválido! Deve começar com http:// ou https://");
                         }
-                        break;
-                    case "2": 
+                    }
+                    case "2" -> { 
+
+                        // Verificar se há barrels ativos antes de tentar a consulta
+                        activeBarrelsBeforeSearch = gateway.getActiveBarrels();
+                        if (activeBarrelsBeforeSearch == null || activeBarrelsBeforeSearch.isEmpty()) {
+                            System.out.println(Utils.red("Não foi possível fazer a consulta: não há barrels ativos."));
+                            break;
+                        }
                         System.out.println("\n" + Utils.yellow("PROCURAR PALAVRA(S)"));
                         System.out.println("-".repeat(30));
+
+
                         System.out.print("Digite a(s) palavra(s) a procurar: ");
                         String word = keyboard.nextLine().trim();
                         
@@ -122,18 +150,24 @@ public class Client {
                                 String refs = results.get(i)[1];
 
                                 System.out.println(Utils.bold(Utils.green("[" + (i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
-
-                                PageInfo info = new PageInfo(urlRes);
-                                System.out.println(info + "\n");
+                                System.out.println(new PageInfo(urlRes) + "\n");
                             }
                         } else {
                             System.out.println("Por favor, digite uma palavra válida!");
                         }
-                        break;
+                    }
                         
-                    case "3":
+                    case "3" -> {
+
+                        // Verificar se há barrels ativos antes de tentar a consulta
+                        activeBarrelsBeforeSearch = gateway.getActiveBarrels();
+                        if (activeBarrelsBeforeSearch == null || activeBarrelsBeforeSearch.isEmpty()) {
+                            System.out.println(Utils.red("Não foi possível fazer a consulta: não há barrels ativos."));
+                            break;
+                        }
                         System.out.println("\n" + Utils.yellow("TOP 10 PESQUISAS"));
                         System.out.println("-".repeat(30));
+
                         Map<String, Integer> top10 = gateway.getTop10Searches();
                         if (top10.isEmpty()) {
                             System.out.println("Ainda não há pesquisas registradas");
@@ -180,12 +214,18 @@ public class Client {
                                 System.out.println("Barrel: " + entry.getKey() + " - Tempo médio: " + entry.getValue() + " ns");
                             }
                         }
+                    }
 
-                        break;
+                    case "4" -> {
 
-                    case "4":
+                        activeBarrelsBeforeSearch = gateway.getActiveBarrels();
+                        if (activeBarrelsBeforeSearch == null || activeBarrelsBeforeSearch.isEmpty()) {
+                            System.out.println(Utils.red("Não foi possível fazer a consulta: não há barrels ativos."));
+                            break;
+                        }   
                         System.out.println("\n" + Utils.yellow("CONSULTAR LISTA DE LIGAÇÕES DE UMA PÁGINA"));
                         System.out.println("-".repeat(30));
+                        
                         System.out.print("Digite o URL (http:// ou https://): ");
                         String targetUrl = keyboard.nextLine().trim();
 
@@ -204,23 +244,21 @@ public class Client {
                                 int i = 0;
                                 for (String link : links) {
                                     System.out.println(Utils.bold(Utils.green("[" + (++i) + "]")));
-                                    System.out.println(new PageInfo(link + "\n"));
+                                    System.out.println(new PageInfo(link) + "\n");
                                 }
                             }
                         } catch (Exception e) {
                             Utils.printLogException("Erro ao obter ligações para a página especificada (" + targetUrl + "): " + e.getMessage(), e);
                         }
-                        break;
+                    }
 
-                    case "5":
+                    case "5" -> {
                         System.out.println("\n" + Utils.yellow("Encerrando o cliente..."));
                         keyboard.close();
                         System.exit(0);
-                        break;
+                    }
                         
-                    default:
-                        System.out.println("Opção inválida! Por favor, escolha 1-5.");
-                        break;
+                    default -> System.out.println("Opção inválida! Por favor, escolha 1-5.");
                 }
                 
                 System.out.println("\n" + Utils.yellow("Pressione Enter para continuar..."));

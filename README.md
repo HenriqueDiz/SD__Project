@@ -42,3 +42,7 @@ Duas versões de cada método porque eles pertencem a componentes diferentes e c
 
 # Estatísticas:
 - Barrels ativos e o seu tamanho + (tamanho da hash map) + Tempo de resposta média por barrel
+
+# RELATORIO:
+
+https://docs.google.com/document/d/1UsO9OJznzyVls65tE-3oRWbl3uL4NRADeuubRulL3Z4/edit?usp=sharing

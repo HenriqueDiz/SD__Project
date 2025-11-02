@@ -9,7 +9,7 @@ import java.util.Map;
 public interface GatewayInterface extends Remote {
     // Métodos principais para clientes
     public List<String> searchWordGateway(String word) throws RemoteException;
-    public void addURL(String url) throws RemoteException;
+    public boolean addURL(String url, boolean indexAnyway) throws RemoteException;
     public List<String[]> searchWords(List<String> words) throws RemoteException;
     // Estatísticas e administração
     public Map<String, Integer> getTop10Searches() throws RemoteException;
