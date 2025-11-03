@@ -39,8 +39,8 @@ mvn clean compile
 make run-all
 ```
 Este comando inicia todos os componentes do sistema na seguinte ordem:
-1. Gateway (porta padrão: 7000)
-2. URL Queue (porta padrão: 6000)
+1. Gateway (porta padrão: 8183)
+2. URL Queue (porta padrão: 8181)
 3. Barrel 1 (porta padrão: 8186)
 4. Barrel 2 (porta padrão: 8182)
 5. Downloader
@@ -96,11 +96,11 @@ java -cp target/classes client.Client <gatewayPort> <gatewayHost>
 
 ---
 
-## ⚙️ Configuração
+## Configuração
 
 As configurações padrão podem ser alteradas no arquivo:
 ```
-src/main/resources/Config.cfg
+src/main/resources/Config.properties
 ```
 
 ### Exemplo de configuração:
