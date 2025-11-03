@@ -32,7 +32,7 @@ mvn clean compile
 
 ---
 
-## ▶️ Execução
+## Execução
 
 ### Opção 1: Executar todos os componentes automaticamente
 ```bash
