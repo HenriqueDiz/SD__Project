@@ -114,9 +114,9 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
                             BarrelInterface barrel = (BarrelInterface) barrelRegistry.lookup(barrelName);
                             barrel.backupQueueState(pendingUrls, seenUrlsCopy);
                             
-                            System.out.println(Utils.green("✓ Backup salvo em: " + barrelName));
+                            System.out.println(Utils.green("Backup salvo em: " + barrelName));
                         } catch (Exception e) {
-                            System.err.println(Utils.red("✗ Erro ao salvar em barrel: " + e.getMessage()));
+                            System.err.println(Utils.red("Erro ao salvar em barrel: " + e.getMessage()));
                         }
                     }
                     
