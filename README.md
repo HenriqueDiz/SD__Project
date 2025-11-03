@@ -177,7 +177,7 @@ Fechar manualmente cada terminal ou usar `Ctrl+C` em cada janela.
 
 ---
 
-## 🔍 Funcionalidades
+## Funcionalidades
 
 ### Pesquisa
 - **Pesquisa por palavra única:** Retorna todos os URLs que contêm a palavra
@@ -311,7 +311,7 @@ Para testar o sistema, pode usar URLs como:
 
 ### Erro: "Connection refused"
 - Certifique-se de que o Gateway está em execução antes dos outros componentes
-- Verifique as configurações de host/port no `Config.cfg`
+- Verifique as configurações de host/port no `Config.properties`
 
 ### Barrels não sincronizam
 - Verifique se todos os barrels estão registados no Gateway
