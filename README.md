@@ -347,10 +347,10 @@ mvn javadoc:javadoc
 cd target/reports/apidocs
 
 - MacOS/Linux 
-    start index.html
+    open index.html
 
 - Windows
-    open index.html
+    start index.html
 ```
 ---
 ## Autores
