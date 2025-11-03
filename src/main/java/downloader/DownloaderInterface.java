@@ -11,5 +11,10 @@ import java.rmi.Remote;
  * @version 1.0
  */
 public interface DownloaderInterface extends Remote{
+	/**
+	 * Obtém o número de URLs processadas pelo downloader.
+	 * @return O número de URLs processadas.
+	 * @throws java.rmi.RemoteException Se ocorrer um erro de comunicação remota.
+	 */
 	public int getProcessorURLsCount () throws java.rmi.RemoteException;
 }

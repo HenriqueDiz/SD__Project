@@ -33,30 +33,35 @@ import queue.URLQueueInterface;
  */
 public class Downloader extends UnicastRemoteObject implements DownloaderInterface {
 
+    /**
+     * Contador de URLs processadas.
+     */
     private static int counter = 0;
 
 
     /**
      * Construtor da classe Downloader.
      * 
-     * @throws java.rmi.RemoteException
+     * @throws java.rmi.RemoteException Se ocorrer um erro de comunicação remota.
      */
     public Downloader() throws java.rmi.RemoteException {
         super();
     }
 
 
-    /**     * Obtém o número de URLs processadas pelo downloader.
+    /**    
+     * Obtém o número de URLs processadas pelo downloader.
      * 
      * @return Número de URLs processadas.
-     * @throws java.rmi.RemoteException
+     * @throws java.rmi.RemoteException Se ocorrer um erro de comunicação remota.
      */
     public int getProcessorURLsCount () throws java.rmi.RemoteException {
         return counter;
     }
 
 
-    /**     * Método principal para iniciar o downloader.
+    /**     
+     * Método principal para iniciar o downloader.
      * Conecta-se ao Gateway e ao URLQueue, processa URLs continuamente.
      * 
      * @param args Argumentos da linha de comando (opcionais: gatewayPort, queuePort, gatewayHost, queueHost)

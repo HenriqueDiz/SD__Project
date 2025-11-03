@@ -19,16 +19,54 @@ import java.util.Properties;
  */
 public final class Utils {
 
+    /**
+     * Reset ANSI
+     */
     private static final String RESET = "\u001B[0m";
+
+    /**
+     * Vermelho
+     */
     private static final String RED = "\u001B[31m";
+
+    /**
+     * Amarelo
+     */
     private static final String YELLOW = "\u001B[33m";
+
+    /**
+     * Verde
+     */
     private static final String GREEN = "\u001B[32m";
+
+    /**
+     * Azul
+     */
     private static final String BLUE = "\u001B[34m";
+
+    /**
+     * Negrito
+     */
     private static final String BOLD = "\u001B[1m";
+
+    /**
+     * Sublinhado
+     */
     private static final String UNDERLINE = "\u001B[4m";
 
+    /**
+     * Caminho do ficheiro de configuração.
+     */
     private static final String CONFIG_FILE_PATH = "/Config.properties";
-    private static final String LOG_EXCEPTIONS_FILE_PATH = "/Log_Exceptions.txt";
+
+    /**
+     * Caminho do ficheiro de log de exceções.
+     */
+    private static final String LOG_EXCEPTIONS_FILE_PATH = "Log_Exceptions.txt";
+
+    /**
+     * Formato de timestamp para logs.
+     */
     private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     /**
@@ -119,6 +157,8 @@ public final class Utils {
 
     /**
      * Regista uma exceção no log de erros sem mensagem adicional.
+     * 
+     * @param t    Exceção a ser registada
      */
     public static void printLogException(Throwable t) {
         printLogException(null, t);

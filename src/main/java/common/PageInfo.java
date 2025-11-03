@@ -18,8 +18,19 @@ import org.jsoup.nodes.Element;
  */
 public class PageInfo implements Serializable {
 
+    /**
+     * URL da página.
+     */
     private final String url;
+
+    /**
+     * Título da página.
+     */
     private String title;
+
+    /**
+     * Descrição da página.
+     */
     private String description;
 
     /**

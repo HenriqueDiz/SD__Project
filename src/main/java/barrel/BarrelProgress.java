@@ -26,10 +26,25 @@ import common.Utils;
  */
 public class BarrelProgress implements Serializable {
 
+    /**
+     * Itens indexados (palavra-chave -> conjunto de URLs).
+     */
     private Map<String, HashSet<String>> indexedItems;
+
+    /**
+     * URLs indexadas (URL -> conjunto de URLs associadas).
+     */
     private Map<String, HashSet<String>> urlsIndexed;
-    private BlockingDeque<String> urlsToIndex; // URLs da queue que não foram processadas
-    private Set<String> seenUrls; // URLs já vistas pela queue
+
+    /**
+     * URLs a serem indexadas (não processadas).
+     */
+    private BlockingDeque<String> urlsToIndex;
+
+    /**
+     * URLs já vistas.
+     */
+    private Set<String> seenUrls;
 
     /**
      * Construtor da classe BarrelProgress.

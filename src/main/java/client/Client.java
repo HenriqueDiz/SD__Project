@@ -22,9 +22,19 @@ import gateway.GatewayInterface;
  * 
  * @version 1.0
  */
-
 public class Client {
 
+    /**
+     * Construtor padrão.
+     */
+    public Client() {}
+
+    /**
+     * Método principal para iniciar o cliente.
+     * Fornece um menu interativo para o usuário realizar várias operações através do Gateway.
+     * 
+     * @param args Argumentos da linha de comando (opcionais: gatewayPort, queuePort, gatewayHost, queueHost)
+     */
     public static void main(String[] args) {
         try {
             String gatewayHost;

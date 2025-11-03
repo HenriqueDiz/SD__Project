@@ -32,19 +32,56 @@ import gateway.GatewayInterface;
  */
 public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInterface {
 
+    /**
+     * Índice invertido: palavra -> conjunto de URLs
+     */
     private ConcurrentHashMap<String, HashSet<String>> indexedItems; // word -> set of urls
+
+    /**
+     * URLs indexadas e seus links associados
+     */
     private ConcurrentHashMap<String, HashSet<String>> urlsIndexed; // url -> set of associated links
+
+    /**
+     * Nome, porta e host do barrel
+     */
     private final String name;
+
+    /**
+     * Porta do barrel
+     */
     private final int port;
+
+    /**
+     * Host do barrel
+     */
     private final String host;
+
+    /**
+     * Conjunto de mensagens recebidas para evitar duplicatas
+     */
     private Set<String> receivedMessages; // Para detectar duplicados
+
+    /**
+     * Gerenciador de stopwords
+     */
     private BarrelStopWords stopWordsManager; 
 
-    // Dados da Queue para backup
+    /**
+     * Estado da Queue para backup e restauração
+     */
     private BlockingDeque<String> queueBackup; // URLs pendentes da queue
+
+    /**
+     * URLs já vistas pela queue
+     */
     private Set<String> queueSeenUrls; // URLs já vistas pela queue
-    
+
+    /**
+     * Executor para retransmissão de mensagens
+     */
     private final ExecutorService retransmitExecutor;
+
     /**
      * Construtor da classe IndexStorageBarrel.
      *
@@ -143,6 +180,12 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         return urlsIndexed.getOrDefault(url, new HashSet<>());
     }
 
+    /**
+     * Método principal para iniciar o Index Storage Barrel.
+     * Configura o barrel, carrega o progresso se existir, registra no Gateway e aguarda conexões.
+     * 
+     * @param args Argumentos da linha de comando (port, name, host ou barrelNumber)
+     */
     public static void main(String args[]) {
         try {
             int port;
@@ -483,7 +526,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
      * Obtém o progresso atual do barrel, incluindo itens indexados e estado da queue.
      * 
      * @return                          Objeto BarrelProgress com o estado atual
-     * @throws RemoteException          Se ocorrer um erro de comunicação remota
      */
     public synchronized BarrelProgress getProgress() {
         Map<String, HashSet<String>> indexedItemsSnap = new HashMap<>();
@@ -503,7 +545,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
      * Carrega o progresso do barrel a partir de um objeto BarrelProgress.
      * 
      * @param progress                  Objeto BarrelProgress com o estado a ser carregado
-     * @throws RemoteException          Se ocorrer um erro de comunicação remota
      */
     public synchronized void loadProgress(BarrelProgress progress) {
         if (progress == null) return;

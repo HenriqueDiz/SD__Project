@@ -28,20 +28,56 @@ import queue.URLQueueInterface;
  * @version 1.0
  */
 public class Gateway extends UnicastRemoteObject implements GatewayInterface {
-    
+
+    /**
+     * A lista de barrels ativos.
+     */
     private List<BarrelInterface> activeBarrels;
+
+    /**
+     * A lista de barrels registrados.
+     */
     private List<BarrelInterface> barrelsRegisters;
+
+    /**
+     * A instância remota do URL Queue.
+     */
     private URLQueueInterface urlQueue;
+
+    /**
+     * Mapa de informações dos barrels registrados (nome -> porta).
+     */
     private Map<String, Integer> registeredBarrelInfo;
+
+    /**
+     * Mapa de estatísticas de busca (palavra -> contagem).
+     */
     private Map<String, Integer> searchStats;
+
+    /**
+     * Índice do barrel atual para balanceamento de carga.
+     */
     private int currentBarrelIndex = 0;
+
+    /**
+     * Propriedades de configuração do Gateway.
+     */
     private Properties config;
-    
+
+    /**
+     * Mapa de tempos totais de processamento dos barrels (nome -> tempo em nanos).
+     */
     private final Map<String, Long> barrelTotalNanos = new ConcurrentHashMap<>();
+
+    /**
+     * Mapa de contagem de requisições dos barrels (nome -> contagem).
+     */
     private final Map<String, Long> barrelCount = new ConcurrentHashMap<>();
     
     /**
      * Construtor do Gateway.
+     * 
+     * @throws RemoteException Se ocorrer um erro remoto.
      */
     public Gateway() throws RemoteException {
         super();
@@ -52,6 +88,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         config = Utils.loadConfiguration();
     }
     
+    /**
+     * Método principal para iniciar o Gateway.
+     * Configura o Gateway, conecta-se ao URLQueue e aguarda conexões de clientes.
+     * 
+     * @param args Argumentos da linha de comando (não utilizados)
+     */
     public static void main(String[] args) {
         try {
             Gateway gateway = new Gateway();

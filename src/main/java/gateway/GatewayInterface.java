@@ -16,17 +16,74 @@ import java.util.Map;
  * @version 1.0
  */
 public interface GatewayInterface extends Remote {
-    // Métodos principais para clientes
+
+    /**
+     * Pesquisa uma palavra no Gateway.
+     * @param word A palavra a ser pesquisada.
+     * @return Uma lista de URLs onde a palavra foi encontrada.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public List<String> searchWordGateway(String word) throws RemoteException;
+
+    /**
+     * Adiciona uma URL ao Gateway.
+     * @param url A URL a ser adicionada.
+     * @param indexAnyway Indica se a URL deve ser indexada mesmo que não contenha palavras relevantes.
+     * @return true se a URL foi adicionada com sucesso, false caso contrário.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public boolean addURL(String url, boolean indexAnyway) throws RemoteException;
+
+    /**
+     * Pesquisa várias palavras no Gateway.
+     * @param words A lista de palavras a serem pesquisadas.
+     * @return Uma lista de arrays de strings, onde cada array contém as URLs encontradas para a palavra correspondente.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public List<String[]> searchWords(List<String> words) throws RemoteException;
-    // Estatísticas e administração
+   
+    /**
+     * Obtém as 10 pesquisas mais frequentes.
+     * @return Um mapa contendo as 10 pesquisas mais frequentes e suas contagens.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public Map<String, Integer> getTop10Searches() throws RemoteException;
+
+    /**
+     * Obtém as URLs ativas no Gateway.
+     * @return Uma lista de URLs ativas.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public List<String> getActiveBarrels() throws RemoteException;
+
+    /**
+     * Obtém as URLs registradas no Gateway.
+     * @return Uma lista de URLs registradas.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public List<String> getRegisteredBarrels() throws RemoteException;
+
+    /**
+     * Obtém o tempo médio de resposta do Gateway.
+     * @return Um mapa contendo o tempo médio de resposta para cada URL.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public Map<String, Long> getAverageResponseTime() throws RemoteException;
+
+    /**
+     * Obtém URLs associadas a uma URL indexada.
+     * @param url A URL indexada.
+     * @return O conjunto de URLs associadas.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public HashSet<String> getUrlsForIndexedUrl(String url) throws RemoteException;
   
-    // Método para barrels se registrarem
+    /**
+     * Registra um barrel no Gateway.
+     * @param host O endereço IP ou hostname do barrel
+     * @param port A porta do barrel
+     * @param name O nome do barrel
+     * @throws RemoteException Se ocorrer um erro de rede.
+     */
     public void registerBarrel(String host, int port, String name) throws RemoteException;
 }

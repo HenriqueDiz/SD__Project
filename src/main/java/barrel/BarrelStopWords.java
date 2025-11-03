@@ -23,13 +23,34 @@ import common.Utils;
  * @version 1.0
  */
 public class BarrelStopWords {
-    
-    private static final double STOPWORD_THRESHOLD = 0.25; // 25% dos documentos
+
+    /**
+     * Percentual de documentos para considerar uma palavra como stopword
+     */
+    private static final double STOPWORD_THRESHOLD = 0.70; // 70% dos documentos
+    /**
+     * Fator para definir outliers usando IQR
+     */
     private static final double OUTLIER_K = 2.0; // Fator multiplicativo para o IQR
+
+    /**
+     * Frequência mínima para considerar uma palavra como outlier
+     */
     private static final int MIN_WORD_FREQUENCY = 5; // Frequência mínima para considerar outlier
     
+    /**
+     * Mapa de contagens de palavras por URL
+     */
     private final ConcurrentHashMap<String, List<String>> urlWordCounts; // url -> list of outlier words
+
+    /**
+     * Lista de stopwords identificadas
+     */
     private final List<String> stopwords;
+
+    /**
+     * Nome do barrel (para logs)
+     */
     private final String barrelName;
     
     /**
@@ -169,6 +190,12 @@ public class BarrelStopWords {
     
     /**
      * Imprime um relatório formatado das mudanças nas stopwords
+     * 
+     * @param added                Palavras adicionadas como stopwords
+     * @param removed              Palavras removidas das stopwords
+     * @param contagemPalavras     Mapa de contagem de palavras
+     * @param totalDocs            Total de documentos analisados
+     * @param limiar               Limiar usado para definir stopwords
      */
     private void printStopwordsUpdate(Set<String> added, Set<String> removed, Map<String, Integer> contagemPalavras, int totalDocs, int limiar) {
         System.out.println("\n" + "╔" + "═".repeat(68) + "╗");

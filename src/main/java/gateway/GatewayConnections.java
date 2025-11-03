@@ -25,6 +25,11 @@ import queue.URLQueueInterface;
 public class GatewayConnections {
 
     /**
+     * Construtor padrão.
+     */
+    public GatewayConnections() {}
+
+    /**
      * Conecta-se ao URL Queue usando as propriedades fornecidas.
      * 
      * @param config    Propriedades de configuração contendo host, porta e nome da URL Queue
@@ -52,13 +57,13 @@ public class GatewayConnections {
 
     /**
      * Registra um barrel no Gateway.
-     * @param host
-     * @param port
-     * @param name
-     * @param activeBarrels
-     * @param barrelsRegisters
-     * @param registeredBarrelInfo
-     * @throws RemoteException
+     * @param host                           O endereço IP ou hostname do barrel
+     * @param port                           A porta do barrel
+     * @param name                           O nome do barrel
+     * @param activeBarrels                  A lista de barrels ativos
+     * @param barrelsRegisters               A lista de barrels registrados
+     * @param registeredBarrelInfo           O mapa de informações dos barrels registrados
+     * @throws RemoteException               Se ocorrer um erro de rede.
     */
     public static void registerBarrel(String host, int port, String name, List<BarrelInterface> activeBarrels, List<BarrelInterface> barrelsRegisters, Map<String, Integer> registeredBarrelInfo) throws RemoteException {
         try {

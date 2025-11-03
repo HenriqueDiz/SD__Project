@@ -28,13 +28,20 @@ import gateway.GatewayInterface;
  */
 public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
 
+    /**
+     * Fila de URLs a serem indexadas.
+     */
     private BlockingDeque<String> urlsToIndex;
+
+    /**
+     * Conjunto de URLs já vistas.
+     */
     private Set<String> seenUrls;
 
     /** 
      * Construtor da URL Queue.
      * 
-     * @throws RemoteException
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
      */
     public URLQueue() throws RemoteException {
         super();
@@ -45,7 +52,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
     /**
      * Método principal da URL Queue.
      * 
-     * @param args
+     * @param args Argumentos da linha de comando (opcionais: host, port, name)
     */
     public static void main(String args[]) {
         try {
@@ -142,7 +149,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
      * Método para pegar a próxima URL da fila.
      *
      * @return A próxima URL a ser processada.
-     * @throws RemoteException
+     * @throws RemoteException Se ocorrer um erro de rede.
      */
     @Override
     public String takeNext() throws RemoteException {
@@ -161,7 +168,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
      *
      * @param url       A URL a ser adicionada.
      * @param priority  Se true, a URL é adicionada ao início da fila; caso contrário, ao final.
-     * @throws RemoteException
+     * @throws RemoteException  Se ocorrer um erro de rede.
      */
     @Override
     public void putNew(String url, boolean priority) throws RemoteException {
@@ -187,7 +194,7 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
      * Método para obter o tamanho atual da fila.
      *
      * @return O número de URLs na fila.
-     * @throws RemoteException
+     * @throws RemoteException Se ocorrer um erro de rede.
      */
     @Override
     public int getQueueSize() throws RemoteException {

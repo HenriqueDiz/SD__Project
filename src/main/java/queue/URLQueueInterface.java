@@ -13,7 +13,25 @@ import java.rmi.RemoteException;
  * @version 1.0
  */
 public interface URLQueueInterface extends Remote {
+    /**
+     * Remove e retorna a próxima URL da fila.
+     * @return A próxima URL da fila.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public String takeNext() throws RemoteException;
+
+    /**
+     * Adiciona uma nova URL à fila.
+     * @param url A URL a ser adicionada.
+     * @param priority Indica se a URL deve ter prioridade na fila.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public void putNew(String url, boolean priority) throws RemoteException;
+
+    /**
+     * Obtém o tamanho da fila de URLs.
+     * @return O tamanho da fila.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
     public int getQueueSize() throws RemoteException;
 }
