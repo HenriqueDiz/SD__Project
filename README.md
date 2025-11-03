@@ -331,7 +331,28 @@ Para testar o sistema, pode usar URLs como:
 - **Stop Words:** São descobertas de forma distribuída usando análise estatística (IQR)
 
 ---
+## Javadoc
 
+Para gerar e visualizar a documentação Javadoc do projeto:
+
+### Gerar Javadoc
+
+#### Usando Maven:
+```bash
+mvn javadoc:javadoc
+```
+
+### Para correr
+```bash
+cd target/reports/apidocs
+
+- MacOS/Linux 
+    start index.html
+
+- Windows
+    open index.html
+```
+---
 ## Autores
 
 - Henrique Diz
