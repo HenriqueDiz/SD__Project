@@ -222,6 +222,8 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 System.out.println(Utils.green("Progresso carregado com sucesso!"));
             } else {
                 System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
+                // Se não exitir progresso, copia tudo
+                barrel.copyAllData();
             }
 
             System.setProperty("java.rmi.server.hostname", host);
@@ -565,5 +567,52 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         System.out.println(Utils.green("Queue backup carregado:"));
         System.out.println("  - URLs pendentes: " + queueBackup.size());
         System.out.println("  - URLs vistas: " + queueSeenUrls.size());
+    }
+
+    /**
+     * Copia dados (índices) de outros barrels ativos ao iniciar quando não há progresso local.
+     * Se não conseguir contatar o Gateway ou outros barrels, falha de forma silenciosa deixando o barrel vazio.
+     */
+    public synchronized void copyAllData() {
+        try {
+            // Obter lista de barrels via Gateway
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            Registry gatewayRegistry = LocateRegistry.getRegistry(gatewayConfig.getHost(), gatewayConfig.getPort());
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayConfig.getName());
+            List<String> activeBarrels = gateway.getActiveBarrels();
+
+            for (String barrelInfo : activeBarrels) {
+                try {
+                    String[] parts = barrelInfo.split(":");
+                    String barrelName = parts[0];
+                    int barrelPort = Integer.parseInt(parts[1]);
+                    String barrelHost = parts[2];
+
+                    // Não copiar de si mesmo
+                    if (barrelName.equals(this.name) && barrelPort == this.port && barrelHost.equals(this.host)) {
+                        continue;
+                    }
+
+                    try {
+                        Registry otherRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
+                        BarrelInterface otherBarrel = (BarrelInterface) otherRegistry.lookup(barrelName);
+
+                        // Obter índice do outro barrel e sincronizar
+                        Map<String, HashSet<String>> otherIndex = otherBarrel.getIndex();
+                        if (otherIndex != null && !otherIndex.isEmpty()) {
+                            this.syncIndex(otherIndex);
+                            System.out.println(Utils.green("Índice copiado do barrel: " + barrelName));
+                        }
+                    } catch (Exception e) {
+                        Utils.printLogException("Erro ao copiar dados do barrel " + barrelName + ": " + e.getMessage(), e);
+                    }
+                } catch (Exception e) {
+                    Utils.printLogException("Formato inválido de barrel recebido do Gateway: " + barrelInfo + " (" + e.getMessage() + ")", e);
+                }
+            }
+        } catch (Exception e) {
+            // Se não for possível contactar o gateway ou obter barrels, apenas logamos e seguimos com índice vazio.
+            Utils.printLogException("Não foi possível copiar dados iniciais via Gateway: " + e.getMessage(), e);
+        }
     }
 }

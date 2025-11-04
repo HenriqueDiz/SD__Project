@@ -138,41 +138,41 @@ public class Client {
                             }
 
                             System.out.println("Encontrados " + results.size() + " resultado(s) para: " + words);
-                            System.out.println("Como deseja visualizar?");
-                            System.out.println("1) Mostrar todos");
-                            System.out.println("2) Mostrar até um número máximo");
-                            System.out.print("Escolha (1-2): ");
-                            String viewChoice = keyboard.nextLine().trim();
+        
+                            // Paginação: mostrar de 10 em 10
+                            int pageSize = 10;
+                            int totalPages = (int) Math.ceil((double) results.size() / pageSize);
+                            int currentPage = 0;
 
-                            int toShow = results.size();
-                            if ("2".equals(viewChoice)) {
-                                System.out.print("Digite o número máximo de urls a mostrar: ");
-                                String maxStr = keyboard.nextLine().trim();
-                                int maxResults;
-                                try {
-                                    maxResults = Integer.parseInt(maxStr);
-                                    if (maxResults <= 0) {
-                                        System.out.println("Valor inválido! Será utilizado o valor padrão: 10");
-                                        maxResults = 10;
+                            while (currentPage < totalPages) {
+                                int start = currentPage * pageSize;
+                                int end = Math.min(start + pageSize, results.size());
+                                
+                                System.out.println("\n" + Utils.yellow("=".repeat(60)));
+                                System.out.println(Utils.yellow("Página " + (currentPage + 1) + " de " + totalPages));
+                                System.out.println(Utils.yellow("=".repeat(60)));
+                                
+                                for (int i = start; i < end; i++) {
+                                    String urlRes = results.get(i)[0];
+                                    String refs = results.get(i)[1];
+
+                                    System.out.println(Utils.bold(Utils.green("[" + (i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
+                                    System.out.println(new PageInfo(urlRes) + "\n");
+                                }
+                                
+                                currentPage++;
+                                
+                                if (currentPage < totalPages) {
+                                    System.out.print(Utils.yellow("Pressione Enter para ver mais resultados (ou digite 'q' para sair): "));
+                                    String input = keyboard.nextLine().trim();
+                                    if (input.equalsIgnoreCase("q")) {
+                                        break;
                                     }
-                                } catch (NumberFormatException ex) {
-                                    System.out.println("Entrada inválida! Será utilizado o valor padrão: 10");
-                                    maxResults = 10;
-                                }
-
-                                toShow = Math.min(maxResults, results.size());
-                                if (results.size() < maxResults) {
-                                    System.out.println("Apenas " + results.size() + " resultado(s) encontrados (pedido: " + maxResults + ").");
                                 }
                             }
-                            System.out.println(Utils.yellow("-".repeat(60)));
-                            for (int i = 0; i < toShow; i++) {
-                                String urlRes = results.get(i)[0];
-                                String refs = results.get(i)[1];
-
-                                System.out.println(Utils.bold(Utils.green("[" + (i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
-                                System.out.println(new PageInfo(urlRes) + "\n");
-                            }
+                            
+                            System.out.println(Utils.green("\nFim dos resultados."));
+                            
                         } else {
                             System.out.println("Por favor, digite uma palavra válida!");
                         }
