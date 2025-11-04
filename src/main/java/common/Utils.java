@@ -4,6 +4,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
@@ -62,7 +64,7 @@ public final class Utils {
     /**
      * Caminho do ficheiro de log de exceções.
      */
-    private static final String LOG_EXCEPTIONS_FILE_PATH = "Log_Exceptions.txt";
+    private static final String LOG_EXCEPTIONS_FILE_PATH = "files/Log_Exceptions.txt";
 
     /**
      * Formato de timestamp para logs.
@@ -146,7 +148,8 @@ public final class Utils {
         System.err.println(red(header));
         t.printStackTrace(System.err);
 
-        try (PrintWriter pw = new PrintWriter(new FileWriter(LOG_EXCEPTIONS_FILE_PATH, true))) {
+        Path logPath = Paths.get(LOG_EXCEPTIONS_FILE_PATH).toAbsolutePath();
+        try (PrintWriter pw = new PrintWriter(new FileWriter(logPath.toFile(), true))) {
             pw.println(header);
             t.printStackTrace(pw);
             pw.println();
