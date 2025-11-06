@@ -4,7 +4,10 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+
+import statistics.BarrelStateCallback;
+import statistics.Statistics;
+import statistics.StatsCallback;
 
 /**
  * Interface remota para o Gateway.
@@ -41,13 +44,6 @@ public interface GatewayInterface extends Remote {
      * @throws RemoteException Se ocorrer um erro de comunicação remota.
      */
     public List<String[]> searchWords(List<String> words) throws RemoteException;
-   
-    /**
-     * Obtém as 10 pesquisas mais frequentes.
-     * @return Um mapa contendo as 10 pesquisas mais frequentes e suas contagens.
-     * @throws RemoteException Se ocorrer um erro de comunicação remota.
-     */
-    public Map<String, Integer> getTop10Searches() throws RemoteException;
 
     /**
      * Obtém as URLs ativas no Gateway.
@@ -62,13 +58,6 @@ public interface GatewayInterface extends Remote {
      * @throws RemoteException Se ocorrer um erro de comunicação remota.
      */
     public List<String> getRegisteredBarrels() throws RemoteException;
-
-    /**
-     * Obtém o tempo médio de resposta do Gateway.
-     * @return Um mapa contendo o tempo médio de resposta para cada URL.
-     * @throws RemoteException Se ocorrer um erro de comunicação remota.
-     */
-    public Map<String, Long> getAverageResponseTime() throws RemoteException;
 
     /**
      * Obtém URLs associadas a uma URL indexada.
@@ -86,4 +75,18 @@ public interface GatewayInterface extends Remote {
      * @throws RemoteException Se ocorrer um erro de rede.
      */
     public void registerBarrel(String host, int port, String name) throws RemoteException;
+
+
+    /**
+     * Obtém as estatísticas dos barrels.
+     * 
+     * @return                  A instância de BarrelStatistics.
+     */
+    public Statistics getBarrelStatistics() throws RemoteException;
+
+    void registerStatsCallback(StatsCallback callback) throws java.rmi.RemoteException;
+    void unregisterStatsCallback(StatsCallback callback) throws java.rmi.RemoteException;
+
+    void registerBarrelStateCallback(BarrelStateCallback callback) throws java.rmi.RemoteException;
+    void unregisterBarrelStateCallback(BarrelStateCallback callback) throws java.rmi.RemoteException;
 }

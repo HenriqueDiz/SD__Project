@@ -20,6 +20,7 @@ run-g:
 	mvn exec:java -Dexec.mainClass="gateway.Gateway"
 
 run-all:
+	mvn clean compile
 ifeq ($(OS),Windows_NT)
 	@echo "Inicializando todos os componentes (Windows)..."
 	@powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\runAllWt.ps1" "$(CURDIR)"

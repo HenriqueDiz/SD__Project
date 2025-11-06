@@ -222,8 +222,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 System.out.println(Utils.green("Progresso carregado com sucesso!"));
             } else {
                 System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
-                // Se não exitir progresso, copia tudo
-                barrel.copyAllData();
+                barrel.copyAllData(); // Se não exitir progresso, copia tudo
             }
 
             System.setProperty("java.rmi.server.hostname", host);

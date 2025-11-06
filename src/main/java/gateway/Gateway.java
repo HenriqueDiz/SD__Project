@@ -8,15 +8,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import barrel.BarrelInterface;
 import common.Utils;
 import queue.URLQueueInterface;
+import statistics.BarrelStateCallback;
+import statistics.Statistics;
+import statistics.StatsCallback;
 
 /**
  * Implementação do Gateway que gerencia a comunicação entre clientes e barrels.
@@ -50,11 +55,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private Map<String, Integer> registeredBarrelInfo;
 
     /**
-     * Mapa de estatísticas de busca (palavra -> contagem).
-     */
-    private Map<String, Integer> searchStats;
-
-    /**
      * Índice do barrel atual para balanceamento de carga.
      */
     private int currentBarrelIndex = 0;
@@ -65,15 +65,16 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     private Properties config;
 
     /**
-     * Mapa de tempos totais de processamento dos barrels (nome -> tempo em nanos).
+     * Estatísticas do Barrel.
      */
-    private final Map<String, Long> barrelTotalNanos = new ConcurrentHashMap<>();
+    private final Statistics stats;
 
-    /**
-     * Mapa de contagem de requisições dos barrels (nome -> contagem).
-     */
-    private final Map<String, Long> barrelCount = new ConcurrentHashMap<>();
+    private final List<StatsCallback> statsCallbacks = new CopyOnWriteArrayList<>();
     
+    private final ExecutorService callbackExecutor = Executors.newCachedThreadPool();
+
+    private final List<BarrelStateCallback> barrelStateCallbacks = new CopyOnWriteArrayList<>();
+
     /**
      * Construtor do Gateway.
      * 
@@ -84,8 +85,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         activeBarrels = new ArrayList<>();
         barrelsRegisters = new ArrayList<>();
         registeredBarrelInfo = new ConcurrentHashMap<>();
-        searchStats = new ConcurrentHashMap<>();
         config = Utils.loadConfiguration();
+        stats = new Statistics();
     }
     
     /**
@@ -121,12 +122,18 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             // Shutdown hook para limpeza
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("\nEncerrando Gateway...");
+                
                 try {
                     registry.unbind(gatewayName);
                     System.out.println("Gateway desregistrado");
                 } catch (Exception e) {
                     Utils.printLogException("Erro ao desregistrar o Gateway", e);
                 }
+                System.out.println("Gateway encerrado!");
+                
+                try {
+                    gateway.callbackExecutor.shutdownNow();
+                } catch (Exception ignore) {}
                 System.out.println("Gateway encerrado!");
             }));
             
@@ -169,7 +176,8 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         List<String> results = searchWithFailover(word);
         
         if (results != null) {
-            updateSearchStats(word);
+            stats.updateSearchStats(word);
+            notifyStatsUpdateAsync();
             System.out.println("Resultado para '" + word + "': " + results.size() + " resultado(s)");
         }
         
@@ -183,7 +191,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
      * @return                  Lista de URLs que contêm a palavra.
      * @throws RemoteException  Se todos os barrels falharem.
      */
-   private List<String> searchWithFailover(String word) throws RemoteException {
+    private List<String> searchWithFailover(String word) throws RemoteException {
         List<BarrelInterface> activeBarrelsCopy = new ArrayList<>(activeBarrels);
         
         String normalized = word == null ? "" : word.toLowerCase();
@@ -196,7 +204,16 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 long start = System.nanoTime();
                 List<String> results = barrel.searchWord(normalized);
                 long elapsed = System.nanoTime() - start;
-                recordResponseTime(barrel, elapsed);
+
+                String key;
+                try {
+                    key = barrel.getName() + ":" + barrel.getPort();
+                } catch (RemoteException e) {
+                    key = "unknown_barrel";
+                    Utils.printLogException("Erro ao obter nome/porta do barrel para estatísticas de tempo de resposta", e);
+                }
+                stats.recordResponseTime(key, elapsed);
+                notifyStatsUpdateAsync();
                 System.out.println("Barrel " + (attempt + 1) + " respondeu com " + results.size() + " resultado(s)");
                 return results;
                 
@@ -207,7 +224,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                     System.err.println("Barrel " + barrelName + ":" + barrelPort + " falhou, tentando próximo...");
                 } catch (RemoteException ex) {
                     System.err.println("Barrel " + (attempt + 1) + " falhou, tentando próximo...");
-                    // Remove pela referência se não conseguir obter nome/porta
+                    notifyActiveBarrelsUpdateAsync();
                     activeBarrels.remove(barrel);
                 }
             }
@@ -347,159 +364,22 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     public synchronized void registerBarrel(String host, int port, String name) throws RemoteException {
         GatewayConnections.registerBarrel(host, port, name, activeBarrels, barrelsRegisters, registeredBarrelInfo);
         notifyAll(); // Retomar os downloaders
+        notifyActiveBarrelsUpdateAsync();
+        notifyRegisteredBarrelsUpdateAsync();
     }
 
-
-    // __________________ STATISTICS _______________________ //
-
-
     /**
-     * Atualiza as estatísticas de busca para uma palavra.
+     * Obtém as estatísticas dos barrels.
      * 
-     * @param word  A palavra buscada.
-     */
-    private void updateSearchStats(String word) {
-        searchStats.merge(word, 1, Integer::sum);
-    }
-    
-    /**
-     * Obtém as 10 palavras mais buscadas.
-     * 
-     * @return                  Mapa das 10 palavras mais buscadas e suas contagens.
-     * @throws RemoteException  Se ocorrer um erro remoto.
+     * @return                  A instância de BarrelStatistics.
      */
     @Override
-    public Map<String, Integer> getTop10Searches() throws RemoteException {
-        return searchStats.entrySet().stream()
-            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-            .limit(10)
-            .collect(LinkedHashMap::new,
-                (map, entry) -> map.put(entry.getKey(), entry.getValue()),
-                LinkedHashMap::putAll);
+    public Statistics getBarrelStatistics() throws RemoteException {
+        return stats;
     }
 
     /**
-     * Obtém a lista de barrels ativos.
-     * 
-     * @return                  Lista de strings com informações dos barrels ativos.
-     * @throws RemoteException  Se ocorrer um erro remoto.
-     */
-    @Override
-    public synchronized List<String> getActiveBarrels() throws RemoteException {
-        List<String> barrelInfo = new ArrayList<>();
-
-        // Usar iterator para evitar ConcurrentModificationException
-        Iterator<BarrelInterface> iterator = activeBarrels.iterator();
-        while (iterator.hasNext()) {
-            BarrelInterface barrel = iterator.next();
-            try {
-                String barrelName = barrel.getName();
-                int barrelPort = barrel.getPort();
-                String barrelHost = barrel.getHost();
-                int indexSize = barrel.getIndexSize();
-                barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost + ":" + indexSize);
-            } catch (RemoteException e) {
-                System.err.println("Erro ao obter informações do barrel ativo: " + e.getMessage());
-                iterator.remove(); // Remove apenas da lista de ativos
-            }
-        }
-        return barrelInfo;
-    }
-
-    /**
-     * Obtém a lista de barrels registrados.
-     * 
-     * @return                  Lista de strings com informações dos barrels registrados.
-     * @throws RemoteException  Se ocorrer um erro remoto.
-     */
-    @Override
-    public synchronized List<String> getRegisteredBarrels() throws RemoteException {
-        List<String> barrelInfo = new ArrayList<>();
-
-        // Usar o mapa de informações registradas como fonte principal
-        for (Map.Entry<String, Integer> entry : registeredBarrelInfo.entrySet()) {
-            String name = entry.getKey();
-            Integer port = entry.getValue();
-            // Procura o host correspondente na lista de barrelsRegisters
-            String host = barrelsRegisters.stream()
-                .filter(b -> {
-                    try {
-                        return b.getName().equals(name) && b.getPort() == port;
-                    } catch (RemoteException e) {
-                        return false;
-                    }
-                })
-                .findFirst()
-                .map(b -> {
-                    try {
-                        return b.getHost();
-                    } catch (RemoteException e) {
-                        return "unknown_host";
-                    }
-                })
-                .orElse("unknown_host");
-            barrelInfo.add(name + ":" + port + ":" + host);
-        }
-
-        // Se o mapa estiver vazio, usar a lista como fallback
-        if (barrelInfo.isEmpty()) {
-            for (BarrelInterface barrel : barrelsRegisters) {
-                try {
-                    String barrelName = barrel.getName();
-                    int barrelPort = barrel.getPort();
-                    String barrelHost = barrel.getHost();
-                    barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost);
-                } catch (RemoteException e) {
-                    System.err.println("Erro ao obter informações do barrel registrado: " + e.getMessage());
-                }
-            }
-        }
-
-        return barrelInfo;
-    }
-
-    /**
-     * Registra o tempo de resposta de um barrel.
-     * 
-     * @param barrel            O barrel que respondeu.
-     * @param durationNanos     A duração da resposta em nanossegundos.
-     */
-    private void recordResponseTime(BarrelInterface barrel, long durationNanos) {
-        String key;
-        try {
-            key = barrel.getName() + ":" + barrel.getPort();
-        } catch (RemoteException e) {
-            key = "unknown_barrel";
-            Utils.printLogException("Erro ao obter nome/porta do barrel para estatísticas de tempo de resposta", e);
-        }
-        barrelTotalNanos.merge(key, durationNanos, Long::sum);
-        barrelCount.merge(key, 1L, Long::sum);
-    }
-
-    /**
-     * Obtém o tempo médio de resposta dos barrels.
-     * 
-     * @return                  Mapa de nomes de barrels para tempos médios de resposta em nanos.
-     * @throws RemoteException  Se ocorrer um erro remoto.
-     */
-    @Override
-    public synchronized Map<String, Long> getAverageResponseTime() throws RemoteException {
-        Map<String, Long> averages = new LinkedHashMap<>();
-        barrelCount.keySet().stream()
-            .sorted()
-            .forEach(key -> {
-                long count = barrelCount.getOrDefault(key, 0L);
-                long total = barrelTotalNanos.getOrDefault(key, 0L);
-                if (count > 0) {
-                    long avgNanos = total / count;
-                    averages.put(key, avgNanos);
-                }
-            });
-        return averages;
-    }
-    
-    /**
-     *  Obtém os URLs associados a um URL indexado.
+     * Obtém os URLs associados a um URL indexado.
      * @param url               O URL a ser pesquisado.
      * @return                  Lista de URLs associados.
      * @throws RemoteException  Se ocorrer um erro remoto.
@@ -527,5 +407,158 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
 
         }
         return aggregatedUrls;
+    }
+
+    // __________________ STATISTICS - Callbacks _______________________ //
+
+    // Notifica todos os clientes (assíncrono para não bloquear)
+    private void notifyStatsUpdateAsync() {
+        for (StatsCallback cb : statsCallbacks) {
+            callbackExecutor.submit(() -> {
+                try {
+                    cb.onStatsUpdate(stats);
+                } catch (Exception e) {
+                    // Remove callback morto
+                    statsCallbacks.remove(cb);
+                }
+            });
+        }
+    }
+
+    @Override
+    public synchronized void registerStatsCallback(StatsCallback callback) throws RemoteException {
+        if (callback != null) {
+            statsCallbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void unregisterStatsCallback(StatsCallback callback) throws RemoteException {
+        if (callback != null) {
+            statsCallbacks.remove(callback);
+        }
+    }
+
+    // ___________________ BARREL STATE CALLBACKS _______________________ //
+
+
+    @Override
+    public synchronized void registerBarrelStateCallback(BarrelStateCallback callback) throws RemoteException {
+        if (callback != null) barrelStateCallbacks.add(callback);
+    }
+
+    @Override
+    public synchronized void unregisterBarrelStateCallback(BarrelStateCallback callback) throws RemoteException {
+        if (callback != null) barrelStateCallbacks.remove(callback);
+    }
+
+    private void notifyActiveBarrelsUpdateAsync() {
+        List<String> snapshot;
+        try {
+            snapshot = getActiveBarrels();
+        } catch (RemoteException e) {
+            snapshot = new ArrayList<>();
+        }
+        final List<String> msg = snapshot;
+        for (BarrelStateCallback cb : barrelStateCallbacks) {
+            callbackExecutor.submit(() -> {
+                try {
+                    cb.onActiveBarrelsUpdate(msg);
+                } catch (Exception e) {
+                    barrelStateCallbacks.remove(cb);
+                }
+            });
+        }
+    }
+
+    private void notifyRegisteredBarrelsUpdateAsync() {
+        List<String> snapshot;
+        try {
+            snapshot = getRegisteredBarrels();
+        } catch (RemoteException e) {
+            snapshot = new ArrayList<>();
+        }
+        final List<String> msg = snapshot;
+        for (BarrelStateCallback cb : barrelStateCallbacks) {
+            callbackExecutor.submit(() -> {
+                try {
+                    cb.onRegisteredBarrelsUpdate(msg);
+                } catch (Exception e) {
+                    barrelStateCallbacks.remove(cb);
+                }
+            });
+        }
+    }
+
+    /**
+     * Obtém a lista de barrels ativos.
+     * 
+     * @return                  Lista de strings com informações dos barrels ativos.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
+    @Override
+    public synchronized List<String> getActiveBarrels() throws RemoteException {
+        List<String> barrelInfo = new ArrayList<>();
+        boolean changed = false;
+
+        Iterator<BarrelInterface> iterator = activeBarrels.iterator();
+        while (iterator.hasNext()) {
+            BarrelInterface barrel = iterator.next();
+            try {
+                String barrelName = barrel.getName();
+                int barrelPort = barrel.getPort();
+                String barrelHost = barrel.getHost();
+                int indexSize = barrel.getIndexSize();
+                barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost + ":" + indexSize);
+            } catch (RemoteException e) {
+                System.err.println("Erro ao obter informações do barrel ativo: " + e.getMessage());
+                iterator.remove();
+                changed = true;
+            }
+        }
+        if (changed) notifyActiveBarrelsUpdateAsync();
+        return barrelInfo;
+    }
+
+    /**
+     * Obtém a lista de barrels registrados.
+     * 
+     * @return                  Lista de strings com informações dos barrels registrados.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
+    @Override
+    public synchronized List<String> getRegisteredBarrels() throws RemoteException {
+        List<String> barrelInfo = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> entry : registeredBarrelInfo.entrySet()) {
+            String name = entry.getKey();
+            Integer port = entry.getValue();
+            String host = barrelsRegisters.stream()
+                .filter(b -> {
+                    try { return b.getName().equals(name) && b.getPort() == port; }
+                    catch (RemoteException e) { return false; }
+                })
+                .findFirst()
+                .map(b -> {
+                    try { return b.getHost(); }
+                    catch (RemoteException e) { return "unknown_host"; }
+                })
+                .orElse("unknown_host");
+            barrelInfo.add(name + ":" + port + ":" + host);
+        }
+
+        if (barrelInfo.isEmpty()) {
+            for (BarrelInterface barrel : barrelsRegisters) {
+                try {
+                    String barrelName = barrel.getName();
+                    int barrelPort = barrel.getPort();
+                    String barrelHost = barrel.getHost();
+                    barrelInfo.add(barrelName + ":" + barrelPort + ":" + barrelHost);
+                } catch (RemoteException e) {
+                    System.err.println("Erro ao obter informações do barrel registrado: " + e.getMessage());
+                }
+            }
+        }
+        return barrelInfo;
     }
 }

@@ -1,6 +1,7 @@
 package client;
 
 import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,11 @@ import common.ConfigReader;
 import common.PageInfo;
 import common.Utils;
 import gateway.GatewayInterface;
+import statistics.BarrelStateCallback;
+import statistics.BarrelStateCallbackImpl;
+import statistics.Statistics;
+import statistics.StatsCallback;
+import statistics.StatsCallbackImpl;
 
 /**
  * Cliente que interage com o Gateway para realizar operações como adicionar URLs,
@@ -186,19 +192,9 @@ public class Client {
                             System.out.println(Utils.red("Não foi possível fazer a consulta: não há barrels ativos."));
                             break;
                         }
-                        System.out.println("\n" + Utils.yellow("TOP 10 PESQUISAS"));
-                        System.out.println("-".repeat(30));
+                        
+                        Statistics stats = gateway.getBarrelStatistics();
 
-                        Map<String, Integer> top10 = gateway.getTop10Searches();
-                        if (top10.isEmpty()) {
-                            System.out.println("Ainda não há pesquisas registradas");
-                        } else {
-                            int rank = 1;
-                            for (Map.Entry<String, Integer> entry : top10.entrySet()) {
-                                System.out.println(rank + ". " + entry.getKey() + " (" + entry.getValue() + " pesquisas)");
-                                rank++;
-                            }
-                        }
                         System.out.println("\n" + Utils.yellow("BARRELS ATIVOS"));
                         System.out.println("-".repeat(30));
                         List<String> activeBarrels = gateway.getActiveBarrels();
@@ -225,9 +221,22 @@ public class Client {
                             }
                         }
 
+                        System.out.println("\n" + Utils.yellow("TOP 10 PESQUISAS"));
+                        System.out.println("-".repeat(30));
+                        Map<String, Integer> top10 = stats.getTop10Searches();
+                        if (top10.isEmpty()) {
+                            System.out.println("Ainda não há pesquisas registradas");
+                        } else {
+                            int rank = 1;
+                            for (Map.Entry<String, Integer> entry : top10.entrySet()) {
+                                System.out.println(rank + ". " + entry.getKey() + " (" + entry.getValue() + " pesquisas)");
+                                rank++;
+                            }
+                        }
+
                         System.out.println("\n" + Utils.yellow("TEMPO MÉDIO DE RESPOSTA POR BARREL"));
                         System.out.println("-".repeat(30));
-                        Map<String, Long> responseTimes = gateway.getAverageResponseTime();
+                        Map<String, Long> responseTimes = stats.getAverageResponseTime();
                         if (responseTimes.isEmpty()) {
                             System.out.println("Nenhum tempo de resposta registrado.");
                         } else {
@@ -235,6 +244,33 @@ public class Client {
                                 System.out.println("Barrel: " + entry.getKey() + " - Tempo médio: " + entry.getValue() + " ns");
                             }
                         }
+
+                        // Registrar callbacks para atualizações em tempo real
+                        System.out.println("\n" + Utils.blue("A ouvir atualizações em tempo real (estatísticas e estado dos barrels)...") + "\n");
+                        System.out.println(Utils.yellow("Digite 'q' + Enter para parar de ouvir."));
+                        StatsCallback statsListener = new StatsCallbackImpl();
+                        BarrelStateCallback stateListener = new BarrelStateCallbackImpl();
+                        gateway.registerStatsCallback(statsListener);
+                        gateway.registerBarrelStateCallback(stateListener);
+
+                        // Loop simples até utilizador parar
+                        while (true) {
+                            String line = keyboard.nextLine().trim();
+                            if (line.equalsIgnoreCase("q")) {
+                                break;
+                            }
+                        }
+
+                        // Cleanup dos callbacks
+                        try { gateway.unregisterStatsCallback(statsListener); } 
+                        catch (Exception e) { Utils.printLogException("Erro ao desregistrar callback de estatísticas: " + e.getMessage(), e); }
+                        try { gateway.unregisterBarrelStateCallback(stateListener); } 
+                        catch (Exception e) { Utils.printLogException("Erro ao desregistrar callback de estado: " + e.getMessage(), e); }
+
+                        try { UnicastRemoteObject.unexportObject(statsListener, true); } 
+                        catch (Exception e) { Utils.printLogException("Erro ao desexportar objeto remoto (stats): " + e.getMessage(), e); }
+                        try { UnicastRemoteObject.unexportObject(stateListener, true); } 
+                        catch (Exception e) { Utils.printLogException("Erro ao desexportar objeto remoto (estado): " + e.getMessage(), e); }
                     }
 
                     case "4" -> {
