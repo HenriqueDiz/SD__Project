@@ -25,6 +25,13 @@ import common.Utils;
 public class BarrelStopWords {
 
     /**
+     * Interface para notificar quando stopwords são atualizadas
+     */
+    public interface StopwordsUpdateListener {
+        void onStopwordsUpdated();
+    }
+
+    /**
      * Percentual de documentos para considerar uma palavra como stopword
      */
     private static final double STOPWORD_THRESHOLD = 0.70; // 70% dos documentos
@@ -54,6 +61,11 @@ public class BarrelStopWords {
     private final String barrelName;
     
     /**
+     * Listener para notificar mudanças nas stopwords
+     */
+    private StopwordsUpdateListener listener;
+    
+    /**
      * Construtor
      * 
      * @param barrelName Nome do barrel (para logs)
@@ -62,6 +74,7 @@ public class BarrelStopWords {
         this.urlWordCounts = new ConcurrentHashMap<>();
         this.stopwords = new ArrayList<>();
         this.barrelName = barrelName;
+        this.listener = null;
     }
     
     /**
@@ -185,6 +198,11 @@ public class BarrelStopWords {
             // Atualiza a lista de stopwords
             stopwords.clear();
             stopwords.addAll(newStopwordsSet);
+            
+            // Notifica listener se configurado
+            if (listener != null) {
+                listener.onStopwordsUpdated();
+            }
         }
     }
     
@@ -198,15 +216,18 @@ public class BarrelStopWords {
      * @param limiar               Limiar usado para definir stopwords
      */
     private void printStopwordsUpdate(Set<String> added, Set<String> removed, Map<String, Integer> contagemPalavras, int totalDocs, int limiar) {
-        System.out.println("\n" + "╔" + "═".repeat(68) + "╗");
-        System.out.println("║" + Utils.bold(Utils.yellow(" ".repeat(20) + "STOPWORDS UPDATE" + " ".repeat(32))) + "║");
-        System.out.println("╠" + "═".repeat(68) + "╣");
-        System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName) + " ".repeat(61 - barrelName.length()));
-        System.out.println(Utils.blue("Total de documentos:") + " " + Utils.bold(String.valueOf(totalDocs)) + " ".repeat(47 - String.valueOf(totalDocs).length()));
-        System.out.println(Utils.blue("Limiar para stopwords:") + " " + Utils.bold(limiar + " documentos (" + (int)(STOPWORD_THRESHOLD * 100) + "%)") + " ".repeat(30 - String.valueOf(limiar).length()));
+        System.out.println("\n" + "=".repeat(68));
+        System.out.println(Utils.bold(Utils.yellow("STOPWORDS UPDATE")));
+        System.out.println("=".repeat(68));
+        System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName));
+        System.out.println(Utils.blue("Total de documentos:") + " " + Utils.bold(String.valueOf(totalDocs)));
+        
+        String limiarStr = limiar + " docs (" + (int)(STOPWORD_THRESHOLD * 100) + "%)";
+        System.out.println(Utils.blue("Limiar para stopwords:") + " " + Utils.bold(limiarStr));
+        System.out.println("-".repeat(68));
         
         if (!added.isEmpty()) {
-            System.out.println(Utils.green("ADICIONADAS") + " (" + added.size() + "):" + " ".repeat(49 - String.valueOf(added.size()).length()));
+            System.out.println(Utils.green("ADICIONADAS") + " (" + added.size() + "):");
             List<String> addedList = new ArrayList<>(added);
             addedList.sort(String::compareTo);
             
@@ -214,37 +235,36 @@ public class BarrelStopWords {
             for (int i = 0; i < maxShow; i++) {
                 String word = addedList.get(i);
                 int count = contagemPalavras.get(word);
-                String line = "   - " + Utils.bold(word) + " (" + count + " docs)";
-                System.out.println(line + " ".repeat(67 - Utils.stripAnsi(line).length()));
+                System.out.println("   - " + Utils.bold(word) + " (" + count + " docs)");
             }
             
             if (addedList.size() > 10) {
-                String more = "   ... e mais " + (addedList.size() - 10) + " palavra(s)";
-                System.out.println(Utils.yellow(more) + " ".repeat(67 - more.length()));
+                System.out.println(Utils.yellow("   ... e mais " + (addedList.size() - 10) + " palavra(s)"));
             }
         }
         
         if (!removed.isEmpty()) {
             if (!added.isEmpty()) {
+                System.out.println();
             }
-            System.out.println(Utils.red("REMOVIDAS") + " (" + removed.size() + "):" + " ".repeat(51 - String.valueOf(removed.size()).length()));
+            System.out.println(Utils.red("REMOVIDAS") + " (" + removed.size() + "):");
             List<String> removedList = new ArrayList<>(removed);
             removedList.sort(String::compareTo);
             
             int maxShow = Math.min(10, removedList.size());
             for (int i = 0; i < maxShow; i++) {
                 String word = removedList.get(i);
-                String line = "   - " + Utils.bold(word);
-                System.out.println(line + " ".repeat(67 - Utils.stripAnsi(line).length()));
+                System.out.println("   - " + Utils.bold(word));
             }
             
             if (removedList.size() > 10) {
-                String more = "   ... e mais " + (removedList.size() - 10) + " palavra(s)";
-                System.out.println(Utils.yellow(more) + " ".repeat(67 - more.length()));
+                System.out.println(Utils.yellow("   ... e mais " + (removedList.size() - 10) + " palavra(s)"));
             }
         }
         
-        System.out.println(Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())) + " ".repeat(40 - String.valueOf(stopwords.size()).length()));
+        System.out.println("-".repeat(68));
+        System.out.println(Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())));
+        System.out.println("=".repeat(68) + "\n");
     }
     
     /**
@@ -281,5 +301,56 @@ public class BarrelStopWords {
     public void clear() {
         urlWordCounts.clear();
         stopwords.clear();
+    }
+    
+    /**
+     * Define o listener para notificações de mudanças nas stopwords
+     * 
+     * @param listener Listener a ser notificado
+     */
+    public void setListener(StopwordsUpdateListener listener) {
+        this.listener = listener;
+    }
+    
+    /**
+     * Faz merge de stopwords de outro barrel
+     * 
+     * @param externalStopwords Stopwords de outro barrel
+     */
+    public synchronized void mergeStopwords(List<String> externalStopwords) {
+        if (externalStopwords == null || externalStopwords.isEmpty()) {
+            return;
+        }
+        
+        Set<String> added = new HashSet<>();
+        for (String word : externalStopwords) {
+            if (!stopwords.contains(word)) {
+                stopwords.add(word);
+                added.add(word);
+            }
+        }
+        
+        if (!added.isEmpty()) {
+            System.out.println("\n" + "=".repeat(68));
+            System.out.println(Utils.bold(Utils.blue("STOPWORDS SYNC FROM PEER")));
+            System.out.println("=".repeat(68));
+            System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName));
+            System.out.println(Utils.blue("Recebidas de outro barrel:") + " " + Utils.bold(String.valueOf(added.size()) + " novas stopwords"));
+            System.out.println("-".repeat(68));
+            
+            List<String> addedList = new ArrayList<>(added);
+            addedList.sort(String::compareTo);
+            int maxShow = Math.min(10, addedList.size());
+            for (int i = 0; i < maxShow; i++) {
+                System.out.println("   - " + Utils.bold(addedList.get(i)));
+            }
+            if (addedList.size() > 10) {
+                System.out.println(Utils.yellow("   ... e mais " + (addedList.size() - 10) + " palavra(s)"));
+            }
+            
+            System.out.println("-".repeat(68));
+            System.out.println(Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())));
+            System.out.println("=".repeat(68));
+        }
     }
 }

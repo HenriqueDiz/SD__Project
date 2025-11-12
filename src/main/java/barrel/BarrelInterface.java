@@ -88,6 +88,20 @@ public interface BarrelInterface extends Remote {
     public boolean isStopword(String palavra) throws RemoteException;
 
     /**
+     * Obtém a lista de stopwords do barrel.
+     * @return                     Lista de stopwords.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public List<String> getStopwords() throws RemoteException;
+
+    /**
+     * Sincroniza stopwords com outro barrel.
+     * @param stopwords            Lista de stopwords a serem sincronizadas.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public void syncStopwords(List<String> stopwords) throws RemoteException;
+
+    /**
      * Sincroniza o índice com outro índice fornecido.
      * @param otherIndex           O índice a ser sincronizado.
      * @throws RemoteException     Se ocorrer um erro de comunicação remota.

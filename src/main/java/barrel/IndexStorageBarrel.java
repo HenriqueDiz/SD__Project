@@ -102,6 +102,11 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         this.port = port;
         this.name = name;
         this.host = host;
+        
+        // Configurar listener para sincronizar stopwords quando atualizadas
+        stopWordsManager.setListener(() -> {
+            retransmitExecutor.submit(this::retransmitStopwords);
+        });
     }
 
     /**
@@ -480,8 +485,61 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
      * 
      * @return                          Lista de stopwords
      */
-    public List<String> getStopwords() {
+    @Override
+    public List<String> getStopwords() throws RemoteException {
         return stopWordsManager.getStopwords();
+    }
+
+    /**
+     * Sincroniza stopwords com outro barrel.
+     * 
+     * @param stopwords                 Lista de stopwords a serem sincronizadas
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public synchronized void syncStopwords(List<String> stopwords) throws RemoteException {
+        stopWordsManager.mergeStopwords(stopwords);
+    }
+
+    /**
+     * Retransmite stopwords para outros barrels ativos.
+     * Chamado automaticamente quando stopwords são atualizadas localmente.
+     */
+    private void retransmitStopwords() {
+        List<String> currentStopwords = stopWordsManager.getStopwords();
+        
+        try {
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            Registry gatewayRegistry = LocateRegistry.getRegistry(
+                gatewayConfig.getHost(), 
+                gatewayConfig.getPort()
+            );
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayConfig.getName());
+            List<String> activeBarrels = gateway.getActiveBarrels();
+            
+            for (String barrelInfo : activeBarrels) {
+                String[] parts = barrelInfo.split(":");
+                String barrelName = parts[0];
+                int barrelPort = Integer.parseInt(parts[1]);
+                String barrelHost = parts[2];
+
+                // Não retransmitir para si mesmo
+                if (barrelName.equals(this.name) && barrelPort == this.port && barrelHost.equals(this.host)) {
+                    continue;
+                }
+                
+                try {
+                    Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
+                    BarrelInterface otherBarrel = (BarrelInterface) barrelRegistry.lookup(barrelName);
+                    otherBarrel.syncStopwords(currentStopwords);
+                    System.out.println(Utils.green("Stopwords sincronizadas com " + barrelName + ":" + barrelPort));
+                } catch (Exception e) {
+                    Utils.printLogException("Erro ao sincronizar stopwords com " + barrelName + ": " + e.getMessage(), e);
+                }
+            }
+        } catch (Exception e) {
+            Utils.printLogException("Erro ao retransmitir stopwords: " + e.getMessage(), e);
+        }
     }
 
 

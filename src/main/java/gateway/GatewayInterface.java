@@ -43,7 +43,7 @@ public interface GatewayInterface extends Remote {
      * @return Uma lista de arrays de strings, onde cada array contém as URLs encontradas para a palavra correspondente.
      * @throws RemoteException Se ocorrer um erro de comunicação remota.
      */
-    public List<String[]> searchWords(List<String> words) throws RemoteException;
+    public List<String[]> searchWords(List<String> words, int page, int pageSize) throws RemoteException;
 
     /**
      * Obtém as URLs ativas no Gateway.

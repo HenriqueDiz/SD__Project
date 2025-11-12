@@ -122,7 +122,6 @@ public class Client {
                     }
                     case "2" -> { 
 
-                        // Verificar se há barrels ativos antes de tentar a consulta
                         activeBarrelsBeforeSearch = gateway.getActiveBarrels();
                         if (activeBarrelsBeforeSearch == null || activeBarrelsBeforeSearch.isEmpty()) {
                             System.out.println(Utils.red("Não foi possível fazer a consulta: não há barrels ativos."));
@@ -131,54 +130,54 @@ public class Client {
                         System.out.println("\n" + Utils.yellow("PROCURAR PALAVRA(S)"));
                         System.out.println("-".repeat(30));
 
-
                         System.out.print("Digite a(s) palavra(s) a procurar: ");
                         String word = keyboard.nextLine().trim();
-                        
+
                         if (!word.isEmpty()) {
                             List<String> words = Arrays.asList(word.split("\\s+"));
-                            List<String[]> results = gateway.searchWords(words);
-                            if (results == null || results.isEmpty()) {
-                                System.out.println("Nenhum resultado encontrado para: " + words);
-                                break;
-                            }
-
-                            System.out.println("Encontrados " + results.size() + " resultado(s) para: " + words);
-        
-                            // Paginação: mostrar de 10 em 10
                             int pageSize = 10;
-                            int totalPages = (int) Math.ceil((double) results.size() / pageSize);
-                            int currentPage = 0;
+                            int page = 0;
+                            int printed = 0;
 
-                            while (currentPage < totalPages) {
-                                int start = currentPage * pageSize;
-                                int end = Math.min(start + pageSize, results.size());
-                                
+                            while (true) {
+                                List<String[]> results = gateway.searchWords(words, page, pageSize);
+
+                                if (page == 0 && (results == null || results.isEmpty())) {
+                                    System.out.println("Nenhum resultado encontrado para: " + words);
+                                    break;
+                                }
+                                if (results == null || results.isEmpty()) {
+                                    System.out.println(Utils.green("\nNão foram encontrados mais resultados."));
+                                    break;
+                                }
+
                                 System.out.println("\n" + Utils.yellow("=".repeat(60)));
-                                System.out.println(Utils.yellow("Página " + (currentPage + 1) + " de " + totalPages));
+                                System.out.println(Utils.yellow("Página " + (page + 1)));
                                 System.out.println(Utils.yellow("=".repeat(60)));
-                                
-                                for (int i = start; i < end; i++) {
+
+                                for (int i = 0; i < results.size(); i++) {
                                     String urlRes = results.get(i)[0];
                                     String refs = results.get(i)[1];
 
-                                    System.out.println(Utils.bold(Utils.green("[" + (i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
+                                    System.out.println(Utils.bold(Utils.green("[" + (printed + i + 1) + "]")) + " - " + Utils.yellow(refs + " Referência(s)"));
                                     System.out.println(new PageInfo(urlRes) + "\n");
                                 }
-                                
-                                currentPage++;
-                                
-                                if (currentPage < totalPages) {
-                                    System.out.print(Utils.yellow("Pressione Enter para ver mais resultados (ou digite 'q' para sair): "));
-                                    String input = keyboard.nextLine().trim();
-                                    if (input.equalsIgnoreCase("q")) {
-                                        break;
-                                    }
+
+                                printed += results.size();
+
+                                if (results.size() < pageSize) {
+                                    System.out.println(Utils.green("\nFim dos resultados."));
+                                    break;
                                 }
+
+                                System.out.print(Utils.yellow("Pressione Enter para ver a próxima página (ou digite 'q' para sair): "));
+                                String input = keyboard.nextLine().trim();
+                                if (input.equalsIgnoreCase("q")) {
+                                    break;
+                                }
+                                page++;
                             }
-                            
-                            System.out.println(Utils.green("\nFim dos resultados."));
-                            
+
                         } else {
                             System.out.println("Por favor, digite uma palavra válida!");
                         }

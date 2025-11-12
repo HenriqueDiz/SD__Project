@@ -240,7 +240,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         return new ArrayList<>();
     }
 
-
     /**
      * Método de busca de múltiplas palavras no Gateway.
      * 
@@ -249,8 +248,11 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
      * @throws RemoteException  Se ocorrer um erro remoto.
      */
     @Override
-    public List<String[]> searchWords(List<String> words) throws RemoteException {
+    public List<String[]> searchWords(List<String> words, int page, int pageSize) throws RemoteException {
         if (words == null || words.isEmpty()) return new ArrayList<>();
+        if (pageSize <= 0) pageSize = 10;
+        if (page < 0) page = 0;
+
 
         // Normalizar palavras de pesquisa
         List<String> norm = new ArrayList<>();
@@ -259,6 +261,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
         if (norm.isEmpty()) return new ArrayList<>();
 
+        // Resultados por palavra
         List<HashSet<String>> resultsPerWord = new ArrayList<>();
         for (String w : norm) {
             List<String> result = searchWordGateway(w);
@@ -286,14 +289,19 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             } catch (RemoteException ignore) {}
         }
 
-        // Construir e ordenar
+        // Construir ranking completo (ordenado) - depois recortar página
         List<String[]> ranked = new ArrayList<>();
         for (String url : intersection) {
             int refs = inbound.getOrDefault(url, 0);
             ranked.add(new String[]{url, String.valueOf(refs)});
         }
         ranked.sort((a, b) -> Integer.compare(Integer.parseInt(b[1]), Integer.parseInt(a[1])));
-        return ranked;
+
+        int from = page * pageSize;
+        if (from >= ranked.size())
+            return new ArrayList<>();
+        int to = Math.min(from + pageSize, ranked.size());
+        return new ArrayList<>(ranked.subList(from, to));
     }
         
     /**
