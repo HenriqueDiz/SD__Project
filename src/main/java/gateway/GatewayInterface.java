@@ -76,6 +76,14 @@ public interface GatewayInterface extends Remote {
      */
     public void registerBarrel(String host, int port, String name) throws RemoteException;
 
+    /**
+     * Desregistra um barrel ativo do Gateway quando ele vai desligar.
+     * Remove apenas da lista de barrels ativos, mantendo o histórico de registrados.
+     * @param name O nome do barrel a ser desregistrado
+     * @param port A porta do barrel a ser desregistrado
+     * @throws RemoteException Se ocorrer um erro de rede.
+     */
+    public void unActiveBarrel(String name, int port) throws RemoteException;
 
     /**
      * Obtém as estatísticas dos barrels.

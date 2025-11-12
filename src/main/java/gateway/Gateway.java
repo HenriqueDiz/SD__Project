@@ -372,6 +372,31 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
     }
 
     /**
+     * Desregistra um barrel ativo quando ele vai desligar.
+     * Remove apenas da lista de barrels ativos, mantendo o histórico de registrados.
+     * @param name              O nome do barrel a ser desregistrado.
+     * @param port              A porta do barrel a ser desregistrado.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
+    @Override
+    public synchronized void unActiveBarrel(String name, int port) throws RemoteException {
+        // Remove apenas dos barrels ativos, não do registro histórico
+        activeBarrels.removeIf(barrel -> {
+            try {
+                return barrel.getName().equals(name) && barrel.getPort() == port;
+            } catch (RemoteException e) {
+                // Se não conseguir comunicar, remove mesmo assim
+                return true;
+            }
+        });
+        
+        System.out.println("Barrel " + name + ":" + port + " não ativo");
+        
+        // Notifica os clientes sobre a mudança nos barrels ativos
+        notifyActiveBarrelsUpdateAsync();
+    }
+
+    /**
      * Obtém as estatísticas dos barrels.
      * 
      * @return                  A instância de BarrelStatistics.
@@ -405,6 +430,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 } catch (RemoteException ex) {
                     System.err.println("Barrel " + (attempt + 1) + " falhou ao obter URLs, tentando próximo...");
                     activeBarrels.remove(barrel);
+                    notifyActiveBarrelsUpdateAsync();
                 }
             }
 

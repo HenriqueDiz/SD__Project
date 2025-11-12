@@ -256,6 +256,9 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println(Utils.yellow("Encerrando Barrel... Salvando progresso completo."));
                 try {
+                    // Desregistrar do Gateway graciosamente
+                    gateway.unActiveBarrel(name, port);
+                    System.out.println(Utils.green("Barrel desregistrado do Gateway!"));
 
                     // Desligar o executor de retransmissão
                     barrel.retransmitExecutor.shutdown();

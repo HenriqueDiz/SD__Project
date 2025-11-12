@@ -25,21 +25,23 @@ public class Statistics implements Serializable {
 
     /**
      * Atualiza as estatísticas de busca para uma palavra.
+     * Sincronizado para garantir consistência entre threads.
      * 
      * @param word  A palavra buscada.
      */
-    public void updateSearchStats(String word) throws RemoteException {
+    public synchronized void updateSearchStats(String word) throws RemoteException {
         if (word == null || word.isBlank()) return;
         searchStats.merge(word, 1, Integer::sum);
     }
 
     /**
      * Obtém as 10 palavras mais buscadas.
+     * Sincronizado para garantir um snapshot consistente dos dados.
      * 
      * @return                  Mapa das 10 palavras mais buscadas e suas contagens.
      * @throws RemoteException  Se ocorrer um erro remoto.
      */
-    public Map<String, Integer> getTop10Searches() throws RemoteException{
+    public synchronized Map<String, Integer> getTop10Searches() throws RemoteException{
         return searchStats.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
             .limit(10)
@@ -50,11 +52,12 @@ public class Statistics implements Serializable {
 
     /**
      * Registra o tempo de resposta de um barrel.
+     * Sincronizado para garantir consistência entre threads.
      * 
      * @param barrelKey         A chave do barrel.
      * @param durationNanos     A duração em nanossegundos.
      */
-    public void recordResponseTime(String barrelKey, long durationNanos) throws RemoteException {
+    public synchronized void recordResponseTime(String barrelKey, long durationNanos) throws RemoteException {
         String key = (barrelKey == null || barrelKey.isBlank()) ? "unknown_barrel" : barrelKey;
         barrelTotalNanos.merge(key, durationNanos, Long::sum);
         barrelCount.merge(key, 1L, Long::sum);
@@ -62,11 +65,12 @@ public class Statistics implements Serializable {
 
     /**
      * Obtém o tempo médio de resposta dos barrels.
+     * Sincronizado para garantir um snapshot consistente dos dados.
      * 
      * @return                  Mapa de nomes de barrels para tempos médios de resposta em nanos.
      * @throws RemoteException  Se ocorrer um erro remoto.
      */
-    public Map<String, Long> getAverageResponseTime() throws RemoteException {
+    public synchronized Map<String, Long> getAverageResponseTime() throws RemoteException {
         Map<String, Long> averages = new LinkedHashMap<>();
         barrelCount.keySet().stream()
             .sorted()
