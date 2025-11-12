@@ -175,10 +175,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         
         List<String> results = searchWithFailover(word);
         
-        if (results != null) {
+        if (results != null && !results.isEmpty()) {
             stats.updateSearchStats(word);
             notifyStatsUpdateAsync();
             System.out.println("Resultado para '" + word + "': " + results.size() + " resultado(s)");
+        } else {
+            System.out.println("Nenhum resultado encontrado para '" + word + "'");
         }
         
         return results != null ? results : new ArrayList<>();
@@ -205,18 +207,19 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
                 List<String> results = barrel.searchWord(normalized);
                 long elapsed = System.nanoTime() - start;
 
-                String key;
-                try {
-                    key = barrel.getName() + ":" + barrel.getPort();
-                } catch (RemoteException e) {
-                    key = "unknown_barrel";
-                    Utils.printLogException("Erro ao obter nome/porta do barrel para estatísticas de tempo de resposta", e);
+                if (results != null && !results.isEmpty()) {
+                    String key;
+                    try {
+                        key = barrel.getName() + ":" + barrel.getPort();
+                    } catch (RemoteException e) {
+                        key = "unknown_barrel";
+                        Utils.printLogException("Erro ao obter nome/porta do barrel para estatísticas de tempo de resposta", e);
+                    }
+                    stats.recordResponseTime(key, elapsed);
+                    notifyStatsUpdateAsync();
                 }
-                stats.recordResponseTime(key, elapsed);
-                notifyStatsUpdateAsync();
-                System.out.println("Barrel " + (attempt + 1) + " respondeu com " + results.size() + " resultado(s)");
+                System.out.println("Barrel " + (attempt + 1) + " respondeu com " + (results == null ? 0 : results.size()) + " resultado(s)");
                 return results;
-                
             } catch (RemoteException e) {
                 try {
                     String barrelName = barrel.getName();
@@ -439,7 +442,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
-    // ___________________ BARREL STATE CALLBACKS _______________________ //
+    // ___________________ BARREL STATE - CALLBACKS _______________________ //
 
 
     @Override

@@ -375,12 +375,15 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     @Override
     public List<String> searchWord(String word) throws java.rmi.RemoteException {
         System.out.println("Procurando por " + word);
-        System.out.println(Utils.yellow("Resultados da palavra " + word + " dados ao cliente"));
-        if(indexedItems.containsKey(word)){
-            ArrayList<String> resultadoPesquisa = new ArrayList<String>(indexedItems.get(word));
+        HashSet<String> urls = indexedItems.get(word);
+        if (urls != null && !urls.isEmpty()) {
+            ArrayList<String> resultadoPesquisa = new ArrayList<>(urls);
+            System.out.println(Utils.green("Encontrados " + resultadoPesquisa.size() + " resultados para '" + word + "'. Enviados ao cliente."));
             return resultadoPesquisa;
+        } else {
+            System.out.println(Utils.yellow("Nenhum resultado encontrado para '" + word + "'."));
+            return new ArrayList<>();
         }
-        return new ArrayList<String>();
     }
 
     /**
