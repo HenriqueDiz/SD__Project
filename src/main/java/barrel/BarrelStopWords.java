@@ -28,6 +28,9 @@ public class BarrelStopWords {
      * Interface para notificar quando stopwords são atualizadas
      */
     public interface StopwordsUpdateListener {
+        /**
+         * Método chamado quando as stopwords são atualizadas.
+         */
         void onStopwordsUpdated();
     }
 
