@@ -1,0 +1,20 @@
+.circle {
+  height: 24px;
+  width: 24px;
+  border-radius: 24px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 99999999;
+}
+
+/* Esconder o cursor padrão */
+body {
+  cursor: none;
+}
+
+/* Mostrar cursor padrão em elementos clicáveis */
+a, button, input, textarea, select {
+  cursor: pointer !important;
+}
