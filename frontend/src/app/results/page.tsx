@@ -119,15 +119,8 @@ export default function DemoPage() {
           fontFamily: "'Space Grotesk', 'Inter', sans-serif",
           margin: 0
         }}>
-          AnimatedList Demo
+          Resultados da pesquisa para <em style={{ fontStyle: 'italic' }}>"bouas"</em>
         </h2>
-        <p style={{
-          color: 'rgba(255, 255, 255, 0.6)',
-          fontSize: '0.9rem',
-          marginTop: '0.5rem'
-        }}>
-          Use arrow keys (↑/↓) to navigate, Enter to select
-        </p>
       </div>
 
       {/* AnimatedList Container */}

@@ -72,52 +72,113 @@
 }
 
 /* Main Accordion (contém todos os items) */
-.animated-list-main-accordion {
-  background: transparent !important;
-  padding: 0 !important;
-  gap: 12px !important;
+/* Lista animada custom */
+.animated-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Cada item do accordion principal */
-.animated-list-main-accordion .main-accordion-item {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 12px !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  transition: all 0.25s ease !important;
-  margin-bottom: 12px !important;
-  padding: 0 !important;
-  box-shadow: none !important;
+.animated-list-item {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
-.animated-list-main-accordion .main-accordion-item:hover {
-  background: rgba(255, 255, 255, 0.04) !important;
+.animated-list-item.selected {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.animated-list-main-accordion .main-accordion-item.selected {
-  background: rgba(255, 255, 255, 0.05) !important;
+.animated-list-item-header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 16px 18px;
+  text-align: left;
+  transition: background 0.2s ease;
 }
 
-/* Accordion header (título e URL) */
-.animated-list-main-accordion button {
-  padding: 16px !important;
-  transition: all 0.2s ease !important;
-  background: transparent !important;
-  border-radius: 8px !important;
+.animated-list-item-header:hover {
+  background: rgba(255, 255, 255, 0.045);
 }
 
-.animated-list-main-accordion button:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
+.animated-list-item-texts { flex: 1; }
+
+.animated-list-item-title {
+  margin: 0 0 4px 0;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  font-weight: 600;
 }
 
-/* Accordion content (descrição e links) */
-.animated-list-main-accordion [data-slot="content"] {
-  padding: 0 16px 16px 16px !important;
+.animated-list-item-url {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  word-break: break-all;
 }
 
-/* Related Links Hover Effect */
+/* Arrow removed */
+
+.animated-list-item-content {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.animated-list-item-inner {
+  padding: 4px 20px 18px 20px;
+}
+
+.animated-list-section { margin-bottom: 16px; }
+
+.animated-list-section-title {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.animated-list-section-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.animated-list-links {
+  margin: 0;
+  padding-left: 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.animated-list-link-item { margin-bottom: 8px; }
+
+.animated-list-visit {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.related-link {
+  color: #60a5fa;
+  text-decoration: none;
+  font-size: 0.85rem;
+  word-break: break-all;
+  transition: color 0.2s ease;
+}
+
+.related-link.visit-main { font-size: 0.9rem; font-weight: 500; }
+
 .related-link:hover {
-  color: #93c5fd !important;
-  text-decoration: underline !important;
+  color: #93c5fd;
+  text-decoration: underline;
 }

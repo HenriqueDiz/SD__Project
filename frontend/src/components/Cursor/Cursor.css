@@ -14,7 +14,7 @@ body {
   cursor: none;
 }
 
-/* Mostrar cursor padrão em elementos clicáveis */
+/* Tornar invisível também em elementos clicáveis */
 a, button, input, textarea, select {
-  cursor: pointer !important;
+  cursor: none !important;
 }
