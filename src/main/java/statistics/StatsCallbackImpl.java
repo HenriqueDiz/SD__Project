@@ -6,8 +6,23 @@ import java.util.Map;
 
 import common.Utils;
 
+/**
+ * Implementação do callback de estatísticas que imprime atualizações no console.
+ * Recebe notificações de mudanças nas estatísticas e exibe-as formatadas.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public class StatsCallbackImpl extends UnicastRemoteObject implements StatsCallback {
 
+    /**
+     * Construtor que exporta o objeto remoto.
+     * 
+     * @throws RemoteException  Se ocorrer um erro ao exportar o objeto remoto.
+     */
     public StatsCallbackImpl() throws RemoteException {
         super();
     }

@@ -40,6 +40,8 @@ public interface GatewayInterface extends Remote {
     /**
      * Pesquisa várias palavras no Gateway.
      * @param words A lista de palavras a serem pesquisadas.
+     * @param page O número da página de resultados (começando em 0).
+     * @param pageSize O número de resultados por página.
      * @return Uma lista de arrays de strings, onde cada array contém as URLs encontradas para a palavra correspondente.
      * @throws RemoteException Se ocorrer um erro de comunicação remota.
      */
@@ -89,12 +91,39 @@ public interface GatewayInterface extends Remote {
      * Obtém as estatísticas dos barrels.
      * 
      * @return                  A instância de BarrelStatistics.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
      */
     public Statistics getBarrelStatistics() throws RemoteException;
 
+    /**
+     * Registra um callback para receber notificações de atualizações de estatísticas.
+     * 
+     * @param callback          Callback a ser registrado.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
+     */
     void registerStatsCallback(StatsCallback callback) throws java.rmi.RemoteException;
+    
+    /**
+     * Remove o registro de um callback de estatísticas.
+     * 
+     * @param callback          Callback a ser removido.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
+     */
     void unregisterStatsCallback(StatsCallback callback) throws java.rmi.RemoteException;
 
+    /**
+     * Registra um callback para receber notificações de mudanças no estado dos barrels.
+     * 
+     * @param callback          Callback a ser registrado.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
+     */
     void registerBarrelStateCallback(BarrelStateCallback callback) throws java.rmi.RemoteException;
+    
+    /**
+     * Remove o registro de um callback de estado dos barrels.
+     * 
+     * @param callback          Callback a ser removido.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
+     */
     void unregisterBarrelStateCallback(BarrelStateCallback callback) throws java.rmi.RemoteException;
 }

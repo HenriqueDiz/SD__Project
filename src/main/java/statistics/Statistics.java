@@ -6,6 +6,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Classe que armazena e gerencia estatísticas do sistema.
+ * Mantém contadores de buscas e tempos de resposta dos barrels.
+ * Thread-safe para uso concorrente.
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 public class Statistics implements Serializable {
 
     /**
@@ -24,10 +35,18 @@ public class Statistics implements Serializable {
     private final Map<String, Long> barrelCount = new ConcurrentHashMap<>();
 
     /**
+     * Construtor padrão que inicializa as estruturas de dados de estatísticas.
+     */
+    public Statistics() {
+        // Inicialização automática dos mapas finais
+    }
+
+    /**
      * Atualiza as estatísticas de busca para uma palavra.
      * Sincronizado para garantir consistência entre threads.
      * 
-     * @param word  A palavra buscada.
+     * @param word              A palavra buscada.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
      */
     public synchronized void updateSearchStats(String word) throws RemoteException {
         if (word == null || word.isBlank()) return;
@@ -56,6 +75,7 @@ public class Statistics implements Serializable {
      * 
      * @param barrelKey         A chave do barrel.
      * @param durationNanos     A duração em nanossegundos.
+     * @throws RemoteException  Se ocorrer um erro de comunicação remota.
      */
     public synchronized void recordResponseTime(String barrelKey, long durationNanos) throws RemoteException {
         String key = (barrelKey == null || barrelKey.isBlank()) ? "unknown_barrel" : barrelKey;

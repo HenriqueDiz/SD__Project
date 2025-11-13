@@ -69,10 +69,19 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
      */
     private final Statistics stats;
 
+    /**
+     * Lista de callbacks registrados para receber atualizações de estatísticas.
+     */
     private final List<StatsCallback> statsCallbacks = new CopyOnWriteArrayList<>();
     
+    /**
+     * Executor para processar callbacks de forma assíncrona.
+     */
     private final ExecutorService callbackExecutor = Executors.newCachedThreadPool();
 
+    /**
+     * Lista de callbacks registrados para receber atualizações de estado dos barrels.
+     */
     private final List<BarrelStateCallback> barrelStateCallbacks = new CopyOnWriteArrayList<>();
 
     /**
@@ -448,7 +457,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
 
     // __________________ STATISTICS - Callbacks _______________________ //
 
-    // Notifica todos os clientes (assíncrono para não bloquear)
+    /**
+     * Notifica assincronamente todos os clientes registrados de uma atualização nas estatísticas.
+     * Remove automaticamente callbacks que não respondem.
+     */
     private void notifyStatsUpdateAsync() {
         for (StatsCallback cb : statsCallbacks) {
             callbackExecutor.submit(() -> {
@@ -462,6 +474,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * Registra um callback para receber notificações de atualizações de estatísticas.
+     * 
+     * @param callback          Callback a ser registrado.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized void registerStatsCallback(StatsCallback callback) throws RemoteException {
         if (callback != null) {
@@ -469,6 +487,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * Remove o registro de um callback de estatísticas.
+     * 
+     * @param callback          Callback a ser removido.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized void unregisterStatsCallback(StatsCallback callback) throws RemoteException {
         if (callback != null) {
@@ -478,17 +502,32 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
 
     // ___________________ BARREL STATE - CALLBACKS _______________________ //
 
-
+    /**
+     * Registra um callback para receber notificações de mudanças no estado dos barrels.
+     * 
+     * @param callback          Callback a ser registrado.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized void registerBarrelStateCallback(BarrelStateCallback callback) throws RemoteException {
         if (callback != null) barrelStateCallbacks.add(callback);
     }
 
+    /**
+     * Remove o registro de um callback de estado dos barrels.
+     * 
+     * @param callback          Callback a ser removido.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
     @Override
     public synchronized void unregisterBarrelStateCallback(BarrelStateCallback callback) throws RemoteException {
         if (callback != null) barrelStateCallbacks.remove(callback);
     }
 
+    /**
+     * Notifica assincronamente todos os clientes de mudanças nos barrels ativos.
+     * Remove automaticamente callbacks que não respondem.
+     */
     private void notifyActiveBarrelsUpdateAsync() {
         List<String> snapshot;
         try {
@@ -508,6 +547,10 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    /**
+     * Notifica assincronamente todos os clientes de mudanças nos barrels registrados.
+     * Remove automaticamente callbacks que não respondem.
+     */
     private void notifyRegisteredBarrelsUpdateAsync() {
         List<String> snapshot;
         try {
