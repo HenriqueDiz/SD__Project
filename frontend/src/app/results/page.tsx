@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AnimatedList, { AnimatedListItem } from '@/components/AnimatedList/AnimatedList';
-import Orb from '@/components/Orb/Orb';
 import GradientText from '@/components/GradientText/GradientText';
+import SearchBar from '@/components/SearchBar/SearchBar';
 
 const mockSearchResults: AnimatedListItem[] = [
   {
@@ -59,67 +61,200 @@ const mockSearchResults: AnimatedListItem[] = [
 ];
 
 export default function DemoPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setQuery(q);
+    }
+  }, [searchParams]);
+
   const handleItemSelect = (item: AnimatedListItem, index: number) => {
     console.log('Selected item:', item, 'at index:', index);
   };
 
+  const handleSearch = (newQuery: string) => {
+    setQuery(newQuery);
+    console.log('New search:', newQuery);
+  };
+
+  const handleClearSearch = () => {
+    setQuery('');
+  };
+
+  const handleLogoClick = () => {
+    router.push('/');
+  };
+
   return (
-    <main style={{ position: 'relative', width: '100%', minHeight: '100vh', overflow: 'auto' }}>
-      {/* Orb Background */}
-      <div style={{ 
-        width: '100%', 
-        height: '100vh', 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        zIndex: 0 
-      }}>
-        <Orb
-          hoverIntensity={0.5}
-          rotateOnHover={true}
-          hue={0}
-          forceHoverState={false}
-        />
-      </div>
+    <main style={{ 
+      position: 'relative', 
+      width: '100%', 
+      minHeight: '100vh', 
+      overflow: 'auto',
+      background: '#0a0a0a',
+    }}>
 
-      {/* Googol Logo - Top Left */}
-      <div style={{ 
-        position: 'absolute', 
-        top: '2rem', 
-        left: '2rem', 
-        zIndex: 2
+      {/* Top Bar with Logo and Search */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        background: 'rgba(10, 10, 10, 0.8)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '1rem 2rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '2rem',
       }}>
-        <GradientText
-          colors={['#9c43ff', '#4cb8e9', '#0f14ff', '#4cb8e9', '#9c43ff']}
-          animationSpeed={3}
-          showBorder={false}
+        {/* Googol Logo - Clickable */}
+        <div 
+          onClick={handleLogoClick}
+          style={{ 
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            margin: 0, 
-            fontWeight: 700, 
-            letterSpacing: '-0.02em',
-            fontFamily: "'Space Grotesk', 'Inter', sans-serif"
-          }}>Googol</h1>
-        </GradientText>
+          <GradientText
+            colors={['#9c43ff', '#4cb8e9', '#9c43ff', '#4cb8e9', '#9c43ff']}
+            animationSpeed={3}
+            showBorder={false}
+          >
+            <h1 style={{ 
+              fontSize: '1.8rem', 
+              margin: 0, 
+              fontWeight: 700, 
+              letterSpacing: '-0.02em',
+              fontFamily: "'Space Grotesk', 'Inter', sans-serif"
+            }}>Googol</h1>
+          </GradientText>
+        </div>
+
+        {/* Search Bar Container */}
+        <div style={{ 
+          position: 'relative',
+          maxWidth: '400px',
+          width: '100%',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            width: '100%',
+            padding: '10px 16px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '50px',
+            transition: 'all 0.3s ease',
+          }}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && query.trim()) {
+                  handleSearch(query);
+                }
+              }}
+              placeholder="Search the web..."
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: 'rgba(255, 255, 255, 0.95)',
+                fontSize: '14px',
+                fontWeight: 400,
+                fontFamily: 'inherit',
+                padding: 0,
+              }}
+            />
+            {query && (
+              <button
+                onClick={handleClearSearch}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s ease',
+                  lineHeight: 1,
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)'}
+              >
+                ✕
+              </button>
+            )}
+            <button
+              onClick={() => query.trim() && handleSearch(query)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: query.trim() ? 'linear-gradient(135deg, #9c43ff, #4cb8e9)' : 'transparent',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                cursor: 'pointer',
+                transition: 'all 0.4s ease',
+                color: query.trim() ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                flexShrink: 0,
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <svg 
+                width="18" 
+                height="18" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Demo Title */}
+      {/* Results Title */}
       <div style={{
         position: 'relative',
         zIndex: 1,
-        paddingTop: '6rem',
-        paddingBottom: '2rem',
-        textAlign: 'center'
+        paddingTop: '2rem',
+        paddingBottom: '1rem',
+        paddingLeft: '2rem',
       }}>
         <h2 style={{
-          color: 'white',
-          fontSize: '1.5rem',
-          fontWeight: 600,
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: '1.2rem',
+          fontWeight: 500,
           fontFamily: "'Space Grotesk', 'Inter', sans-serif",
           margin: 0
         }}>
-          Resultados da pesquisa para <em style={{ fontStyle: 'italic' }}>"bouas"</em>
+          {query ? (
+            <>Resultados da pesquisa para <em style={{ fontStyle: 'italic', color: '#9c43ff' }}>"{query}"</em></>
+          ) : (
+            <>Resultados da pesquisa</>
+          )}
         </h2>
       </div>
 
@@ -127,8 +262,8 @@ export default function DemoPage() {
       <div style={{ 
         position: 'relative',
         zIndex: 1,
-        width: '90%',
-        maxWidth: '800px',
+        width: '95%',
+        maxWidth: '1200px',
         margin: '0 auto',
         paddingBottom: '4rem'
       }}>

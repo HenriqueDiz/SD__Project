@@ -27,7 +27,7 @@ export default function SearchBar({
         onSearch(query.trim());
       }
       if (redirectOnSubmit) {
-        router.push(redirectPath);
+        router.push(`${redirectPath}?q=${encodeURIComponent(query.trim())}`);
       }
     }
   };
@@ -38,7 +38,7 @@ export default function SearchBar({
         onSearch(query.trim());
       }
       if (redirectOnSubmit) {
-        router.push(redirectPath);
+        router.push(`${redirectPath}?q=${encodeURIComponent(query.trim())}`);
       }
     }
   };
@@ -52,7 +52,7 @@ export default function SearchBar({
         placeholder={placeholder}
         className="search-input"
       />
-      <button type="button" onClick={handleButtonClick} className="search-button">
+      <button type="button" onClick={handleButtonClick} className={`search-button ${query.trim() ? 'filled' : ''}`}>
         <svg 
           width="20" 
           height="20" 

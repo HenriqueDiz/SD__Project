@@ -46,15 +46,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9c43ff, #4cb8e9);
+  background: transparent;
   border: none;
   border-radius: 50%;
   width: 36px;
   height: 36px;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: white;
+  color: rgba(255, 255, 255, 0.7);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #9c43ff, #4cb8e9);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.search-button.filled::before {
+  opacity: 1;
+}
+
+.search-button.filled {
+  color: white;
 }
 
 .search-button:hover {
