@@ -9,13 +9,15 @@ interface SearchBarProps {
   placeholder?: string;
   redirectOnSubmit?: boolean;
   redirectPath?: string;
+  onHoverChange?: (isHovered: boolean) => void;
 }
 
 export default function SearchBar({ 
   onSearch, 
   placeholder = 'Search the web...',
   redirectOnSubmit = false,
-  redirectPath = '/demo'
+  redirectPath = '/demo',
+  onHoverChange
 }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const router = useRouter();
@@ -44,7 +46,12 @@ export default function SearchBar({
   };
 
   return (
-    <form className="search-bar" onSubmit={handleSubmit}>
+    <form 
+      className="search-bar" 
+      onSubmit={handleSubmit}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+    >
       <input
         type="text"
         value={query}

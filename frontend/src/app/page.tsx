@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react'
 import Orb from '@/components/Orb/Orb'
 import GradientText from '@/components/GradientText/GradientText'
 import SearchBar from '@/components/SearchBar/SearchBar'
 
 
 export default function Home() {
+  const [isSearchBarHovered, setIsSearchBarHovered] = useState(false);
+
   const handleSearch = (query: string) => {
     console.log('Searching for:', query);
     // Temporarily redirect to /demo on search
@@ -19,7 +22,7 @@ export default function Home() {
           hoverIntensity={0.5}
           rotateOnHover={true}
           hue={0}
-          forceHoverState={false}
+          forceHoverState={isSearchBarHovered}
         />
       </div>
 
@@ -62,6 +65,7 @@ export default function Home() {
           placeholder="Search the web..."
           redirectOnSubmit={true}
           redirectPath="/results"
+          onHoverChange={setIsSearchBarHovered}
         />
       </div>
     </main>

@@ -58,6 +58,71 @@ const mockSearchResults: AnimatedListItem[] = [
     title: 'What Is a Googol? - Scientific American',
     description: 'A googol is 1 followed by 100 zeros. The term was coined by 9-year-old Milton Sirotta, nephew of mathematician Edward Kasner.',
   },
+  {
+    url: 'https://www.khanacademy.org/math/algebra/exponents',
+    title: 'Understanding Exponents and Large Numbers - Khan Academy',
+    description: 'Learn about exponents, powers of ten, and how they help us represent extremely large numbers like a googol.',
+    links: [
+      'https://www.khanacademy.org/math/algebra',
+      'https://www.khanacademy.org/math/pre-algebra/exponents-radicals'
+    ]
+  },
+  {
+    url: 'https://www.history.com/topics/inventions/history-of-google',
+    title: 'History of Google - How it Got Its Name',
+    description: 'Explore the history of Google and discover why the company chose a misspelling of googol as its name.',
+    links: [
+      'https://www.history.com/topics/inventions',
+      'https://www.google.com/about/our-story/'
+    ]
+  },
+  {
+    url: 'https://brilliant.org/wiki/large-numbers/',
+    title: 'Large Numbers and Notation - Brilliant Math',
+    description: 'An in-depth look at large numbers including googol, googolplex, and other enormous quantities.',
+    links: [
+      'https://brilliant.org/wiki/scientific-notation/',
+      'https://brilliant.org/courses/mathematics/'
+    ]
+  },
+  {
+    url: 'https://www.amazon.com/books/googol-mathematics',
+    title: 'Books About Googol and Mathematics',
+    description: 'Discover books that explore the concept of googol, large numbers, and fascinating mathematical ideas.',
+    links: [
+      'https://www.amazon.com/Mathematics-Magic-Mystery/dp/0486270882'
+    ]
+  },
+  {
+    url: 'https://www.reddit.com/r/math/comments/googol_discussion',
+    title: 'Discussion: Googol and Its Significance - r/math',
+    description: 'Community discussion about googol, its practical applications, and why mathematicians find it interesting.',
+  },
+  {
+    url: 'https://mathoverflow.net/questions/googol-applications',
+    title: 'Are There Any Real Applications of Googol? - MathOverflow',
+    description: 'Mathematics Q&A discussing whether numbers as large as googol have any practical applications in real-world scenarios.',
+    links: [
+      'https://mathoverflow.net/questions/tagged/large-numbers'
+    ]
+  },
+  {
+    url: 'https://www.wolframalpha.com/input/?i=googol',
+    title: 'Googol Computation - Wolfram Alpha',
+    description: 'Use Wolfram Alpha to explore googol and perform computations with this enormous number.',
+    links: [
+      'https://www.wolframalpha.com/examples/mathematics'
+    ]
+  },
+  {
+    url: 'https://ed.ted.com/lessons/how-big-is-a-googol',
+    title: 'How Big is a Googol? - TED-Ed',
+    description: 'An educational video lesson explaining the magnitude of a googol and comparing it to quantities in the universe.',
+    links: [
+      'https://ed.ted.com/lessons',
+      'https://www.youtube.com/watch?v=example'
+    ]
+  },
 ];
 
 export default function DemoPage() {

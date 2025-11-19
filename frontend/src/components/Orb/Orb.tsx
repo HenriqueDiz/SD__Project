@@ -18,6 +18,27 @@ export default function Orb({
   forceHoverState = false
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
+  const forceHoverRef = useRef(forceHoverState);
+  const hueRef = useRef(hue);
+  const hoverIntensityRef = useRef(hoverIntensity);
+  const rotateOnHoverRef = useRef(rotateOnHover);
+
+  // Update refs when props change
+  useEffect(() => {
+    forceHoverRef.current = forceHoverState;
+  }, [forceHoverState]);
+
+  useEffect(() => {
+    hueRef.current = hue;
+  }, [hue]);
+
+  useEffect(() => {
+    hoverIntensityRef.current = hoverIntensity;
+  }, [hoverIntensity]);
+
+  useEffect(() => {
+    rotateOnHoverRef.current = rotateOnHover;
+  }, [rotateOnHover]);
 
   const vert = /* glsl */ `
     precision highp float;
@@ -257,13 +278,13 @@ export default function Orb({
       lastTime = t;
 
       program.uniforms.iTime.value = t * 0.001;
-      program.uniforms.hue.value = hue;
-      program.uniforms.hoverIntensity.value = hoverIntensity;
+      program.uniforms.hue.value = hueRef.current;
+      program.uniforms.hoverIntensity.value = hoverIntensityRef.current;
 
-      const effectiveHover = forceHoverState ? 1 : targetHover;
+      const effectiveHover = forceHoverRef.current ? 1 : targetHover;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
 
-      if (rotateOnHover && effectiveHover > 0.5) {
+      if (rotateOnHoverRef.current && effectiveHover > 0.5) {
         currentRot += dt * rotationSpeed;
       }
       program.uniforms.rot.value = currentRot;
@@ -281,7 +302,7 @@ export default function Orb({
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState]);
+  }, []); // Empty dependency array - only run once
 
   return <div ref={ctnDom} className="orb-container" />;
 }
