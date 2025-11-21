@@ -36,7 +36,7 @@ mvn clean compile
 
 ### Opção 1: Executar todos os componentes automaticamente
 ```bash
-make run-all
+make run-backend
 ```
 Este comando inicia todos os componentes do sistema na seguinte ordem:
 1. Gateway (porta padrão: 8183)
@@ -94,6 +94,17 @@ Ou com argumentos:
 java -cp target/classes client.Client <gatewayPort> <gatewayHost>
 ```
 
+#### Spring Boot REST API (Web Server)
+```bash
+make run-api
+```
+A API estará disponível em `http://localhost:8080`
+
+**Endpoints principais:**
+- `GET/POST /api/search?q=query` - Pesquisar
+- `GET /api/barrels/active` - Barrels ativos
+- `GET /api/health` - Health check
+
 ---
 
 ## Configuração
@@ -129,7 +140,7 @@ barrel1.name=barrel1
 
 ### macOS/Linux:
 ```bash
-make stop-all
+make stop-backend
 ```
 
 ### Windows:
@@ -175,6 +186,13 @@ Fechar manualmente cada terminal ou usar `Ctrl+C` em cada janela.
 - Permite adicionar URLs manualmente
 - Exibe estatísticas do sistema
 
+#### 6. **Spring Boot REST API** (Interface Web)
+- API REST para integração com frontend React
+- Endpoints JSON para pesquisa e gestão
+- CORS habilitado para desenvolvimento local
+- Health checks e monitorização
+- Porta padrão: 8080
+
 ---
 
 ## Funcionalidades
@@ -204,7 +222,8 @@ Fechar manualmente cada terminal ou usar `Ctrl+C` em cada janela.
 
 ### 1. Iniciar o sistema
 ```bash
-make run-all
+make run-backend
+make run-api
 ```
 
 ### 2. No Client, escolher uma opção do menu:
