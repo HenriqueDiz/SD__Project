@@ -11,19 +11,24 @@ import { searchQuery, SearchResult } from '@/services/api';
 export default function DemoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(''); // What's typed in the search bar
+  const [searchedQuery, setSearchedQuery] = useState(''); // What was actually searched
   const [results, setResults] = useState<AnimatedListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Fetch results when query changes
   useEffect(() => {
     const q = searchParams.get('q');
+    const p = searchParams.get('page');
+    const pageNum = p ? parseInt(p) - 1 : 0; // Convert from 1-based to 0-based
+    
     if (q) {
       setQuery(q);
-      performSearch(q, 0);
+      performSearch(q, pageNum);
     }
   }, [searchParams]);
 
@@ -32,6 +37,7 @@ export default function DemoPage() {
 
     setIsLoading(true);
     setError(null);
+    setSearchedQuery(searchTerm); // Update the searched query
 
     try {
       const response = await searchQuery(searchTerm.trim(), page);
@@ -47,7 +53,8 @@ export default function DemoPage() {
 
       setResults(formattedResults);
       setTotalResults(response.totalResults);
-      setCurrentPage(page);
+      setCurrentPage(response.currentPage);
+      setTotalPages(response.totalPages);
     } catch (err) {
       console.error('Search error:', err);
       setError(err instanceof Error ? err.message : 'Erro ao realizar pesquisa');
@@ -67,8 +74,18 @@ export default function DemoPage() {
 
   const handleSearch = (newQuery: string) => {
     setQuery(newQuery);
-    // Update URL and trigger new search
-    router.push(`/results?q=${encodeURIComponent(newQuery)}`);
+    setCurrentPage(0); // Reset to first page on new search
+    // Update URL and trigger new search (page=1 for user-facing URL)
+    router.push(`/results?q=${encodeURIComponent(newQuery)}&page=1`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      // Update URL with new page parameter (1-based for user)
+      router.push(`/results?q=${encodeURIComponent(query)}&page=${newPage + 1}`);
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleClearSearch = () => {
@@ -105,7 +122,6 @@ export default function DemoPage() {
         <div 
           onClick={handleLogoClick}
           style={{ 
-            cursor: 'pointer',
             transition: 'transform 0.2s ease',
           }}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -150,6 +166,7 @@ export default function DemoPage() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && query.trim()) {
+                  e.preventDefault(); // Prevent form submission/redirect
                   handleSearch(query);
                 }
               }}
@@ -244,10 +261,10 @@ export default function DemoPage() {
             <>A carregar resultados...</>
           ) : error ? (
             <span style={{ color: '#ff4444' }}>Erro: {error}</span>
-          ) : query ? (
+          ) : searchedQuery ? (
             <>
               Encontrados <strong>{totalResults}</strong> resultados para{' '}
-              <em style={{ fontStyle: 'italic', color: '#9c43ff' }}>"{query}"</em>
+              <em style={{ fontStyle: 'italic', color: '#9c43ff' }}>"{searchedQuery}"</em>
             </>
           ) : (
             <>Resultados da pesquisa</>
@@ -354,6 +371,158 @@ export default function DemoPage() {
             enableArrowNavigation={true}
             displayScrollbar={true}
           />
+        )}
+
+        {/* Pagination Component */}
+        {!isLoading && !error && results.length > 0 && totalPages > 1 && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginTop: '3rem',
+            paddingBottom: '2rem',
+          }}>
+            {/* Previous Button */}
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              style={{
+                padding: '0.6rem 1rem',
+                background: currentPage === 0 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(156, 67, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                color: currentPage === 0 
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(255, 255, 255, 0.9)',
+                cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== 0) {
+                  e.currentTarget.style.background = 'rgba(156, 67, 255, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(156, 67, 255, 0.5)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== 0) {
+                  e.currentTarget.style.background = 'rgba(156, 67, 255, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }
+              }}
+            >
+              ← Anterior
+            </button>
+
+            {/* Page Numbers */}
+            <div style={{
+              display: 'flex',
+              gap: '0.3rem',
+              alignItems: 'center',
+            }}>
+              {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+                // Show first 3, current page +/- 2, and last 3
+                const pageNum = i;
+                const showPage = 
+                  pageNum < 3 || // First 3 pages
+                  pageNum >= totalPages - 3 || // Last 3 pages
+                  Math.abs(pageNum - currentPage) <= 2; // Current +/- 2
+
+                if (!showPage && (pageNum === 3 || pageNum === totalPages - 4)) {
+                  return (
+                    <span 
+                      key={`ellipsis-${pageNum}`} 
+                      style={{ 
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        padding: '0 0.3rem',
+                      }}
+                    >
+                      ...
+                    </span>
+                  );
+                } else if (!showPage) {
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    style={{
+                      minWidth: '40px',
+                      height: '40px',
+                      padding: '0.5rem',
+                      background: currentPage === pageNum
+                        ? 'linear-gradient(135deg, #9c43ff, #4cb8e9)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: currentPage === pageNum 
+                        ? '1px solid rgba(156, 67, 255, 0.5)'
+                        : '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: currentPage === pageNum ? 600 : 400,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentPage !== pageNum) {
+                        e.currentTarget.style.background = 'rgba(156, 67, 255, 0.15)';
+                        e.currentTarget.style.borderColor = 'rgba(156, 67, 255, 0.3)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentPage !== pageNum) {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                      }
+                    }}
+                  >
+                    {pageNum + 1}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}
+              style={{
+                padding: '0.6rem 1rem',
+                background: currentPage >= totalPages - 1
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(156, 67, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                color: currentPage >= totalPages - 1
+                  ? 'rgba(255, 255, 255, 0.3)' 
+                  : 'rgba(255, 255, 255, 0.9)',
+                cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage < totalPages - 1) {
+                  e.currentTarget.style.background = 'rgba(156, 67, 255, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(156, 67, 255, 0.5)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage < totalPages - 1) {
+                  e.currentTarget.style.background = 'rgba(156, 67, 255, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }
+              }}
+            >
+              Próximo →
+            </button>
+          </div>
         )}
       </div>
 

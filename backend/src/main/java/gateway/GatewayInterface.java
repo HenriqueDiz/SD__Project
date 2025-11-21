@@ -48,6 +48,14 @@ public interface GatewayInterface extends Remote {
     public List<String[]> searchWords(List<String> words, int page, int pageSize) throws RemoteException;
 
     /**
+     * Obtém o total de resultados para uma pesquisa (sem paginação).
+     * @param words A lista de palavras a serem pesquisadas.
+     * @return O número total de resultados encontrados.
+     * @throws RemoteException Se ocorrer um erro de comunicação remota.
+     */
+    public int getTotalResults(List<String> words) throws RemoteException;
+
+    /**
      * Obtém as URLs ativas no Gateway.
      * @return Uma lista de URLs ativas.
      * @throws RemoteException Se ocorrer um erro de comunicação remota.

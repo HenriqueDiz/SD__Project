@@ -48,7 +48,7 @@ public class GatewayServiceClient {
      * Fluxo:
      * 1. Chama gateway.searchWords() via RMI
      * 2. Recebe List<String[]> onde cada array é [url, references]
-     * 3. Para cada URL, busca título e descrição com PageInfo
+     * 3. Para cada URL, busca título e descrição com PageInfo (PARALELO)
      * 4. Converte tudo para SearchResultDTO
      * 5. Retorna lista de DTOs
      * 
@@ -66,26 +66,24 @@ public class GatewayServiceClient {
             
             System.out.println("Gateway retornou " + rawResults.size() + " resultado(s)");
             
-            // Converter resultados RMI para DTOs
-            List<SearchResultDTO> dtos = new ArrayList<>();
-            
-            for (String[] result : rawResults) {
-                String url = result[0];
-                int references = Integer.parseInt(result[1]);
-                
-                // PageInfo busca título e descrição da página
-                PageInfo pageInfo = new PageInfo(url);
-                
-                // Criar DTO com todas as informações
-                SearchResultDTO dto = new SearchResultDTO(
-                    url,
-                    pageInfo.getTitle(),
-                    pageInfo.getDescription(),
-                    references
-                );
-                
-                dtos.add(dto);
-            }
+            // Converter resultados RMI para DTOs EM PARALELO
+            List<SearchResultDTO> dtos = rawResults.parallelStream()
+                .map(result -> {
+                    String url = result[0];
+                    int references = Integer.parseInt(result[1]);
+                    
+                    // PageInfo busca título e descrição da página
+                    PageInfo pageInfo = new PageInfo(url);
+                    
+                    // Criar DTO com todas as informações
+                    return new SearchResultDTO(
+                        url,
+                        pageInfo.getTitle(),
+                        pageInfo.getDescription(),
+                        references
+                    );
+                })
+                .collect(java.util.stream.Collectors.toList());
             
             System.out.println("Resultados processados com sucesso");
             return dtos;
@@ -93,6 +91,21 @@ public class GatewayServiceClient {
         } catch (RemoteException e) {
             System.err.println("Erro ao comunicar com Gateway: " + e.getMessage());
             throw new RuntimeException("Serviço de busca temporariamente indisponível", e);
+        }
+    }
+
+    /**
+     * Obtém o total de resultados para uma busca (sem paginação).
+     * 
+     * @param words     Lista de palavras para buscar
+     * @return          Total de resultados encontrados
+     */
+    public int getTotalResults(List<String> words) {
+        try {
+            return gateway.getTotalResults(words);
+        } catch (RemoteException e) {
+            System.err.println("Erro ao obter total de resultados: " + e.getMessage());
+            return 0;
         }
     }
     

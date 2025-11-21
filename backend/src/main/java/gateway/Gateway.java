@@ -312,6 +312,41 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         int to = Math.min(from + pageSize, ranked.size());
         return new ArrayList<>(ranked.subList(from, to));
     }
+
+    /**
+     * Obtém o total de resultados para uma pesquisa (sem paginação).
+     * 
+     * @param words             A lista de palavras a serem pesquisadas.
+     * @return                  O número total de resultados.
+     * @throws RemoteException  Se ocorrer um erro remoto.
+     */
+    @Override
+    public int getTotalResults(List<String> words) throws RemoteException {
+        if (words == null || words.isEmpty()) return 0;
+
+        // Normalizar palavras
+        List<String> norm = new ArrayList<>();
+        for (String w : words) {
+            if (w != null && !w.isBlank()) norm.add(w.toLowerCase());
+        }
+        if (norm.isEmpty()) return 0;
+
+        // Resultados por palavra
+        List<HashSet<String>> resultsPerWord = new ArrayList<>();
+        for (String w : norm) {
+            List<String> result = searchWordGateway(w);
+            resultsPerWord.add(new HashSet<>(result));
+        }
+
+        // Interseção
+        HashSet<String> intersection = new HashSet<>(resultsPerWord.get(0));
+        for (int i = 1; i < resultsPerWord.size(); i++) {
+            intersection.retainAll(resultsPerWord.get(i));
+            if (intersection.isEmpty()) break;
+        }
+        
+        return intersection.size();
+    }
         
     /**
      * Método para adicionar uma URL ao Gateway.

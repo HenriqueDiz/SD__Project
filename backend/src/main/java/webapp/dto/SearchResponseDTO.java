@@ -25,16 +25,20 @@ public class SearchResponseDTO {
     private String query;
     private List<SearchResultDTO> results;
     private int currentPage;
+    private int pageSize;
     private int totalResults;
+    private int totalPages;
     private boolean hasResults;
     
     public SearchResponseDTO() {}
     
-    public SearchResponseDTO(String query, List<SearchResultDTO> results, int currentPage) {
+    public SearchResponseDTO(String query, List<SearchResultDTO> results, int currentPage, int pageSize, int totalResults) {
         this.query = query;
         this.results = results;
         this.currentPage = currentPage;
-        this.totalResults = results.size();
+        this.pageSize = pageSize;
+        this.totalResults = totalResults;
+        this.totalPages = (int) Math.ceil((double) totalResults / pageSize);
         this.hasResults = !results.isEmpty();
     }
     
@@ -54,7 +58,6 @@ public class SearchResponseDTO {
     
     public void setResults(List<SearchResultDTO> results) {
         this.results = results;
-        this.totalResults = results.size();
         this.hasResults = !results.isEmpty();
     }
     
@@ -66,12 +69,31 @@ public class SearchResponseDTO {
         this.currentPage = currentPage;
     }
     
+    public int getPageSize() {
+        return pageSize;
+    }
+    
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+    
     public int getTotalResults() {
         return totalResults;
     }
     
     public void setTotalResults(int totalResults) {
         this.totalResults = totalResults;
+        if (this.pageSize > 0) {
+            this.totalPages = (int) Math.ceil((double) totalResults / this.pageSize);
+        }
+    }
+    
+    public int getTotalPages() {
+        return totalPages;
+    }
+    
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
     }
     
     public boolean isHasResults() {

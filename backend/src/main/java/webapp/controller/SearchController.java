@@ -78,8 +78,17 @@ public class SearchController {
                 request.getPageSize()
             );
             
+            // Obter total REAL de resultados do Gateway
+            int totalResults = gatewayClient.getTotalResults(request.getWords());
+            
             // Montar resposta
-            SearchResponseDTO response = new SearchResponseDTO(query, results, page);
+            SearchResponseDTO response = new SearchResponseDTO(
+                query, 
+                results, 
+                page, 
+                pageSize, 
+                totalResults
+            );
             
             return ResponseEntity.ok(response);
             
@@ -87,7 +96,7 @@ public class SearchController {
             System.err.println("Erro na busca: " + e.getMessage());
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new SearchResponseDTO(query, List.of(), page));
+                .body(new SearchResponseDTO(query, List.of(), page, pageSize, 0));
         }
     }
     
@@ -125,14 +134,19 @@ public class SearchController {
                 request.getPageSize()
             );
             
+            // Obter total REAL de resultados do Gateway
+            int totalResults = gatewayClient.getTotalResults(request.getWords());
+            
             // Montar resposta
             SearchResponseDTO response = new SearchResponseDTO(
                 request.getQuery(), 
                 results, 
-                request.getPage()
+                request.getPage(),
+                request.getPageSize(),
+                totalResults
             );
             
-            System.out.println("Enviando " + results.size() + " resultado(s)");
+            System.out.println("Enviando " + results.size() + " resultado(s) - Total: " + totalResults);
             
             return ResponseEntity.ok(response);
             
@@ -142,7 +156,7 @@ public class SearchController {
             
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new SearchResponseDTO(request.getQuery(), List.of(), request.getPage()));
+                .body(new SearchResponseDTO(request.getQuery(), List.of(), request.getPage(), request.getPageSize(), 0));
         }
     }
 }

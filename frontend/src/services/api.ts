@@ -18,8 +18,10 @@ export interface SearchResponse {
   query: string;
   results: SearchResult[];
   totalResults: number;
-  page: number;
-  timestamp: string;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  hasResults: boolean;
 }
 
 export interface BarrelInfo {
