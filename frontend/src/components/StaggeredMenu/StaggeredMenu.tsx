@@ -115,6 +115,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     ) as HTMLElement[];
     const socialTitle = panel.querySelector('.sm-socials-title') as HTMLElement | null;
     const socialLinks = Array.from(panel.querySelectorAll('.sm-socials-link')) as HTMLElement[];
+    const authorsTitle = panel.querySelector('.sm-authors-title') as HTMLElement | null;
+    const authorsItems = Array.from(panel.querySelectorAll('.sm-authors-item')) as HTMLElement[];
 
     const layerStates = layers.map(el => ({ el, start: Number(gsap.getProperty(el, 'xPercent')) }));
     const panelStart = Number(gsap.getProperty(panel, 'xPercent'));
@@ -130,6 +132,12 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     }
     if (socialLinks.length) {
       gsap.set(socialLinks, { y: 25, opacity: 0 });
+    }
+    if (authorsTitle) {
+      gsap.set(authorsTitle, { opacity: 0 });
+    }
+    if (authorsItems.length) {
+      gsap.set(authorsItems, { y: 15, opacity: 0 });
     }
 
     const tl = gsap.timeline({ paused: true });
@@ -209,6 +217,37 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       }
     }
 
+    if (authorsTitle || authorsItems.length) {
+      const authorsStart = panelInsertTime + panelDuration * 0.5;
+      if (authorsTitle) {
+        tl.to(
+          authorsTitle,
+          {
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power2.out'
+          },
+          authorsStart
+        );
+      }
+      if (authorsItems.length) {
+        tl.to(
+          authorsItems,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power3.out',
+            stagger: { each: 0.06, from: 'start' },
+            onComplete: () => {
+              gsap.set(authorsItems, { clearProps: 'opacity' });
+            }
+          },
+          authorsStart + 0.04
+        );
+      }
+    }
+
     openTlRef.current = tl;
     return tl;
   }, [position]);
@@ -260,6 +299,10 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         const socialLinks = Array.from(panel.querySelectorAll('.sm-socials-link')) as HTMLElement[];
         if (socialTitle) gsap.set(socialTitle, { opacity: 0 });
         if (socialLinks.length) gsap.set(socialLinks, { y: 25, opacity: 0 });
+        const authorsTitle = panel.querySelector('.sm-authors-title') as HTMLElement | null;
+        const authorsItems = Array.from(panel.querySelectorAll('.sm-authors-item')) as HTMLElement[];
+        if (authorsTitle) gsap.set(authorsTitle, { opacity: 0 });
+        if (authorsItems.length) gsap.set(authorsItems, { y: 15, opacity: 0 });
         busyRef.current = false;
       }
     });
@@ -442,6 +485,16 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
               </ul>
             </div>
           )}
+
+          {/* Authors Section */}
+          <div className="sm-authors" aria-label="Authors">
+            <h3 className="sm-authors-title">Autores</h3>
+            <ul className="sm-authors-list" role="list">
+              <li className="sm-authors-item">Henrique Diz</li>
+              <li className="sm-authors-item">João Francisco</li>
+              <li className="sm-authors-item">Rodrigo Manão</li>
+            </ul>
+          </div>
         </div>
       </aside>
     </div>

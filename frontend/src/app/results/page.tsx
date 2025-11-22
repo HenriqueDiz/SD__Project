@@ -6,6 +6,7 @@ import AnimatedList, { AnimatedListItem } from '@/components/AnimatedList/Animat
 import GradientText from '@/components/GradientText/GradientText';
 import SearchBar from '@/components/SearchBar/SearchBar';
 import ApiStatus from '@/components/ApiStatus/ApiStatus';
+import Loader from '@/components/Loader/Loader';
 import { searchQuery, SearchResult } from '@/services/api';
 
 export default function DemoPage() {
@@ -282,30 +283,7 @@ export default function DemoPage() {
         paddingBottom: '4rem'
       }}>
         {isLoading ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            color: 'rgba(255, 255, 255, 0.6)',
-            fontSize: '1rem'
-          }}>
-            <div style={{
-              display: 'inline-block',
-              width: '40px',
-              height: '40px',
-              border: '3px solid rgba(156, 67, 255, 0.3)',
-              borderTop: '3px solid #9c43ff',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              marginBottom: '1rem'
-            }}></div>
-            <p>A procurar...</p>
-            <style jsx>{`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
-          </div>
+          <Loader />
         ) : error ? (
           <div style={{
             textAlign: 'center',
