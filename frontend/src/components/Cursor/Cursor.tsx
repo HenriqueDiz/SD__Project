@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import './Cursor.css';
 
 interface Circle extends HTMLDivElement {
@@ -9,42 +10,120 @@ interface Circle extends HTMLDivElement {
 }
 
 const Cursor = () => {
+  const pathname = usePathname();
   const coordsRef = useRef({ x: 0, y: 0 });
   const circlesRef = useRef<Circle[]>([]);
 
-  // Cores do gradiente do site (roxo/azul)
-  const colors = [
-    "#9c43ff",
-    "#9548ff",
-    "#8e4dff",
-    "#8752ff",
-    "#8057ff",
-    "#795cff",
-    "#7261ff",
-    "#6b66ff",
-    "#646bff",
-    "#5d70ff",
-    "#5675ff",
-    "#4f7aff",
-    "#487fff",
-    "#4184ff",
-    "#3a89ff",
-    "#338eff",
-    "#2c93ff",
-    "#2598ff",
-    "#1e9dff",
-    "#17a2ff",
-    "#10a7ff",
-    "#09acff",
-    "#02b1ff",
-    "#00b6ff",
-    "#00bbff",
-    "#00c0ff",
-    "#00c5ff",
-    "#00caff",
-    "#00cfff",
-    "#4cb8e9"
-  ];
+  // Cores baseadas na rota
+  const getColors = () => {
+    // Página de ligações usa verde/amarelo
+    if (pathname === '/ligacoes' || pathname === '/ligacoes/results') {
+      return [
+        "#00ff88",
+        "#0bff87",
+        "#16ff86",
+        "#21ff85",
+        "#2cff84",
+        "#37ff83",
+        "#42ff82",
+        "#4dff81",
+        "#58ff80",
+        "#63ff7f",
+        "#6eff7e",
+        "#79ff7d",
+        "#84ff7c",
+        "#8fff7b",
+        "#9aff7a",
+        "#a5ff79",
+        "#b0ff78",
+        "#bbff77",
+        "#c6ff76",
+        "#d1ff75",
+        "#dcff74",
+        "#e7ff73",
+        "#f2ff72",
+        "#fdff71",
+        "#fffc70",
+        "#fff16f",
+        "#ffe66e",
+        "#ffdb6d",
+        "#ffd06c",
+        "#88ff00"
+      ];
+    }
+    
+    // Página de indexar URL usa rosa/laranja
+    if (pathname === '/indexar-url') {
+      return [
+        "#ff6b9d",
+        "#ff6d9a",
+        "#ff6f97",
+        "#ff7194",
+        "#ff7391",
+        "#ff758e",
+        "#ff778b",
+        "#ff7988",
+        "#ff7b85",
+        "#ff7d82",
+        "#ff7f7f",
+        "#ff817c",
+        "#ff8379",
+        "#ff8576",
+        "#ff8773",
+        "#ff8970",
+        "#ff8b6d",
+        "#ff8d6a",
+        "#ff8f67",
+        "#ff9164",
+        "#ff9361",
+        "#ff955e",
+        "#ff975b",
+        "#ff9958",
+        "#ff9b55",
+        "#ff9d52",
+        "#ff9f4f",
+        "#ffa14c",
+        "#ffa349",
+        "#ff8c42"
+      ];
+    }
+    
+    // Página principal usa roxo/azul
+    return [
+      "#9c43ff",
+      "#9a46ff",
+      "#9849ff",
+      "#964cff",
+      "#944fff",
+      "#9252ff",
+      "#9055ff",
+      "#8e58ff",
+      "#8c5bff",
+      "#8a5eff",
+      "#8861ff",
+      "#8664ff",
+      "#8467ff",
+      "#826aff",
+      "#806dff",
+      "#7e70ff",
+      "#7c73ff",
+      "#7a76ff",
+      "#7879ff",
+      "#767cff",
+      "#747fff",
+      "#7282ff",
+      "#7085ff",
+      "#6e88ff",
+      "#6c8bff",
+      "#6a8eff",
+      "#6891ff",
+      "#6694ff",
+      "#64b0f4",
+      "#4cb8e9"
+    ];
+  };
+
+  const colors = getColors();
 
   useEffect(() => {
     // Inicializar posições dos círculos

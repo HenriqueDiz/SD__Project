@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AnimatedList, { AnimatedListItem } from '@/components/AnimatedList/AnimatedList';
 import GradientText from '@/components/GradientText/GradientText';
-import SearchBar from '@/components/SearchBar/SearchBar';
 import ApiStatus from '@/components/ApiStatus/ApiStatus';
 import Loader from '@/components/Loader/Loader';
+import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu';
 import { searchQuery, SearchResult } from '@/services/api';
 
 export default function DemoPage() {
@@ -20,6 +20,13 @@ export default function DemoPage() {
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  const menuItems = [
+    { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
+    { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar-url' },
+    { label: 'Ligações de URLs', ariaLabel: 'Ver ligações de URLs', link: '/ligacoes' },
+    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '#' },
+  ];
 
   // Fetch results when query changes
   useEffect(() => {
@@ -47,7 +54,7 @@ export default function DemoPage() {
       const formattedResults: AnimatedListItem[] = response.results.map((result: SearchResult) => ({
         url: result.url,
         title: result.title,
-        description: result.snippet,
+        description: result.description,
         // You can add links here if your backend provides them
         // links: result.links || []
       }));
@@ -122,7 +129,7 @@ export default function DemoPage() {
         {/* Googol Logo - Clickable */}
         <div 
           onClick={handleLogoClick}
-          style={{ 
+          style={{
             transition: 'transform 0.2s ease',
           }}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -506,6 +513,22 @@ export default function DemoPage() {
 
       {/* API Status Indicator */}
       <ApiStatus showDetails={true} />
+
+      {/* Staggered Menu */}
+      <StaggeredMenu
+        position="right"
+        items={menuItems}
+        displayItemNumbering={false}
+        displaySocials={false}
+        colors={['#9c43ff', '#4cb8e9', 'rgba(15, 15, 20, 0.95)']}
+        accentColor="#9c43ff"
+        menuButtonColor="rgba(255, 255, 255, 0.9)"
+        openMenuButtonColor="rgba(255, 255, 255, 0.95)"
+        borderColor="rgba(156, 67, 255, 0.2)"
+        scrollbarColor="rgba(156, 67, 255, 0.3)"
+        scrollbarHoverColor="rgba(156, 67, 255, 0.5)"
+        isFixed={true}
+      />
     </main>
   );
 }

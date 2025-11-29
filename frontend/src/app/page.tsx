@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Orb from '@/components/Orb/Orb'
-import GradientText from '@/components/GradientText/GradientText'
+import Header from '@/components/Header/Header'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu'
 
@@ -16,14 +16,14 @@ export default function Home() {
   };
 
   const menuItems = [
-    { label: 'Indexar URL', ariaLabel: 'Adicionar URL para indexação', link: '#' },
+    { label: 'Indexar URL', ariaLabel: 'Adicionar URL para indexação', link: '/indexar-url' },
     { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '#' },
-    { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '#' }
+    { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '/ligacoes' }
   ];
 
   return (
     <>
-      <main style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+      <main style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', overflow: 'hidden' }}>
         {/* Orb Background */}
         <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
           <Orb
@@ -35,26 +35,7 @@ export default function Home() {
         </div>
 
         {/* Googol Logo - Top Left */}
-        <div style={{ 
-          position: 'absolute', 
-          top: '2rem', 
-          left: '2rem', 
-          zIndex: 100
-        }}>
-          <GradientText
-            colors={['#9c43ff', '#4cb8e9','#9c43ff', '#4cb8e9', '#9c43ff']}
-            animationSpeed={3}
-            showBorder={false}
-          >
-            <h1 style={{ 
-              fontSize: '2.5rem', 
-              margin: 0, 
-              fontWeight: 700, 
-              letterSpacing: '-0.02em',
-              fontFamily: "'Space Grotesk', 'Inter', sans-serif"
-            }}>Googol</h1>
-          </GradientText>
-        </div>
+        <Header />
 
         {/* Search Bar - Center */}
         <div style={{ 

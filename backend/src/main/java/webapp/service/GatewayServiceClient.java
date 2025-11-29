@@ -152,4 +152,51 @@ public class GatewayServiceClient {
             throw new RuntimeException("Erro ao adicionar URL", e);
         }
     }
+    
+    /**
+     * Obtém as URLs que fazem referência (links) a uma URL específica.
+     * 
+     * Fluxo:
+     * 1. Chama gateway.getUrlsForIndexedUrl() via RMI
+     * 2. Recebe HashSet<String> com URLs que linkam para a URL fornecida
+     * 3. Para cada URL, busca título e descrição com PageInfo (PARALELO)
+     * 4. Converte tudo para SearchResultDTO
+     * 5. Retorna lista de DTOs
+     * 
+     * @param url   URL para a qual queremos encontrar as ligações/backlinks
+     * @return      Lista de resultados formatados com as URLs que linkam para a URL fornecida
+     */
+    public List<SearchResultDTO> getConnections(String url) {
+        try {
+            System.out.println("Buscando ligações para: " + url);
+            
+            // Chamada RMI ao Gateway
+            java.util.HashSet<String> rawResults = gateway.getUrlsForIndexedUrl(url);
+            
+            System.out.println("Gateway retornou " + rawResults.size() + " ligação(ões)");
+            
+            // Converter resultados para DTOs EM PARALELO
+            List<SearchResultDTO> dtos = rawResults.parallelStream()
+                .map(linkUrl -> {
+                    // PageInfo busca título e descrição da página
+                    PageInfo pageInfo = new PageInfo(linkUrl);
+                    
+                    // Criar DTO com todas as informações (references = 0 pois não é relevante aqui)
+                    return new SearchResultDTO(
+                        linkUrl,
+                        pageInfo.getTitle(),
+                        pageInfo.getDescription(),
+                        0  // Não temos contagem de referências neste contexto
+                    );
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            System.out.println("Ligações processadas com sucesso");
+            return dtos;
+            
+        } catch (RemoteException e) {
+            System.err.println("Erro ao comunicar com Gateway: " + e.getMessage());
+            throw new RuntimeException("Serviço de ligações temporariamente indisponível", e);
+        }
+    }
 }

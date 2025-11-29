@@ -10,7 +10,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 export interface SearchResult {
   url: string;
   title: string;
-  snippet: string;      // Description/preview text
+  description: string;  // Description/preview text
   references: number;   // Number of backlinks
 }
 
@@ -52,6 +52,14 @@ export interface AddUrlResponse {
   success: boolean;
   message: string;
   url: string;
+  alreadyIndexed?: boolean;
+}
+
+export interface ConnectionsResponse {
+  url: string;
+  connections: SearchResult[];
+  totalConnections: number;
+  hasConnections: boolean;
 }
 
 // ============================================================================
@@ -116,16 +124,17 @@ export async function searchQuery(
 /**
  * Add a URL to the indexing queue
  * @param url - URL to index
+ * @param indexAnyway - Force re-indexing if URL already exists
  * @returns Success response
  */
-export async function addUrl(url: string): Promise<AddUrlResponse> {
+export async function addUrl(url: string, indexAnyway: boolean = false): Promise<AddUrlResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/barrels/add-url`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, indexAnyway }),
     });
 
     if (!response.ok) {
@@ -275,6 +284,42 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   }
 }
 
+/**
+ * Get connections/backlinks for a specific URL
+ * @param url - URL to find connections for
+ * @returns Connections response with list of URLs that link to the provided URL
+ */
+export async function getConnections(url: string): Promise<ConnectionsResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/connections?url=${encodeURIComponent(url)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new ApiError(
+        `Failed to get connections: ${response.statusText}`,
+        response.status
+      );
+    }
+
+    const data: ConnectionsResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -301,7 +346,7 @@ export function formatSearchResultForDisplay(result: SearchResult) {
   return {
     url: result.url,
     title: result.title,
-    description: result.snippet,
+    description: result.description,
     // If you have links/references data, add them here
     // links: result.references ? Array(result.references).fill('') : undefined
   };

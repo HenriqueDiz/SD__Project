@@ -25,6 +25,9 @@ export interface StaggeredMenuProps {
   menuButtonColor?: string;
   openMenuButtonColor?: string;
   accentColor?: string;
+  borderColor?: string;
+  scrollbarColor?: string;
+  scrollbarHoverColor?: string;
   changeMenuColorOnOpen?: boolean;
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
@@ -44,6 +47,9 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   openMenuButtonColor = '#fff',
   changeMenuColorOnOpen = true,
   accentColor = '#5227FF',
+  borderColor,
+  scrollbarColor,
+  scrollbarHoverColor,
   isFixed = false,
   onMenuOpen,
   onMenuClose
@@ -400,7 +406,12 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   return (
     <div
       className={(className ? className + ' ' : '') + 'staggered-menu-wrapper' + (isFixed ? ' fixed-wrapper' : '')}
-      style={accentColor ? { ['--sm-accent' as any]: accentColor } : undefined}
+      style={{
+        ...(accentColor ? { ['--sm-accent' as any]: accentColor } : {}),
+        ...(borderColor ? { ['--sm-border-color' as any]: borderColor } : {}),
+        ...(scrollbarColor ? { ['--sm-scrollbar-color' as any]: scrollbarColor } : {}),
+        ...(scrollbarHoverColor ? { ['--sm-scrollbar-hover-color' as any]: scrollbarHoverColor } : {})
+      }}
       data-position={position}
       data-open={open || undefined}
     >
