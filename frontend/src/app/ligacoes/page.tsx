@@ -38,8 +38,8 @@ export default function LigacoesPage() {
 
   const menuItems = [
     { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
-    { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar-url' },
-    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '#' },
+    { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar' },
+    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
   ];
 
   return (

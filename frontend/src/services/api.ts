@@ -62,6 +62,11 @@ export interface ConnectionsResponse {
   hasConnections: boolean;
 }
 
+export interface StatisticsResponse {
+  topSearches: Record<string, number>;
+  averageResponseTime: Record<string, number>; // nanos
+}
+
 // ============================================================================
 // API Error Handling
 // ============================================================================
@@ -160,7 +165,7 @@ export async function addUrl(url: string, indexAnyway: boolean = false): Promise
  * Get list of active barrels
  * @returns List of active barrels
  */
-export async function getActiveBarrels(): Promise<BarrelInfo[]> {
+export async function getActiveBarrels(): Promise<string[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/barrels/active`, {
       method: 'GET',
@@ -176,8 +181,9 @@ export async function getActiveBarrels(): Promise<BarrelInfo[]> {
       );
     }
 
-    const data: BarrelInfo[] = await response.json();
-    return data;
+    const raw = await response.json();
+    const data = Array.isArray(raw) ? raw : raw?.barrels;
+    return Array.isArray(data) ? data as string[] : [];
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -208,8 +214,9 @@ export async function getRegisteredBarrels(): Promise<string[]> {
       );
     }
 
-    const data: string[] = await response.json();
-    return data;
+    const raw = await response.json();
+    const data = Array.isArray(raw) ? raw : raw?.barrels;
+    return Array.isArray(data) ? data as string[] : [];
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -315,6 +322,28 @@ export async function getConnections(url: string, page: number = 0): Promise<Con
     if (error instanceof ApiError) {
       throw error;
     }
+    throw new ApiError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+export async function getStatistics(): Promise<StatisticsResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/statistics`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new ApiError(
+        `Failed to get statistics: ${response.statusText}`,
+        response.status
+      );
+    }
+    const data: StatisticsResponse = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
     throw new ApiError(
       `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
     );

@@ -6,6 +6,7 @@ import Orb from '@/components/Orb/Orb';
 import GradientText from '@/components/GradientText/GradientText';
 import Modal from '@/components/Modal/Modal';
 import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu';
+import Cursor from '@/components/Cursor/Cursor';
 import { addUrl, AddUrlResponse } from '@/services/api';
 
 export default function IndexarURL() {
@@ -101,13 +102,14 @@ export default function IndexarURL() {
   };
 
   const menuItems = [
-    { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
-    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '#' },
+    { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/indexar' },
+    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
     { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '/ligacoes' }
   ];
 
   return (
     <main style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <Cursor />
       {/* Orb Background */}
       <div style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: 0 }}>
         <Orb

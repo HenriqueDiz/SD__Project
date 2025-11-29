@@ -16,6 +16,42 @@ const Cursor = () => {
 
   // Cores baseadas na rota
   const getColors = () => {
+    // Página de estatísticas usa vermelho
+    if (pathname === '/statistics') {
+      return [
+        "#ff6666",
+        "#ff6060",
+        "#ff5a5a",
+        "#ff5454",
+        "#ff4e4e",
+        "#ff4848",
+        "#ff4242",
+        "#ff3c3c",
+        "#ff3636",
+        "#ff3030",
+        "#ff2a2a",
+        "#ff2424",
+        "#ff1e1e",
+        "#ff1818",
+        "#ff1212",
+        "#ff0c0c",
+        "#ff0606",
+        "#ff0000",
+        "#f50000",
+        "#eb0000",
+        "#e10000",
+        "#d70000",
+        "#cd0000",
+        "#c30000",
+        "#b90000",
+        "#af0000",
+        "#a50000",
+        "#9b0000",
+        "#910000",
+        "#cc0000"
+      ];
+    }
+    
     // Página de ligações usa verde/amarelo
     if (pathname === '/ligacoes' || pathname === '/ligacoes/results') {
       return [
@@ -53,7 +89,7 @@ const Cursor = () => {
     }
     
     // Página de indexar URL usa rosa/laranja
-    if (pathname === '/indexar-url') {
+    if (pathname === '/indexar') {
       return [
         "#ff6b9d",
         "#ff6d9a",

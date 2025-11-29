@@ -16,8 +16,8 @@ export default function Home() {
   };
 
   const menuItems = [
-    { label: 'Indexar URL', ariaLabel: 'Adicionar URL para indexação', link: '/indexar-url' },
-    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '#' },
+    { label: 'Indexar URL', ariaLabel: 'Adicionar URL para indexação', link: '/indexar' },
+    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
     { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '/ligacoes' }
   ];
 

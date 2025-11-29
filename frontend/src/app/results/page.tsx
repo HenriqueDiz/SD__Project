@@ -23,9 +23,9 @@ export default function DemoPage() {
 
   const menuItems = [
     { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
-    { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar-url' },
+    { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar' },
     { label: 'Ligações de URLs', ariaLabel: 'Ver ligações de URLs', link: '/ligacoes' },
-    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '#' },
+    { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
   ];
 
   // Fetch results when query changes

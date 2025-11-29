@@ -199,4 +199,16 @@ public class GatewayServiceClient {
             throw new RuntimeException("Serviço de ligações temporariamente indisponível", e);
         }
     }
+
+    /**
+     * Obtém estatísticas diretamente do Gateway (objeto Statistics).
+     */
+    public statistics.Statistics getBarrelStatistics() {
+        try {
+            return gateway.getBarrelStatistics();
+        } catch (RemoteException e) {
+            System.err.println("Erro ao obter estatísticas: " + e.getMessage());
+            throw new RuntimeException("Erro ao obter estatísticas", e);
+        }
+    }
 }

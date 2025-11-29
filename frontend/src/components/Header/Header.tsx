@@ -1,10 +1,25 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import GradientText from '@/components/GradientText/GradientText';
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Escolhe as cores baseadas na rota
+  const getColors = () => {
+    if (pathname === '/statistics') {
+      return ['#ff6666', '#cc0000', '#ff6666', '#cc0000', '#ff6666'];
+    }
+    if (pathname === '/ligacoes' || pathname === '/ligacoes/results') {
+      return ['#00ff88', '#88ff00', '#00ff88', '#88ff00', '#00ff88'];
+    }
+    if (pathname === '/indexar-url') {
+      return ['#ff6b9d', '#ff8c42', '#ff6b9d', '#ff8c42', '#ff6b9d'];
+    }
+    return ['#9c43ff', '#4cb8e9','#9c43ff', '#4cb8e9', '#9c43ff'];
+  };
 
   return (
     <div style={{ 
@@ -28,7 +43,7 @@ export default function Header() {
       onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
       >
         <GradientText
-          colors={['#9c43ff', '#4cb8e9','#9c43ff', '#4cb8e9', '#9c43ff']}
+          colors={getColors()}
           animationSpeed={3}
           showBorder={false}
         >
