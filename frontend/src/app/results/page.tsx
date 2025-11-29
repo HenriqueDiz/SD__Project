@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AnimatedList, { AnimatedListItem } from '@/components/AnimatedList/AnimatedList';
 import GradientText from '@/components/GradientText/GradientText';
-import ApiStatus from '@/components/ApiStatus/ApiStatus';
+
 import Loader from '@/components/Loader/Loader';
 import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu';
 import { searchQuery, SearchResult } from '@/services/api';
@@ -55,6 +55,7 @@ export default function DemoPage() {
         url: result.url,
         title: result.title,
         description: result.description,
+        references: result.references,
         // You can add links here if your backend provides them
         // links: result.links || []
       }));
@@ -266,7 +267,7 @@ export default function DemoPage() {
           margin: 0
         }}>
           {isLoading ? (
-            <>A carregar resultados...</>
+            <></>
           ) : error ? (
             <span style={{ color: '#ff4444' }}>Erro: {error}</span>
           ) : searchedQuery ? (
@@ -290,7 +291,7 @@ export default function DemoPage() {
         paddingBottom: '4rem'
       }}>
         {isLoading ? (
-          <Loader />
+          <Loader primaryColor="#9c43ff" secondaryColor="#4cb8e9" accentColor="#9c43ff" textColor="#4cb8e9" />
         ) : error ? (
           <div style={{
             textAlign: 'center',
@@ -354,7 +355,6 @@ export default function DemoPage() {
             onItemSelect={handleItemSelect}
             showGradients={true}
             enableArrowNavigation={true}
-            displayScrollbar={true}
           />
         )}
 
@@ -409,19 +409,18 @@ export default function DemoPage() {
               gap: '0.3rem',
               alignItems: 'center',
             }}>
-              {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                // Show first 3, current page +/- 2, and last 3
+              {Array.from({ length: totalPages }, (_, i) => {
                 const pageNum = i;
-                const showPage = 
-                  pageNum < 3 || // First 3 pages
-                  pageNum >= totalPages - 3 || // Last 3 pages
-                  Math.abs(pageNum - currentPage) <= 2; // Current +/- 2
+                const showPage =
+                  pageNum < 3 ||
+                  pageNum >= totalPages - 3 ||
+                  Math.abs(pageNum - currentPage) <= 2;
 
                 if (!showPage && (pageNum === 3 || pageNum === totalPages - 4)) {
                   return (
-                    <span 
-                      key={`ellipsis-${pageNum}`} 
-                      style={{ 
+                    <span
+                      key={`ellipsis-${pageNum}`}
+                      style={{
                         color: 'rgba(255, 255, 255, 0.5)',
                         padding: '0 0.3rem',
                       }}
@@ -444,7 +443,7 @@ export default function DemoPage() {
                       background: currentPage === pageNum
                         ? 'linear-gradient(135deg, #9c43ff, #4cb8e9)'
                         : 'rgba(255, 255, 255, 0.05)',
-                      border: currentPage === pageNum 
+                      border: currentPage === pageNum
                         ? '1px solid rgba(156, 67, 255, 0.5)'
                         : '1px solid rgba(255, 255, 255, 0.1)',
                       borderRadius: '8px',
@@ -511,8 +510,7 @@ export default function DemoPage() {
         )}
       </div>
 
-      {/* API Status Indicator */}
-      <ApiStatus showDetails={true} />
+      
 
       {/* Staggered Menu */}
       <StaggeredMenu

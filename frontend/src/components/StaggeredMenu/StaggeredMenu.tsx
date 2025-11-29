@@ -20,6 +20,7 @@ export interface StaggeredMenuProps {
   socialItems?: StaggeredMenuSocialItem[];
   displaySocials?: boolean;
   displayItemNumbering?: boolean;
+  displayAuthors?: boolean;
   className?: string;
   logoUrl?: string;
   menuButtonColor?: string;
@@ -41,6 +42,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   socialItems = [],
   displaySocials = true,
   displayItemNumbering = true,
+  displayAuthors = false,
   className,
   logoUrl,
   menuButtonColor = '#fff',
@@ -498,14 +500,16 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
           )}
 
           {/* Authors Section */}
-          <div className="sm-authors" aria-label="Authors">
-            <h3 className="sm-authors-title">Autores</h3>
-            <ul className="sm-authors-list" role="list">
-              <li className="sm-authors-item">Henrique Diz</li>
-              <li className="sm-authors-item">João Francisco</li>
-              <li className="sm-authors-item">Rodrigo Manão</li>
-            </ul>
-          </div>
+          {displayAuthors && (
+            <div className="sm-authors" aria-label="Authors">
+              <h3 className="sm-authors-title">Autores</h3>
+              <ul className="sm-authors-list" role="list">
+                <li className="sm-authors-item">Henrique Diz</li>
+                <li className="sm-authors-item">João Francisco</li>
+                <li className="sm-authors-item">Rodrigo Manão</li>
+              </ul>
+            </div>
+          )}
         </div>
       </aside>
     </div>

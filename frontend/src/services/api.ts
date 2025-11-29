@@ -287,12 +287,13 @@ export async function getSystemInfo(): Promise<SystemInfo> {
 /**
  * Get connections/backlinks for a specific URL
  * @param url - URL to find connections for
+ * @param page - Page number (0-indexed)
  * @returns Connections response with list of URLs that link to the provided URL
  */
-export async function getConnections(url: string): Promise<ConnectionsResponse> {
+export async function getConnections(url: string, page: number = 0): Promise<ConnectionsResponse> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/connections?url=${encodeURIComponent(url)}`,
+      `${API_BASE_URL}/connections?url=${encodeURIComponent(url)}&page=${page}`,
       {
         method: 'GET',
         headers: {

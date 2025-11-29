@@ -15,8 +15,7 @@
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  scrollbar-width: thin;
+  border: 1px solid rgba(255, 255, 255, 0.08);  scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
@@ -96,7 +95,7 @@
 .animated-list-item-header {
   width: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
   gap: 6px;
   background: transparent;
@@ -106,6 +105,7 @@
   text-align: left;
   transition: background 0.2s ease;
   min-height: 90px;
+  position: relative;
 }
 
 .animated-list-item-header:hover {
@@ -113,6 +113,24 @@
 }
 
 .animated-list-item-texts { flex: 1; }
+
+.animated-list-item-references {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  transition: color 0.2s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+.animated-list-item.selected .animated-list-item-references,
+.animated-list-item-header:hover .animated-list-item-references {
+  color: rgba(255, 255, 255, 0.35);
+}
 
 .animated-list-item-title {
   margin: 0 0 6px 0;

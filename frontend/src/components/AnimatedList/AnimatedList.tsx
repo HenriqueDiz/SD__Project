@@ -9,6 +9,7 @@ export interface AnimatedListItem {
   title?: string;
   description?: string;
   links?: string[];
+  references?: number;
 }
 
 interface AnimatedListProps {
@@ -18,7 +19,7 @@ interface AnimatedListProps {
   enableArrowNavigation?: boolean;
   className?: string;
   itemClassName?: string;
-  displayScrollbar?: boolean;
+
   initialSelectedIndex?: number;
 }
 
@@ -29,7 +30,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   enableArrowNavigation = true,
   className = '',
   itemClassName = '',
-  displayScrollbar = true,
+
   initialSelectedIndex = -1
 }) => {
   const listRef = useRef<HTMLDivElement>(null);
@@ -101,7 +102,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
     <div className={`scroll-list-container ${className}`}>
       <div 
         ref={listRef} 
-        className={`scroll-list ${!displayScrollbar ? 'no-scrollbar' : ''}`} 
+        className={`scroll-list no-scrollbar`} 
         onScroll={handleScroll}
       >
         <motion.div
@@ -129,6 +130,11 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
                     <h3 className="animated-list-item-title">{item.title || item.url}</h3>
                     <p className="animated-list-item-url">{item.url}</p>
                   </div>
+                  {item.references !== undefined && (
+                    <div className="animated-list-item-references">
+                      {item.references}
+                    </div>
+                  )}
                 </button>
                 <motion.div
                   className="animated-list-item-content"
