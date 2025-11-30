@@ -17,6 +17,12 @@ function ContextAnalysisButton({ query, results }: { query: string, results: any
   const [analysis, setAnalysis] = useState('');
   const [error, setError] = useState('');
 
+  // Limpa análise sempre que query ou results mudam
+  useEffect(() => {
+    setAnalysis('');
+    setError('');
+  }, [query, results]);
+
   // Build citations string from results
   const citations = results && results.length > 0
     ? results.slice(0, 5).map(r => r.description || r.title || '').join(' | ')
@@ -262,8 +268,6 @@ export default function DemoPage() {
                  padding: 0,
                }}
              />
-             {/* Contextual Analysis Button */}
-             <ContextAnalysisButton query={searchedQuery} results={results} />
             {query && (
               <button
                 onClick={handleClearSearch}
@@ -319,9 +323,11 @@ export default function DemoPage() {
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
             </button>
+            {/* Contextual Analysis Button */}
+            <ContextAnalysisButton query={searchedQuery} results={results} />
+           </div>
           </div>
-        </div>
-      </div>
+         </div>
 
       {/* Results Title */}
       <div style={{
