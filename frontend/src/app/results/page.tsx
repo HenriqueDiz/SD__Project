@@ -26,6 +26,7 @@ export default function DemoPage() {
     { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar' },
     { label: 'Ligações de URLs', ariaLabel: 'Ver ligações de URLs', link: '/ligacoes' },
     { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
+    { label: 'Autores', ariaLabel: 'Ver autores do projeto', link: '/autores' }
   ];
 
   // Fetch results when query changes

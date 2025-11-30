@@ -20,18 +20,21 @@ run-g:
 	mvn exec:java -Dexec.mainClass="gateway.Gateway"
 
 run-frontend:
+ifeq ($(OS),Windows_NT)
+	@echo "Inicializando Frontend (Windows)..."
+	@powershell -NoProfile -ExecutionPolicy Bypass -File "..\scripts\runFrontendWT.ps1" "$(CURDIR)"
+else
+	@echo "Inicializando Frontend (macOS/Linux)..."
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && mvn spring-boot:run"'
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)/../frontend\" && npm run dev"'
+endif
 
 run-backend:
-	mvn clean compile
-
 ifeq ($(OS),Windows_NT)
-	@echo "Inicializando todos os componentes (Windows)..."
-	@powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\runAllWt.ps1" "$(CURDIR)"
+	@echo "Inicializando Backend (Windows)..."
+	@powershell -NoProfile -ExecutionPolicy Bypass -File "..\scripts\runBackendWT.ps1" "$(CURDIR)"
 else
-	@echo "Inicializando todos os componentes (macOS/Linux)..."
-	@echo "Abrindo terminais..."
+	@echo "Inicializando Backend (macOS/Linux)..."
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-q"'
 	sleep 2
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-g"'
@@ -43,22 +46,19 @@ else
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-c"'
 	sleep 1
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && make run-d"'
-	@echo "Todos os componentes iniciados!"
 endif
 
 stop-backend:
-	@echo "Parando todos os componentes..."
+	@echo "Parando todos os componentes (macOS/Linux)..."
 	pkill -f "downloader.Downloader" || true
 	pkill -f "barrel.IndexStorageBarrel" || true
 	pkill -f "client.Client" || true
 	pkill -f "queue.URLQueue" || true
 	pkill -f "gateway.Gateway" || true
-	@echo "Todos os componentes parados!"
 
 run-all:
-	@echo "Iniciando backend..."
+	mvn clean compile
 	make run-backend
-	@echo "Iniciando frontend..."
 	make run-frontend
 
 clean:

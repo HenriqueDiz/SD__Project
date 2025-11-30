@@ -40,6 +40,7 @@ export default function LigacoesPage() {
     { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
     { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar' },
     { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
+    { label: 'Autores', ariaLabel: 'Ver autores do projeto', link: '/autores' }
   ];
 
   return (

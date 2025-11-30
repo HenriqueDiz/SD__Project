@@ -102,9 +102,10 @@ export default function IndexarURL() {
   };
 
   const menuItems = [
-    { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/indexar' },
+    { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
     { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
-    { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '/ligacoes' }
+    { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '/ligacoes' },
+    { label: 'Autores', ariaLabel: 'Ver autores do projeto', link: '/autores' }
   ];
 
   return (
