@@ -87,6 +87,43 @@ export class ApiError extends Error {
 // ============================================================================
 
 /**
+ * Get contextual analysis from backend AI
+ * @param query - Search query
+ * @param citations - Citations/short snippets from results
+ * @returns Analysis string
+ */
+export async function getContextAnalysis(query: string, citations: string): Promise<string> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/context-analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, citations }),
+    });
+
+    console.log('Response from context-analysis:', response);
+    if (!response.ok) {
+      throw new ApiError(
+        `Failed to get context analysis: ${response.statusText}`,
+        response.status
+      );
+    }
+    const data = await response.json();
+    // Suporta resposta antiga (data.analysis) e nova (data.choices[0].message.content)
+    if (data.analysis) return data.analysis;
+    if (data.choices && Array.isArray(data.choices) && data.choices[0]?.message?.content) {
+      return data.choices[0].message.content;
+    }
+    return '';
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+
+/**
  * Search for pages containing the query terms
  * @param query - Search query (single or multiple words)
  * @param page - Page number (0-indexed)

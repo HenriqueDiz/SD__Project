@@ -9,6 +9,75 @@ import Loader from '@/components/Loader/Loader';
 import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu';
 import { searchQuery, SearchResult } from '@/services/api';
 
+import { getContextAnalysis } from '@/services/api';
+
+function ContextAnalysisButton({ query, results }: { query: string, results: any[] }) {
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [analysis, setAnalysis] = useState('');
+  const [error, setError] = useState('');
+
+  // Build citations string from results
+  const citations = results && results.length > 0
+    ? results.slice(0, 5).map(r => r.description || r.title || '').join(' | ')
+    : '';
+
+  const fetchAnalysis = async () => {
+    if (!query) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await getContextAnalysis(query, citations);
+      setAnalysis(res);
+    } catch (e: any) {
+      setError(e.message || 'Erro ao obter análise');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        aria-label="Análise contextualizada"
+        style={{
+          background: 'linear-gradient(135deg, #4cb8e9, #9c43ff)',
+          border: 'none',
+          borderRadius: '50%',
+          width: 32, height: 32,
+          color: 'white',
+          cursor: 'pointer',
+          marginLeft: 4,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        onMouseEnter={() => { setShow(true); if (!analysis && !loading && query) fetchAnalysis(); }}
+        onMouseLeave={() => setShow(false)}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      </button>
+      {show && (
+        <div style={{
+          position: 'absolute',
+          top: 40,
+          left: 0,
+          minWidth: 260,
+          maxWidth: 400,
+          background: 'rgba(20,20,30,0.98)',
+          color: 'white',
+          border: '1px solid #9c43ff',
+          borderRadius: 8,
+          padding: '1rem',
+          zIndex: 100,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          fontSize: 14,
+        }}>
+          {loading ? 'A gerar análise...' : error ? <span style={{ color: '#ff4444' }}>{error}</span> : analysis ? analysis : 'Sem análise.'}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DemoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -170,29 +239,31 @@ export default function DemoPage() {
             borderRadius: '50px',
             transition: 'all 0.3s ease',
           }}>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && query.trim()) {
-                  e.preventDefault(); // Prevent form submission/redirect
-                  handleSearch(query);
-                }
-              }}
-              placeholder="Search the web..."
-              style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'rgba(255, 255, 255, 0.95)',
-                fontSize: '14px',
-                fontWeight: 400,
-                fontFamily: 'inherit',
-                padding: 0,
-              }}
-            />
+             <input
+               type="text"
+               value={query}
+               onChange={(e) => setQuery(e.target.value)}
+               onKeyDown={(e) => {
+                 if (e.key === 'Enter' && query.trim()) {
+                   e.preventDefault(); // Prevent form submission/redirect
+                   handleSearch(query);
+                 }
+               }}
+               placeholder="Search the web..."
+               style={{
+                 flex: 1,
+                 background: 'transparent',
+                 border: 'none',
+                 outline: 'none',
+                 color: 'rgba(255, 255, 255, 0.95)',
+                 fontSize: '14px',
+                 fontWeight: 400,
+                 fontFamily: 'inherit',
+                 padding: 0,
+               }}
+             />
+             {/* Contextual Analysis Button */}
+             <ContextAnalysisButton query={searchedQuery} results={results} />
             {query && (
               <button
                 onClick={handleClearSearch}
@@ -258,7 +329,10 @@ export default function DemoPage() {
         zIndex: 1,
         paddingTop: '2rem',
         paddingBottom: '1rem',
-        paddingLeft: '2rem',
+        width: '95%',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        textAlign: 'center',
       }}>
         <h2 style={{
           color: 'rgba(255, 255, 255, 0.9)',
@@ -267,18 +341,16 @@ export default function DemoPage() {
           fontFamily: "'Space Grotesk', 'Inter', sans-serif",
           margin: 0
         }}>
-          {isLoading ? (
-            <></>
-          ) : error ? (
-            <span style={{ color: '#ff4444' }}>Erro: {error}</span>
-          ) : searchedQuery ? (
-            <>
-              Encontrados <strong>{totalResults}</strong> resultados para{' '}
-              <em style={{ fontStyle: 'italic', color: '#9c43ff' }}>"{searchedQuery}"</em>
-            </>
-          ) : (
-            <>Resultados da pesquisa</>
-          )}
+           {isLoading ? (
+             <></>
+           ) : error ? (
+             <span style={{ color: '#ff4444' }}>Erro: {error}</span>
+           ) : searchedQuery && results.length > 0 ? (
+             <>
+               Encontrados <strong>{totalResults}</strong> resultados para{' '}
+               <em style={{ fontStyle: 'italic', color: '#9c43ff' }}>"{searchedQuery}"</em>
+             </>
+            ) : null}
         </h2>
       </div>
 
@@ -337,14 +409,17 @@ export default function DemoPage() {
           </div>
         ) : results.length === 0 ? (
           <div style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
             color: 'rgba(255, 255, 255, 0.6)',
-            fontSize: '1rem'
+            fontSize: '1rem',
+            textAlign: 'center',
           }}>
-            <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>🔍</p>
             <p style={{ margin: '0', fontSize: '1.2rem' }}>
-              Nenhum resultado encontrado
+              Nenhum resultado encontrado para <em style={{ fontStyle: 'italic', color: '#9c43ff' }}>&quot;{searchedQuery}&quot;</em>
             </p>
             <p style={{ margin: '1rem 0 0 0', fontSize: '0.9rem', opacity: 0.7 }}>
               Tenta usar palavras diferentes ou verifica a ortografia

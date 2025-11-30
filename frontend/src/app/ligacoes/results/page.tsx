@@ -266,28 +266,31 @@ export default function LigacoesResultsPage() {
         zIndex: 1,
         paddingTop: '2rem',
         paddingBottom: '1rem',
-        paddingLeft: '2rem',
+        width: '95%',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        textAlign: 'center',
       }}>
-        <h2 style={{
-          color: 'rgba(255, 255, 255, 0.9)',
-          fontSize: '1.2rem',
-          fontWeight: 500,
-          fontFamily: "'Space Grotesk', 'Inter', sans-serif",
-          margin: 0
-        }}>
-          {isLoading ? (
-            <></>
-          ) : error ? (
-            <span style={{ color: '#6bff9d' }}>Erro: {error}</span>
-          ) : searchedQuery ? (
-            <>
-              Encontradas <strong>{totalResults}</strong> ligações para{' '}
-              <em style={{ fontStyle: 'italic', color: '#6bff9d' }}>"{searchedQuery}"</em>
-            </>
-          ) : (
-            <>Ligações de URLs</>
-          )}
-        </h2>
+        {(isLoading || error || (searchedQuery && results.length > 0)) && (
+          <h2 style={{
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '1.2rem',
+            fontWeight: 500,
+            fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+            margin: 0
+          }}>
+            {isLoading ? (
+              <></>
+            ) : error ? (
+              <span style={{ color: '#6bff9d' }}>Erro: {error}</span>
+            ) : (searchedQuery && results.length > 0) ? (
+              <>
+                Encontradas <strong>{totalResults}</strong> ligações para{' '}
+                <em style={{ fontStyle: 'italic', color: '#6bff9d' }}>&quot;{searchedQuery}&quot;</em>
+              </>
+            ) : null}
+          </h2>
+        )}
       </div>
 
       {/* AnimatedList Container */}
@@ -344,14 +347,18 @@ export default function LigacoesResultsPage() {
           </div>
         ) : results.length === 0 ? (
           <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '300px',
             textAlign: 'center',
             padding: '4rem 2rem',
             color: 'rgba(255, 255, 255, 0.6)',
             fontSize: '1rem'
           }}>
-            <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>🔗</p>
             <p style={{ margin: '0', fontSize: '1.2rem' }}>
-              Nenhuma ligação encontrada
+              Nenhuma ligação encontrada para <em style={{ fontStyle: 'italic', color: '#6bff9d' }}>&quot;{searchedQuery}&quot;</em>
             </p>
             <p style={{ margin: '1rem 0 0 0', fontSize: '0.9rem', opacity: 0.7 }}>
               Não foram encontradas páginas que referenciam este URL
