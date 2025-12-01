@@ -13,9 +13,9 @@ const autores = [
   },
   {
     name: 'Rodrigo Manão',
-    title: '',
+    title: 'Prompt guy',
     handle: '',
-    avatarUrl: '',
+    avatarUrl: '/manao.jpg',
     githubUrl: 'https://github.com/rodrigomanao',
   },
   {
