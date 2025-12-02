@@ -22,7 +22,11 @@ interface ProfileCardProps {
   contactText?: string;
   showUserInfo?: boolean;
   onContactClick?: () => void;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  email?: string;
 }
+
 
 const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)';
 
@@ -58,8 +62,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   status = 'Online',
   contactText = 'Contact',
   showUserInfo = true,
-  onContactClick
+  onContactClick,
+  githubUrl,
+  linkedinUrl,
+  email,
 }) => {
+
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
 
@@ -329,6 +337,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     onContactClick?.();
   }, [onContactClick]);
 
+  const handleOpen = useCallback((url?: string) => {
+    if (!url) return;
+    window.open(url, '_blank');
+  }, []);
+
+
   return (
     <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle}>
       {behindGlowEnabled && <div className="pc-behind" />}
@@ -348,37 +362,34 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                   t.style.display = 'none';
                 }}
               />
-              {showUserInfo && (
-                <div className="pc-user-info">
-                  <div className="pc-user-details">
-                    <div className="pc-mini-avatar">
-                      <img
-                        src={miniAvatarUrl || avatarUrl}
-                        alt={`${name || 'User'} mini avatar`}
-                        loading="lazy"
-                        onError={e => {
-                          const t = e.target as HTMLImageElement;
-                          t.style.opacity = '0.5';
-                          t.src = avatarUrl;
-                        }}
-                      />
-                    </div>
-                    <div className="pc-user-text">
-                      <div className="pc-handle">{handle}</div>
-                      <div className="pc-status">{status}</div>
+                {showUserInfo && (
+                  <div className="pc-user-info">
+                    <div className="pc-contact-icons" style={{ pointerEvents: 'auto' }}>
+                      {githubUrl && (
+                        <a className="pc-icon-btn" href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label={`GitHub de ${name}`}>
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                            <path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2.1c-3.34.72-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.26 1.84 1.26 1.07 1.84 2.8 1.31 3.48 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.48-1.34-5.48-5.96 0-1.32.47-2.4 1.24-3.25-.12-.3-.54-1.5.12-3.12 0 0 1.01-.32 3.3 1.24a11.4 11.4 0 0 1 6.01 0c2.29-1.56 3.3-1.24 3.3-1.24.66 1.62.24 2.82.12 3.12.77.85 1.24 1.93 1.24 3.25 0 4.63-2.81 5.66-5.49 5.96.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z"/>
+                          </svg>
+                        </a>
+                      )}
+                      {linkedinUrl && (
+                        <a className="pc-icon-btn" href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`LinkedIn de ${name}`}>
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" style={{ display: 'block' }}>
+                            <path d="M20.45 20.45h-3.55v-5.38c0-1.28-.02-2.92-1.78-2.92-1.78 0-2.05 1.39-2.05 2.83v5.47H9.51V9.56h3.41v1.49h.05c.47-.89 1.62-1.83 3.34-1.83 3.57 0 4.23 2.35 4.23 5.42v5.81zM6.07 8.07H2.52v12.38h3.55V8.07zM4.29 2.5C3.17 2.5 2.27 3.4 2.27 4.52c0 1.12.9 2.02 2.02 2.02s2.02-.9 2.02-2.02c0-1.12-.9-2.02-2.02-2.02z"/>
+                          </svg>
+                        </a>
+                      )}
+                      {email && (
+                        <a className="pc-icon-btn" href={`mailto:${email}`} aria-label={`Email para ${name}`}>
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                          </svg>
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <button
-                    className="pc-contact-btn"
-                    onClick={handleContactClick}
-                    style={{ pointerEvents: 'auto' }}
-                    type="button"
-                    aria-label={`Contact ${name || 'user'}`}
-                  >
-                    {contactText}
-                  </button>
-                </div>
-              )}
+                )}
+
             </div>
             <div className="pc-content">
               <div className="pc-details">

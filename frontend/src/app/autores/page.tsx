@@ -10,6 +10,8 @@ const autores = [
     handle: 'diz@student.dei.uc.pt',
     avatarUrl: '/Henrique.jpg',
     githubUrl: 'https://github.com/HenriqueDiz',
+    linkedinUrl: 'https://www.linkedin.com/in/henrique-diz/',
+    email: 'diz@student.dei.uc.pt',
   },
   {
     name: 'Rodrigo Manão',
@@ -17,6 +19,8 @@ const autores = [
     handle: 'manao@student.dei.uc.pt',
     avatarUrl: '/Rodrigo.jpg',
     githubUrl: 'https://github.com/rodrigomanao',
+    linkedinUrl: 'https://www.linkedin.com/in/rodrigomanao/',
+    email: 'manao@student.dei.uc.pt',
   },
   {
     name: 'João Francisco',
@@ -24,6 +28,8 @@ const autores = [
     handle: 'joaofrancisco@student.dei.uc.pt',
     avatarUrl: '/Joao.jpg',
     githubUrl: 'https://github.com/jonasfranciss',
+    linkedinUrl: 'https://www.linkedin.com/in/joao-francisco/',
+    email: 'joaofrancisco@student.dei.uc.pt',
   }
 ];
 
@@ -70,12 +76,13 @@ export default function AutoresPage() {
             title={autor.title}
             handle={autor.handle}
             status="Online"
-            contactText="Github"
             avatarUrl={autor.avatarUrl}
             showUserInfo={true}
             enableTilt={true}
             enableMobileTilt={false}
-            onContactClick={() => window.open(autor.githubUrl, '_blank')}
+            githubUrl={autor.githubUrl}
+            linkedinUrl={autor.linkedinUrl}
+            email={autor.email}
           />
         ))}
       </div>
