@@ -14,16 +14,16 @@ const autores = [
   {
     name: 'Rodrigo Manão',
     title: 'Prompt guy',
-    handle: '',
-    avatarUrl: '/manao.jpg',
+    handle: 'manao@student.dei.uc.pt',
+    avatarUrl: '/Rodrigo.jpg',
     githubUrl: 'https://github.com/rodrigomanao',
   },
   {
-    name: 'João',
-    title: '',
-    handle: '',
-    avatarUrl: '',
-    githubUrl: '',
+    name: 'João Francisco',
+    title: 'Um gah mesmo',
+    handle: 'joaofrancisco@student.dei.uc.pt',
+    avatarUrl: '/Joao.jpg',
+    githubUrl: 'https://github.com/jonasfranciss',
   }
 ];
 
