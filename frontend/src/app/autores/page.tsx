@@ -10,7 +10,7 @@ const autores = [
     handle: 'diz@student.dei.uc.pt',
     avatarUrl: '/Henrique.jpg',
     githubUrl: 'https://github.com/HenriqueDiz',
-    linkedinUrl: 'https://www.linkedin.com/in/henrique-diz/',
+    linkedinUrl: 'https://www.linkedin.com/in/henrique-diz-1749a6309/',
     email: 'diz@student.dei.uc.pt',
   },
   {
@@ -19,7 +19,7 @@ const autores = [
     handle: 'manao@student.dei.uc.pt',
     avatarUrl: '/Rodrigo.jpg',
     githubUrl: 'https://github.com/rodrigomanao',
-    linkedinUrl: 'https://www.linkedin.com/in/rodrigomanao/',
+    linkedinUrl: 'https://www.linkedin.com/in/rodrigo-man%C3%A3o-57b061330/',
     email: 'manao@student.dei.uc.pt',
   },
   {
@@ -28,7 +28,7 @@ const autores = [
     handle: 'joaofrancisco@student.dei.uc.pt',
     avatarUrl: '/Joao.jpg',
     githubUrl: 'https://github.com/jonasfranciss',
-    linkedinUrl: 'https://www.linkedin.com/in/joao-francisco/',
+    linkedinUrl: '',
     email: 'joaofrancisco@student.dei.uc.pt',
   }
 ];
@@ -66,7 +66,7 @@ export default function AutoresPage() {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'rgba(10,10,10,0.95)',
-      padding: '80px 0 0 0',
+      padding: '0',
     }}>
       <div className="profile-cards-container">
         {autores.map((autor) => (

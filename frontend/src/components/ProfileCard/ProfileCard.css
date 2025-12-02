@@ -313,11 +313,16 @@
   transition: all 0.2s ease;
   text-decoration: none;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .pc-icon-btn:hover {
   border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-1px);
+}
+
+.pc-icon-btn svg {
+  pointer-events: none;
 }
 
 
@@ -395,7 +400,6 @@
     0.1px
   );
   z-index: 5;
-  mix-blend-mode: luminosity;
 }
 
 .pc-details {
@@ -411,11 +415,12 @@
   margin: 0;
   font-size: min(5svh, 3em);
   margin: 0;
-  background-image: linear-gradient(to bottom, #fff, #1e1e20);
+  background-image: linear-gradient(to bottom, #ffffff, #e0e0e0);
   background-size: 1em 1.5em;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .pc-details p {
@@ -425,11 +430,12 @@
   font-size: 16px;
   margin: 0 auto;
   width: min-content;
-  background-image: linear-gradient(to bottom, #fff, #1e1e20);
+  background-image: linear-gradient(to bottom, #ffffff, #d0d0d0);
   background-size: 1em 1.5em;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes glow-bg {
@@ -601,7 +607,7 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
   gap: 2rem; /* Espaço entre os cards */
   width: 100%;
   max-width: 1600px;
