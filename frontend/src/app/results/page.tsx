@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AnimatedList, { AnimatedListItem } from '@/components/AnimatedList/AnimatedList';
 import GradientText from '@/components/GradientText/GradientText';
@@ -11,17 +11,41 @@ import { searchQuery, SearchResult } from '@/services/api';
 
 import { getContextAnalysis } from '@/services/api';
 
+// Cache global para armazenar análises por query
+const analysisCache = new Map<string, { analysis: string; timestamp: number }>();
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos em milissegundos
+
 function ContextAnalysisButton({ query, results }: { query: string, results: any[] }) {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState('');
   const [error, setError] = useState('');
+  const prevQueryRef = useRef<string>('');
 
-  // Limpa análise sempre que query ou results mudam
+  // Quando a query muda, verifica se existe no cache
   useEffect(() => {
-    setAnalysis('');
-    setError('');
-  }, [query, results]);
+    if (query !== prevQueryRef.current) {
+      prevQueryRef.current = query;
+      setError('');
+      
+      // Verifica se existe uma análise em cache para esta query
+      const cached = analysisCache.get(query);
+      if (cached) {
+        const isExpired = Date.now() - cached.timestamp > CACHE_DURATION;
+        if (!isExpired) {
+          // Usa a análise do cache
+          setAnalysis(cached.analysis);
+          return;
+        } else {
+          // Remove do cache se expirou
+          analysisCache.delete(query);
+        }
+      }
+      
+      // Se não há cache válido, limpa a análise
+      setAnalysis('');
+    }
+  }, [query]);
 
   // Build citations string from results
   const citations = results && results.length > 0
@@ -30,11 +54,25 @@ function ContextAnalysisButton({ query, results }: { query: string, results: any
 
   const fetchAnalysis = async () => {
     if (!query) return;
+    
+    // Verifica novamente o cache antes de fazer request
+    const cached = analysisCache.get(query);
+    if (cached && Date.now() - cached.timestamp <= CACHE_DURATION) {
+      setAnalysis(cached.analysis);
+      return;
+    }
+    
     setLoading(true);
     setError('');
     try {
       const res = await getContextAnalysis(query, citations);
       setAnalysis(res);
+      
+      // Armazena no cache
+      analysisCache.set(query, {
+        analysis: res,
+        timestamp: Date.now()
+      });
     } catch (e: any) {
       setError(e.message || 'Erro ao obter análise');
     } finally {
