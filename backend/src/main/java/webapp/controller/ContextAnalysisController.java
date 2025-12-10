@@ -53,7 +53,9 @@ public class ContextAnalysisController {
             String response = callOpenRouterAPI(prompt);
             Map<String, Object> result = new HashMap<>();
             result.put("analysis", response);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok()
+                .header("Content-Type", "application/json; charset=utf-8")
+                .body(result);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
@@ -130,10 +132,9 @@ public class ContextAnalysisController {
         int status = conn.getResponseCode();
         InputStream is = (status < 400) ? conn.getInputStream() : conn.getErrorStream();
         StringBuilder response = new StringBuilder();
-        int c;
-        while ((c = is.read()) != -1) {
-            response.append((char) c);
-        }
+        byte[] buf = is.readAllBytes();
+        String respStr = new String(buf, StandardCharsets.UTF_8);
+        response.append(respStr);
         is.close();
         conn.disconnect();
         
