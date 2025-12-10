@@ -76,6 +76,7 @@ function ContextAnalysisButton({ query, results }: { query: string, results: any
           zIndex: 100,
           boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
           fontSize: 14,
+          textAlign: 'justify',
         }}>
           {loading ? 'A gerar análise...' : error ? <span style={{ color: '#ff4444' }}>{error}</span> : analysis ? analysis : 'Sem análise.'}
         </div>

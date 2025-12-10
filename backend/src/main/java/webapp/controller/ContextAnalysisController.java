@@ -62,12 +62,49 @@ public class ContextAnalysisController {
 
     private String buildPrompt(String query, String citations) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Analisa a seguinte pesquisa e as citacoes apresentadas.\n");
-        sb.append("Pesquisa: ").append(query).append("\n");
-        if (!citations.isBlank()) {
-            sb.append("Citacoes: ").append(citations).append("\n");
+        
+        // System prompt defining the AI's role and constraints
+        sb.append("Voce e um assistente de pesquisa que ajuda usuarios a compreender melhor os resultados de busca. ");
+        sb.append("Sua tarefa e fornecer uma analise contextual breve e util sobre a pesquisa do usuario.\n\n");
+        
+        // User's search query
+        sb.append("Pesquisa do usuario: \"").append(query).append("\"\n\n");
+        
+        // Conditional instructions based on citation quality
+        if (!citations.isBlank() && citations.length() > 50) {
+            // Good citations available - use them as primary source
+            sb.append("Trechos relevantes encontrados nos resultados:\n");
+            sb.append(citations).append("\n\n");
+            sb.append("Instrucoes:\n");
+            sb.append("- Analise os trechos fornecidos e resuma o que foi encontrado sobre \"").append(query).append("\"\n");
+            sb.append("- Destaque informacoes-chave e conceitos principais mencionados nos trechos\n");
+            sb.append("- Se os trechos contem informacoes contraditorias ou diferentes perspectivas, mencione isso\n");
+            sb.append("- Mantenha a resposta concisa (maximo 3-4 frases)\n");
+        } else if (!citations.isBlank()) {
+            // Poor quality citations - acknowledge but don't rely heavily
+            sb.append("Alguns resultados foram encontrados, mas com informacao limitada.\n\n");
+            sb.append("Instrucoes:\n");
+            sb.append("- Forneca um contexto geral sobre \"").append(query).append("\"\n");
+            sb.append("- Explique brevemente o que o usuario provavelmente esta buscando\n");
+            sb.append("- Sugira que tipo de informacao seria util para esta pesquisa\n");
+            sb.append("- Mantenha a resposta concisa (maximo 3-4 frases)\n");
+        } else {
+            // No citations - provide contextual understanding
+            sb.append("Nenhum trecho especifico foi fornecido.\n\n");
+            sb.append("Instrucoes:\n");
+            sb.append("- Forneca uma breve explicacao contextual sobre \"").append(query).append("\"\n");
+            sb.append("- Ajude o usuario a entender melhor o topico ou termo pesquisado\n");
+            sb.append("- Mencione que tipo de informacao normalmente se encontra ao pesquisar sobre isso\n");
+            sb.append("- Mantenha a resposta concisa (maximo 3-4 frases)\n");
         }
-        sb.append("Responde de forma simples, apenas com letras e numeros, sem acentos, sem emojis. Fornece uma analise curta e clara.");
+        
+        // Output format constraints
+        sb.append("\nFormato de resposta:\n");
+        sb.append("- Escreva em portugues de Portugal\n");
+        sb.append("- NAO use emojis ou caracteres especiais\n");
+        sb.append("- Use apenas letras, numeros, espacos e pontuacao basica (. , ! ?)\n");
+        sb.append("- Seja claro, objetivo e informativo\n");
+        
         return sb.toString();
     }
 
@@ -79,7 +116,14 @@ public class ContextAnalysisController {
         conn.setRequestProperty("Authorization", "Bearer " + apiKey);
         conn.setDoOutput(true);
 
-        String body = String.format("{\n  \"model\": \"%s\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"%s\"\n    }\n  ],\n  \"reasoning\": {\"enabled\": true}\n}", model, prompt);
+        // Escape the prompt to prevent JSON injection and formatting issues
+        String escapedPrompt = prompt.replace("\\", "\\\\")
+                                     .replace("\"", "\\\"")
+                                     .replace("\n", "\\n")
+                                     .replace("\r", "\\r")
+                                     .replace("\t", "\\t");
+
+        String body = String.format("{\n  \"model\": \"%s\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"%s\"\n    }\n  ]\n}", model, escapedPrompt);
         byte[] input = body.getBytes(StandardCharsets.UTF_8);
         conn.getOutputStream().write(input);
 
@@ -92,14 +136,41 @@ public class ContextAnalysisController {
         }
         is.close();
         conn.disconnect();
+        
         // Parse JSON response
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(response.toString());
-        // O caminho depende do formato da resposta da API
-        JsonNode contentNode = root.path("choices").get(0).path("message").path("content");
-        if (!contentNode.isMissingNode()) {
-            return contentNode.asText();
+        
+        // Check if the response contains an error
+        if (root.has("error")) {
+            JsonNode errorNode = root.get("error");
+            String errorMessage = errorNode.has("message") 
+                ? errorNode.get("message").asText() 
+                : "Unknown API error";
+            throw new IOException("OpenRouter API error: " + errorMessage);
         }
-        return response.toString();
+        
+        // Safely navigate the JSON structure
+        JsonNode choicesNode = root.path("choices");
+        if (choicesNode.isMissingNode() || !choicesNode.isArray() || choicesNode.size() == 0) {
+            throw new IOException("Invalid API response: missing or empty 'choices' array. Response: " + response.toString());
+        }
+        
+        JsonNode firstChoice = choicesNode.get(0);
+        if (firstChoice == null || firstChoice.isNull()) {
+            throw new IOException("Invalid API response: first choice is null. Response: " + response.toString());
+        }
+        
+        JsonNode messageNode = firstChoice.path("message");
+        if (messageNode.isMissingNode()) {
+            throw new IOException("Invalid API response: missing 'message' in choice. Response: " + response.toString());
+        }
+        
+        JsonNode contentNode = messageNode.path("content");
+        if (contentNode.isMissingNode() || contentNode.isNull()) {
+            throw new IOException("Invalid API response: missing or null 'content'. Response: " + response.toString());
+        }
+        
+        return contentNode.asText();
     }
 }
