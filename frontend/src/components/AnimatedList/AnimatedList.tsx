@@ -38,7 +38,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   const [openIndex, setOpenIndex] = useState<number>(-1);
   const [keyboardNav, setKeyboardNav] = useState<boolean>(false);
   const [topGradientOpacity, setTopGradientOpacity] = useState<number>(0);
-  const [bottomGradientOpacity, setBottomGradientOpacity] = useState<number>(1);
+  const [bottomGradientOpacity, setBottomGradientOpacity] = useState<number>(0);
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -48,6 +48,14 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
     const bottomDistance = scrollHeight - (scrollTop + clientHeight);
     setBottomGradientOpacity(scrollHeight <= clientHeight ? 0 : Math.min(bottomDistance / 50, 1));
   };
+
+  // Calcula a opacidade inicial do gradiente de baixo
+  useEffect(() => {
+    if (listRef.current) {
+      const { scrollHeight, clientHeight } = listRef.current;
+      setBottomGradientOpacity(scrollHeight > clientHeight ? 1 : 0);
+    }
+  }, [items]);
 
   useEffect(() => {
     if (!enableArrowNavigation) return;

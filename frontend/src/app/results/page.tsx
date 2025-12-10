@@ -224,15 +224,16 @@ export default function DemoPage() {
     <main style={{ 
       position: 'relative', 
       width: '100%', 
-      minHeight: '100vh', 
-      overflow: 'auto',
+      height: '100vh',
+      overflow: 'hidden',
       background: '#0a0a0a',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
 
       {/* Top Bar with Logo and Search */}
       <div style={{
-        position: 'sticky',
-        top: 0,
+        position: 'relative',
         zIndex: 10,
         background: 'rgba(10, 10, 10, 0.8)',
         backdropFilter: 'blur(20px)',
@@ -241,6 +242,7 @@ export default function DemoPage() {
         display: 'flex',
         alignItems: 'center',
         gap: '2rem',
+        flexShrink: 0
       }}>
         {/* Googol Logo - Clickable */}
         <div 
@@ -372,12 +374,13 @@ export default function DemoPage() {
       <div style={{
         position: 'relative',
         zIndex: 1,
-        paddingTop: '2rem',
+        paddingTop: '1.5rem',
         paddingBottom: '1rem',
         width: '95%',
         maxWidth: '1200px',
         margin: '0 auto',
         textAlign: 'center',
+        flexShrink: 0
       }}>
         <h2 style={{
           color: 'rgba(255, 255, 255, 0.9)',
@@ -406,8 +409,21 @@ export default function DemoPage() {
         width: '95%',
         maxWidth: '1200px',
         margin: '0 auto',
-        paddingBottom: '4rem'
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        minHeight: 0,
+        maxHeight: '100%',
+        boxSizing: 'border-box'
       }}>
+        {/* Scrollable Results Area */}
+        <div style={{
+          flex: 1,
+          overflow: 'hidden',
+          position: 'relative',
+          boxSizing: 'border-box'
+        }}>
         {isLoading ? (
           <Loader primaryColor="#9c43ff" secondaryColor="#4cb8e9" accentColor="#9c43ff" textColor="#4cb8e9" />
         ) : error ? (
@@ -478,6 +494,7 @@ export default function DemoPage() {
             enableArrowNavigation={true}
           />
         )}
+        </div>
 
         {/* Pagination Component */}
         {!isLoading && !error && results.length > 0 && totalPages > 1 && (
@@ -486,8 +503,8 @@ export default function DemoPage() {
             justifyContent: 'center',
             alignItems: 'center',
             gap: '0.5rem',
-            marginTop: '3rem',
-            paddingBottom: '2rem',
+            padding: '1rem 0',
+            flexShrink: 0
           }}>
             {/* Previous Button */}
             <button
