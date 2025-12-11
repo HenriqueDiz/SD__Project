@@ -370,6 +370,17 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
         if (shouldRetransmit) {
             retransmitExecutor.submit(() -> retransmitToOtherBarrels(word, url));
         }
+
+        // Notify gateway that index size changed to update active barrels snapshot
+        try {
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            Registry gatewayRegistry = LocateRegistry.getRegistry(
+                gatewayConfig.getHost(), 
+                gatewayConfig.getPort()
+            );
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayConfig.getName());
+            gateway.notifyIndexChanged(name, port);
+        } catch (Exception ignore) {}
     }
 
 
@@ -414,6 +425,16 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
             }
         }
         System.out.println(Utils.green("Índices sincronizados com sucesso!"));
+        // Notify gateway that index size changed to update active barrels snapshot
+        try {
+            ConfigReader gatewayConfig = new ConfigReader("gateway");
+            Registry gatewayRegistry = LocateRegistry.getRegistry(
+                gatewayConfig.getHost(), 
+                gatewayConfig.getPort()
+            );
+            GatewayInterface gateway = (GatewayInterface) gatewayRegistry.lookup(gatewayConfig.getName());
+            gateway.notifyIndexChanged(name, port);
+        } catch (Exception ignore) {}
     }
 
     /**

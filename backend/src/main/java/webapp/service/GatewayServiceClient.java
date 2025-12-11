@@ -1,15 +1,15 @@
 package webapp.service;
-
+ 
 import common.PageInfo;
 import gateway.GatewayInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import webapp.dto.SearchResultDTO;
-
+ 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
-
+ 
 /**
  * Service Layer que abstrai a comunicação com o Gateway RMI.
  * 
@@ -106,7 +106,7 @@ public class GatewayServiceClient {
             throw new RuntimeException("Serviço de busca temporariamente indisponível", e);
         }
     }
-
+ 
     /**
      * Obtém o total de resultados para uma busca (sem paginação).
      * 
@@ -212,7 +212,7 @@ public class GatewayServiceClient {
             throw new RuntimeException("Serviço de ligações temporariamente indisponível", e);
         }
     }
-
+ 
     /**
      * Obtém estatísticas diretamente do Gateway (objeto Statistics).
      */
@@ -224,4 +224,19 @@ public class GatewayServiceClient {
             throw new RuntimeException("Erro ao obter estatísticas", e);
         }
     }
+ 
+    // Registro/deregistro de callbacks para SSE
+    public void registerStatsCallback(statistics.StatsCallback cb) {
+        try { gateway.registerStatsCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
+    }
+    public void unregisterStatsCallback(statistics.StatsCallback cb) {
+        try { gateway.unregisterStatsCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
+    }
+    public void registerBarrelStateCallback(statistics.BarrelStateCallback cb) {
+        try { gateway.registerBarrelStateCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
+    }
+    public void unregisterBarrelStateCallback(statistics.BarrelStateCallback cb) {
+        try { gateway.unregisterBarrelStateCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
+    }
 }
+

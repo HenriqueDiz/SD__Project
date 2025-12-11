@@ -69,19 +69,15 @@ public class HackerNewsService {
                 List<Long> topStoryIds = fetchTopStoryIds();
                 System.out.println("Obtidos " + topStoryIds.size() + " story IDs do HackerNews");
                 
-                // Primeiro, indexar a página principal
-                String mainPageUrl = HN_BASE_URL;
-                gatewayClient.addURL(mainPageUrl, false);
-                System.out.println("✓ Página principal do HackerNews indexada: " + mainPageUrl);
-                
-                int indexed = 1; // Já indexamos a página principal
+                // Indexar apenas as TOP 50 stories do HackerNews
+                int indexed = 0;
                 for (Long storyId : topStoryIds) {
                     try {
                         // Indexar o link da story no HackerNews (news.ycombinator.com)
                         String hnStoryUrl = String.format(HN_ITEM_PAGE_URL, storyId);
                         gatewayClient.addURL(hnStoryUrl, false);
                         indexed++;
-                        System.out.println("✓ HackerNews story indexado (" + indexed + "/" + (topStoryIds.size() + 1) + "): " + hnStoryUrl);
+                        System.out.println("✓ HackerNews story indexado (" + indexed + "/" + topStoryIds.size() + "): " + hnStoryUrl);
                         
                         // Rate limiting - não sobrecarregar o sistema
                         Thread.sleep(100);

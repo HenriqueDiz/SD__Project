@@ -171,7 +171,7 @@ export default function DemoPage() {
         title: result.title,
         description: result.description,
         references: result.references,
-        isHackerNews: result.isHackerNews || false,
+        hackerNews: result.hackerNews === true,
         // You can add links here if your backend provides them
         // links: result.links || []
       }));

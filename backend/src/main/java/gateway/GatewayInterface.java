@@ -134,4 +134,13 @@ public interface GatewayInterface extends Remote {
      * @throws RemoteException  Se ocorrer um erro de comunicação remota.
      */
     void unregisterBarrelStateCallback(BarrelStateCallback callback) throws java.rmi.RemoteException;
+
+    /**
+     * Notifica o gateway que o índice mudou para um barrel específico.
+     * Dispara atualização dos barrels ativos para refletir novo indexSize.
+     * @param name Nome do barrel
+     * @param port Porta do barrel
+     * @throws RemoteException Se ocorrer um erro remoto
+     */
+    void notifyIndexChanged(String name, int port) throws java.rmi.RemoteException;
 }

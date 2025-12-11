@@ -1,11 +1,11 @@
 'use client';
-
+ 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Header from '@/components/Header/Header';
 import Cursor from '@/components/Cursor/Cursor';
 import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu';
-import { getStatistics, StatisticsResponse, getActiveBarrels, getRegisteredBarrels } from '@/services/api';
-
+import { getStatistics, StatisticsResponse, getActiveBarrels, getRegisteredBarrels, subscribeStatistics } from '@/services/api';
+ 
 type ParsedBarrel = {
   name: string;
   port?: string;
@@ -13,7 +13,7 @@ type ParsedBarrel = {
   indexSize?: string;
   ativo?: boolean;
 };
-
+ 
 function parseBarrelInfo(info: string): ParsedBarrel {
   // Accepts formats: name, name:port, name:port:host, name:port:host:indexSize
   const parts = String(info).split(':');
@@ -25,7 +25,7 @@ function parseBarrelInfo(info: string): ParsedBarrel {
     indexSize,
   };
 }
-
+ 
 const panelStyle: CSSProperties = {
   background: 'rgba(255, 255, 255, 0.03)',
   backdropFilter: 'blur(10px)',
@@ -41,18 +41,18 @@ const panelStyle: CSSProperties = {
   alignSelf: 'flex-start',
   transition: 'all 0.3s ease'
 };
-
+ 
 const panelHeaderStyle: CSSProperties = {
   padding: '16px 24px',
   borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
   background: 'rgba(255, 255, 255, 0.02)'
 };
-
+ 
 const panelBodyStyle: CSSProperties = {
   padding: 20,
   overflow: 'auto'
 };
-
+ 
 const titleStyle: CSSProperties = {
   marginTop: 0,
   marginBottom: 0,
@@ -64,9 +64,9 @@ const titleStyle: CSSProperties = {
   backgroundClip: 'text',
   fontSize: '1.2rem'
 };
-
+ 
 const textMuted: CSSProperties = { opacity: 0.6, color: 'rgba(255, 255, 255, 0.7)' };
-
+ 
 const getBarrelCardStyle = (count: number): CSSProperties => ({
   background: 'rgba(255, 255, 255, 0)',
   backdropFilter: 'blur(10px)',
@@ -77,24 +77,25 @@ const getBarrelCardStyle = (count: number): CSSProperties => ({
   border: '1px solid rgba(255, 255, 255, 0.1)',
   transition: 'all 0.3s ease'
 });
-
+ 
 export default function StatisticsPage() {
   const [data, setData] = useState<StatisticsResponse>({ topSearches: {}, averageResponseTime: {} });
   const [error, setError] = useState<string | null>(null);
   const [activeBarrels, setActiveBarrels] = useState<string[]>([]);
   const [registeredBarrels, setRegisteredBarrels] = useState<string[]>([]);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-
+ 
   const menuItems = [
     { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
     { label: 'Indexar URL', ariaLabel: 'Adicionar novo URL ao sistema', link: '/indexar' },
     { label: 'Ligações de url', ariaLabel: 'Consultar ligações de uma página', link: '/ligacoes' },
     { label: 'Autores', ariaLabel: 'Ver autores do projeto', link: '/autores' }
   ];
-
+ 
   useEffect(() => {
     let mounted = true;
-    const fetchStats = async () => {
+    // Estado inicial via REST (fallback)
+    const fetchInitial = async () => {
       try {
         const [stats, active, registered] = await Promise.all([
           getStatistics(),
@@ -110,34 +111,40 @@ export default function StatisticsPage() {
         if (mounted) setError(e?.message || 'Erro ao carregar estatísticas');
       }
     };
-
-    fetchStats();
-    const id = setInterval(fetchStats, 2000);
-    return () => { mounted = false; clearInterval(id); };
+    fetchInitial();
+ 
+    // Subscrever SSE para updates em tempo real
+    const unsubscribe = subscribeStatistics(
+      (payload) => { if (mounted) setData(payload); },
+      (active) => { if (mounted) setActiveBarrels(active); },
+      (registered) => { if (mounted) setRegisteredBarrels(registered); },
+    );
+ 
+    return () => { mounted = false; unsubscribe(); };
   }, []);
-
+ 
   const topList = useMemo(() => {
     return Object.entries(data.topSearches)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
   }, [data.topSearches]);
-
+ 
   const avgList = useMemo(() => {
     return Object.entries(data.averageResponseTime)
       .sort((a, b) => Number(b[1]) - Number(a[1]));
   }, [data.averageResponseTime]);
-
+ 
   const parsedActive = useMemo(() => {
     return activeBarrels.map(parseBarrelInfo)
       .sort((a, b) => (a.name > b.name ? 1 : -1));
   }, [activeBarrels]);
-
+ 
   const activeByName = useMemo(() => {
     const map = new Map<string, ParsedBarrel>();
     parsedActive.forEach(b => map.set(b.name, b));
     return map;
   }, [parsedActive]);
-
+ 
   // Lista única de barrels, indicando se está ativo
   const unifiedBarrels = useMemo(() => {
     return registeredBarrels.map(parseBarrelInfo)
@@ -153,7 +160,7 @@ export default function StatisticsPage() {
       })
       .sort((a, b) => (a.name > b.name ? 1 : -1));
   }, [registeredBarrels, activeByName]);
-
+ 
   return (
     <main style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', overflow: 'hidden', color: '#fff', background: '#0a0a0a' }}>
       <Cursor />
@@ -262,7 +269,7 @@ export default function StatisticsPage() {
             )}
           </div>
         </section>
-
+ 
         {/* Tempo médio por Barrel */}
         <section 
           style={{
@@ -296,8 +303,8 @@ export default function StatisticsPage() {
             )}
           </div>
         </section>
-
-
+ 
+ 
       </div>
       {error && (
         <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,0,0,0.15)', border: '1px solid rgba(255,0,0,0.35)', color: '#ffb3b3', padding: '8px 14px', borderRadius: 8 }}>
@@ -321,3 +328,4 @@ export default function StatisticsPage() {
     </main>
   );
 }
+

@@ -123,6 +123,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
           {items.map((item, index) => {
             const isSelected = selectedIndex === index;
             const isOpen = openIndex === index;
+            const showBadge = item.hackerNews === true;
             return (
               <div
                 key={`item-${index}`}
@@ -147,9 +148,15 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
                           {item.references}
                         </div>
                       )}
-                      {item.hackerNews === true && (
+                      {showBadge && (
                         <div className="hackernews-badge-container">
-                            HackerNews
+                          <span className="hackernews-badge">
+                            <svg className="hackernews-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="10" fill="#9d00ffff" />
+                               <path d="M8 7 L12 12 L12 17" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                               <path d="M16 7 L12 12" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                            </svg>
+                          </span>
                         </div>
                       )}
                     </div>

@@ -12,7 +12,7 @@ export interface SearchResult {
   title: string;
   description: string;  // Description/preview text
   references: number;   // Number of backlinks
-  isHackerNews?: boolean; // Flag to identify HackerNews items
+  hackerNews?: boolean; // Flag to identify HackerNews items
 }
 
 export interface SearchResponse {
@@ -387,6 +387,34 @@ export async function getStatistics(): Promise<StatisticsResponse> {
     );
   }
 }
+
+export function subscribeStatistics(
+  onStats: (data: StatisticsResponse) => void,
+  onActiveBarrels?: (data: string[]) => void,
+  onRegisteredBarrels?: (data: string[]) => void
+): () => void {
+  const url = `${API_BASE_URL}/statistics/stream`;
+  const es = new EventSource(url, { withCredentials: false });
+  es.addEventListener('stats', (ev: MessageEvent) => {
+    try {
+      const payload = JSON.parse(ev.data);
+      onStats(payload);
+    } catch (_) {}
+  });
+  if (onActiveBarrels) {
+    es.addEventListener('barrels-active', (ev: MessageEvent) => {
+      try { onActiveBarrels(JSON.parse(ev.data)); } catch (_) {}
+    });
+  }
+  if (onRegisteredBarrels) {
+    es.addEventListener('barrels-registered', (ev: MessageEvent) => {
+      try { onRegisteredBarrels(JSON.parse(ev.data)); } catch (_) {}
+    });
+  }
+  es.onerror = () => { /* could reconnect logic here */ };
+  return () => { es.close(); };
+}
+
 
 // ============================================================================
 // Utility Functions

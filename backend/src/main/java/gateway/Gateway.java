@@ -582,6 +582,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
     }
 
+    @Override
+    public synchronized void notifyIndexChanged(String name, int port) throws RemoteException {
+        // Broadcast updated active barrels snapshot; name/port not needed here
+        notifyActiveBarrelsUpdateAsync();
+    }
+
     /**
      * Notifica assincronamente todos os clientes de mudanças nos barrels registrados.
      * Remove automaticamente callbacks que não respondem.
