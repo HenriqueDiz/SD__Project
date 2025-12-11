@@ -71,8 +71,17 @@ public interface BarrelInterface extends Remote {
     public Map<String, Object> restoreQueueState() throws RemoteException;
 
      
+     /**
+     * Adiciona contagens de palavras ao índice (com linguagem).
+     * @param wordCounts           Um mapa contendo as contagens de palavras.
+     * @param url                  A URL associada às contagens de palavras.
+     * @param language             A linguagem detetada do documento.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public void addWordCounts(Map<String, Integer> wordCounts, String url, String language) throws RemoteException;
+    
     /**
-     * Adiciona contagens de palavras ao índice.
+     * Adiciona contagens de palavras ao índice (compatibilidade com código antigo).
      * @param wordCounts           Um mapa contendo as contagens de palavras.
      * @param url                  A URL associada às contagens de palavras.
      * @throws RemoteException     Se ocorrer um erro de comunicação remota.
@@ -80,7 +89,16 @@ public interface BarrelInterface extends Remote {
     public void addWordCounts(Map<String, Integer> wordCounts, String url) throws RemoteException;
 
     /**
-     * Verifica se uma palavra é uma stopword.
+     * Verifica se uma palavra é uma stopword em uma linguagem específica.
+     * @param palavra              A palavra a ser verificada.
+     * @param language             A linguagem da palavra.
+     * @return                     true se for uma stopword, false caso contrário.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public boolean isStopword(String palavra, String language) throws RemoteException;
+
+    /**
+     * Verifica se uma palavra é uma stopword (compatibilidade com código antigo).
      * @param palavra              A palavra a ser verificada.
      * @return                     true se for uma stopword, false caso contrário.
      * @throws RemoteException     Se ocorrer um erro de comunicação remota.
@@ -88,14 +106,36 @@ public interface BarrelInterface extends Remote {
     public boolean isStopword(String palavra) throws RemoteException;
 
     /**
-     * Obtém a lista de stopwords do barrel.
+     * Obtém a lista de stopwords de uma linguagem específica.
+     * @param language             A linguagem desejada.
+     * @return                     Lista de stopwords dessa linguagem.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public List<String> getStopwords(String language) throws RemoteException;
+    
+    /**
+     * Obtém a lista de todas as stopwords do barrel.
      * @return                     Lista de stopwords.
      * @throws RemoteException     Se ocorrer um erro de comunicação remota.
      */
     public List<String> getStopwords() throws RemoteException;
+    
+    /**
+     * Obtém o mapa completo de stopwords organizadas por linguagem.
+     * @return                     Mapa de stopwords por linguagem.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public Map<String, List<String>> getAllStopwordsByLanguage() throws RemoteException;
 
     /**
-     * Sincroniza stopwords com outro barrel.
+     * Sincroniza stopwords com outro barrel (por linguagem).
+     * @param stopwordsByLanguage  Mapa de stopwords por linguagem.
+     * @throws RemoteException     Se ocorrer um erro de comunicação remota.
+     */
+    public void syncStopwordsByLanguage(Map<String, List<String>> stopwordsByLanguage) throws RemoteException;
+    
+    /**
+     * Sincroniza stopwords com outro barrel (compatibilidade com código antigo).
      * @param stopwords            Lista de stopwords a serem sincronizadas.
      * @throws RemoteException     Se ocorrer um erro de comunicação remota.
      */

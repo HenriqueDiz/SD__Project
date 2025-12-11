@@ -36,7 +36,7 @@ app.prepare().then(() => {
     .listen(port, () => {
       console.log('╔════════════════════════════════════════════════╗');
       console.log('║   Frontend HTTPS iniciado com sucesso!         ║');
-      console.log(`║   Acesse: https://localhost:${port}                ║`);
+      console.log('║   Acesse: https://localhost:3000               ║');
       console.log('╚════════════════════════════════════════════════╝');
     });
 });

@@ -16,6 +16,7 @@ import org.jsoup.select.Elements;
 
 import barrel.BarrelInterface;
 import common.ConfigReader;
+import common.TextLanguageDetector;
 import common.Utils;
 import gateway.GatewayInterface;
 import queue.URLQueueInterface;
@@ -108,7 +109,9 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                         Document doc = Jsoup.connect(url)
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36") 
                             .get();
-                        StringTokenizer tokens = new StringTokenizer(doc.text());
+                        String documentText = doc.text();
+                        String language = TextLanguageDetector.detectLanguage(documentText);
+                        StringTokenizer tokens = new StringTokenizer(documentText);
                         
                         // Buscar lista de barrels ativos
                         List<String> activeBarrels = gateway.getActiveBarrels();
@@ -175,14 +178,14 @@ public class Downloader extends UnicastRemoteObject implements DownloaderInterfa
                                 Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
                                 BarrelInterface barrelInterface = (BarrelInterface) barrelRegistry.lookup(barrelName);
                                 barrelInterface.addUrlsForIndexedUrl(url, linksFound);
-                                barrelInterface.addWordCounts(wordCounts, url);
+                                barrelInterface.addWordCounts(wordCounts, url, language);
                             } catch (Exception e) {
                                 System.err.println(Utils.red("Erro ao enviar URLs para o barrel: " + barrel));
                                 e.printStackTrace();
                             }
                         }
                         
-                        System.out.println("Processado: " + url + " | Palavras: " + wordCounts.size() + " | Links: " + linkCount);
+                        System.out.println("Processado: " + url + " | Palavras: " + wordCounts.size() + " | Links: " + linkCount + " | Língua: " + language);
                         success = true;
                         counter++;
                         

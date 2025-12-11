@@ -37,26 +37,33 @@ public class BarrelStopWords {
     /**
      * Percentual de documentos para considerar uma palavra como stopword
      */
-    private static final double STOPWORD_THRESHOLD = 0.70; // 70% dos documentos
+    private static final double STOPWORD_THRESHOLD = 0.40; // 40% dos documentos
     /**
      * Fator para definir outliers usando IQR
      */
-    private static final double OUTLIER_K = 2.0; // Fator multiplicativo para o IQR
+    private static final double OUTLIER_K = 1.2; // Fator multiplicativo para o IQR
 
     /**
      * Frequência mínima para considerar uma palavra como outlier
      */
-    private static final int MIN_WORD_FREQUENCY = 5; // Frequência mínima para considerar outlier
+    private static final int MIN_WORD_FREQUENCY = 3; // Frequência mínima para considerar outlier
     
     /**
-     * Mapa de contagens de palavras por URL
+     * Número mínimo de documentos antes de calcular stopwords
      */
-    private final ConcurrentHashMap<String, List<String>> urlWordCounts; // url -> list of outlier words
+    private static final int MIN_DOCUMENTS_FOR_STOPWORDS = 2; // Mínimo de docs para calcular
+    
+    /**
+     * Mapa de contagens de palavras por URL e linguagem
+     * url -> language -> list of outlier words
+     */
+    private final ConcurrentHashMap<String, Map<String, List<String>>> urlWordCounts;
 
     /**
-     * Lista de stopwords identificadas
+     * Stopwords separadas por linguagem
+     * language -> list of stopwords
      */
-    private final List<String> stopwords;
+    private final ConcurrentHashMap<String, List<String>> stopwordsByLanguage;
 
     /**
      * Nome do barrel (para logs)
@@ -75,22 +82,31 @@ public class BarrelStopWords {
      */
     public BarrelStopWords(String barrelName) {
         this.urlWordCounts = new ConcurrentHashMap<>();
-        this.stopwords = new ArrayList<>();
+        this.stopwordsByLanguage = new ConcurrentHashMap<>();
         this.barrelName = barrelName;
         this.listener = null;
     }
     
     /**
-     * Adiciona contagens de palavras de uma URL e identifica outliers
+     * Adiciona contagens de palavras de uma URL e identifica outliers por linguagem
      * 
      * @param wordCounts    Mapa com palavra -> frequência
      * @param url           URL da página
+     * @param language      Linguagem detetada do documento
      */
-    public void addWordCounts(Map<String, Integer> wordCounts, String url) {
+    public void addWordCounts(Map<String, Integer> wordCounts, String url, String language) {
+        if (language == null || language.isEmpty() || language.equals("unknown")) {
+            language = "unknown";
+        }
+        
+        // Inicializa o mapa para esta URL se não existir
+        urlWordCounts.putIfAbsent(url, new ConcurrentHashMap<>());
+        Map<String, List<String>> languageMap = urlWordCounts.get(url);
+        
         List<String> outliers = new ArrayList<>();
 
         if (wordCounts == null || wordCounts.isEmpty()) {
-            urlWordCounts.put(url, outliers);
+            languageMap.put(language, outliers);
             return;
         }
         
@@ -101,7 +117,7 @@ public class BarrelStopWords {
             .collect(Collectors.toList());
         
         if (frequencias.isEmpty()) {
-            urlWordCounts.put(url, outliers);
+            languageMap.put(language, outliers);
             return;
         }
 
@@ -121,10 +137,10 @@ public class BarrelStopWords {
             }
         }
         
-        urlWordCounts.put(url, outliers);
+        languageMap.put(language, outliers);
 
         if (!outliers.isEmpty()) {
-            findStopwords();
+            findStopwordsByLanguage(language);
         }
     }
     
@@ -158,21 +174,40 @@ public class BarrelStopWords {
     }
 
     /**
-     * Identifica stopwords baseado na frequência em documentos
-     * Uma palavra se torna stopword se aparecer como outlier em X% dos documentos
+     * Identifica stopwords baseado na frequência em documentos para uma linguagem específica
+     * Uma palavra se torna stopword se aparecer como outlier em X% dos documentos dessa linguagem
+     * 
+     * @param language Linguagem a processar
      */
-    private void findStopwords() {
+    private void findStopwordsByLanguage(String language) {
         if (urlWordCounts == null || urlWordCounts.isEmpty()) {
             return;
         }
         
-        Set<String> newStopwordsSet = new HashSet<>();
-        int totalDocs = urlWordCounts.size();
-        int limiar = (int) Math.ceil(totalDocs * STOPWORD_THRESHOLD);
+        // Conta documentos por linguagem
+        int docsInLanguage = 0;
+        for (Map<String, List<String>> langMap : urlWordCounts.values()) {
+            if (langMap.containsKey(language)) {
+                docsInLanguage++;
+            }
+        }
         
-        // Conta ocorrências de cada palavra
+        // Só calcula stopwords se tiver documentos suficientes
+        if (docsInLanguage < MIN_DOCUMENTS_FOR_STOPWORDS) {
+            return;
+        }
+        
+        Set<String> newStopwordsSet = new HashSet<>();
+        int limiar = (int) Math.ceil(docsInLanguage * STOPWORD_THRESHOLD);
+        // Garante limiar mínimo de 2 documentos
+        if (limiar < 2) {
+            limiar = 2;
+        }
+        
+        // Conta ocorrências de cada palavra na linguagem específica
         Map<String, Integer> contagemPalavras = new HashMap<>();
-        for (List<String> lista : urlWordCounts.values()) {
+        for (Map<String, List<String>> langMap : urlWordCounts.values()) {
+            List<String> lista = langMap.get(language);
             if (lista != null) {
                 Set<String> palavrasUnicas = new HashSet<>(lista);
                 for (String palavra : palavrasUnicas) {
@@ -188,19 +223,21 @@ public class BarrelStopWords {
             }
         }
         
+        // Obtém ou cria lista de stopwords para esta linguagem
+        List<String> currentStopwords = stopwordsByLanguage.getOrDefault(language, new ArrayList<>());
+        
         // Verifica se houve mudanças
         Set<String> added = new HashSet<>(newStopwordsSet);
-        added.removeAll(stopwords);
+        added.removeAll(currentStopwords);
         
-        Set<String> removed = new HashSet<>(stopwords);
+        Set<String> removed = new HashSet<>(currentStopwords);
         removed.removeAll(newStopwordsSet);
         
         if (!added.isEmpty() || !removed.isEmpty()) {
-            printStopwordsUpdate(added, removed, contagemPalavras, totalDocs, limiar);
+            printStopwordsUpdate(language, added, removed, contagemPalavras, docsInLanguage, limiar);
             
-            // Atualiza a lista de stopwords
-            stopwords.clear();
-            stopwords.addAll(newStopwordsSet);
+            // Atualiza a lista de stopwords para esta linguagem
+            stopwordsByLanguage.put(language, new ArrayList<>(newStopwordsSet));
             
             // Notifica listener se configurado
             if (listener != null) {
@@ -212,18 +249,21 @@ public class BarrelStopWords {
     /**
      * Imprime um relatório formatado das mudanças nas stopwords
      * 
+     * @param language             Linguagem sendo processada
      * @param added                Palavras adicionadas como stopwords
      * @param removed              Palavras removidas das stopwords
      * @param contagemPalavras     Mapa de contagem de palavras
-     * @param totalDocs            Total de documentos analisados
+     * @param totalDocs            Total de documentos analisados nesta linguagem
      * @param limiar               Limiar usado para definir stopwords
      */
-    private void printStopwordsUpdate(Set<String> added, Set<String> removed, Map<String, Integer> contagemPalavras, int totalDocs, int limiar) {
+    private void printStopwordsUpdate(String language, Set<String> added, Set<String> removed, 
+                                     Map<String, Integer> contagemPalavras, int totalDocs, int limiar) {
         System.out.println("\n" + "=".repeat(68));
-        System.out.println(Utils.bold(Utils.yellow("STOPWORDS UPDATE")));
+        System.out.println(Utils.bold(Utils.yellow("STOPWORDS UPDATE - " + language.toUpperCase())));
         System.out.println("=".repeat(68));
         System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName));
-        System.out.println(Utils.blue("Total de documentos:") + " " + Utils.bold(String.valueOf(totalDocs)));
+        System.out.println(Utils.blue("Linguagem:") + " " + Utils.bold(language));
+        System.out.println(Utils.blue("Documentos nesta linguagem:") + " " + Utils.bold(String.valueOf(totalDocs)));
         
         String limiarStr = limiar + " docs (" + (int)(STOPWORD_THRESHOLD * 100) + "%)";
         System.out.println(Utils.blue("Limiar para stopwords:") + " " + Utils.bold(limiarStr));
@@ -265,37 +305,98 @@ public class BarrelStopWords {
             }
         }
         
+        List<String> currentStopwords = stopwordsByLanguage.getOrDefault(language, new ArrayList<>());
         System.out.println("-".repeat(68));
-        System.out.println(Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())));
+        System.out.println(Utils.blue("Total de stopwords ativas (" + language + "):") + " " + Utils.bold(String.valueOf(currentStopwords.size())));
         System.out.println("=".repeat(68) + "\n");
     }
     
     /**
-     * Verifica se uma palavra é stopword
+     * Verifica se uma palavra é stopword em uma linguagem específica
      * 
      * @param palavra   Palavra a verificar
-     * @return          true se for stopword
+     * @param language  Linguagem da palavra
+     * @return          true se for stopword naquela linguagem
+     */
+    public boolean isStopword(String palavra, String language) {
+        if (language == null || language.isEmpty() || language.equals("unknown")) {
+            language = "unknown";
+        }
+        List<String> stopwords = stopwordsByLanguage.get(language);
+        return stopwords != null && stopwords.contains(palavra);
+    }
+    
+    /**
+     * Verifica se uma palavra é stopword (compatibilidade com código antigo)
+     * Verifica em todas as linguagens
+     * 
+     * @param palavra   Palavra a verificar
+     * @return          true se for stopword em qualquer linguagem
      */
     public boolean isStopword(String palavra) {
-        return stopwords.contains(palavra);
+        for (List<String> stopwords : stopwordsByLanguage.values()) {
+            if (stopwords.contains(palavra)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
-     * Obtém a lista de stopwords
+     * Obtém a lista de stopwords de uma linguagem específica
      * 
-     * @return Cópia da lista de stopwords
+     * @param language Linguagem desejada
+     * @return Cópia da lista de stopwords dessa linguagem
+     */
+    public List<String> getStopwords(String language) {
+        List<String> stopwords = stopwordsByLanguage.get(language);
+        return stopwords != null ? new ArrayList<>(stopwords) : new ArrayList<>();
+    }
+    
+    /**
+     * Obtém todas as stopwords de todas as linguagens
+     * 
+     * @return Cópia da lista de todas as stopwords
      */
     public List<String> getStopwords() {
-        return new ArrayList<>(stopwords);
+        Set<String> allStopwords = new HashSet<>();
+        for (List<String> stopwords : stopwordsByLanguage.values()) {
+            allStopwords.addAll(stopwords);
+        }
+        return new ArrayList<>(allStopwords);
     }
     
     /**
-     * Obtém o número de stopwords
+     * Obtém o mapa completo de stopwords por linguagem
      * 
-     * @return Número de stopwords
+     * @return Cópia do mapa de stopwords por linguagem
+     */
+    public Map<String, List<String>> getAllStopwordsByLanguage() {
+        Map<String, List<String>> copy = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : stopwordsByLanguage.entrySet()) {
+            copy.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        return copy;
+    }
+    
+    /**
+     * Obtém o número total de stopwords em todas as linguagens
+     * 
+     * @return Número total de stopwords únicas
      */
     public int getStopwordsCount() {
-        return stopwords.size();
+        return getStopwords().size();
+    }
+    
+    /**
+     * Obtém o número de stopwords de uma linguagem específica
+     * 
+     * @param language Linguagem desejada
+     * @return Número de stopwords dessa linguagem
+     */
+    public int getStopwordsCount(String language) {
+        List<String> stopwords = stopwordsByLanguage.get(language);
+        return stopwords != null ? stopwords.size() : 0;
     }
     
     /**
@@ -303,7 +404,7 @@ public class BarrelStopWords {
      */
     public void clear() {
         urlWordCounts.clear();
-        stopwords.clear();
+        stopwordsByLanguage.clear();
     }
     
     /**
@@ -318,42 +419,88 @@ public class BarrelStopWords {
     /**
      * Faz merge de stopwords de outro barrel
      * 
-     * @param externalStopwords Stopwords de outro barrel
+     * @param externalStopwordsByLanguage Stopwords de outro barrel organizadas por linguagem
+     */
+    public synchronized void mergeStopwords(Map<String, List<String>> externalStopwordsByLanguage) {
+        if (externalStopwordsByLanguage == null || externalStopwordsByLanguage.isEmpty()) {
+            return;
+        }
+        
+        Map<String, Set<String>> addedByLanguage = new HashMap<>();
+        int totalAdded = 0;
+        
+        for (Map.Entry<String, List<String>> entry : externalStopwordsByLanguage.entrySet()) {
+            String language = entry.getKey();
+            List<String> externalWords = entry.getValue();
+            
+            if (externalWords == null || externalWords.isEmpty()) {
+                continue;
+            }
+            
+            // Obtém ou cria lista de stopwords para esta linguagem
+            List<String> currentWords = stopwordsByLanguage.computeIfAbsent(language, k -> new ArrayList<>());
+            Set<String> added = new HashSet<>();
+            
+            for (String word : externalWords) {
+                if (!currentWords.contains(word)) {
+                    currentWords.add(word);
+                    added.add(word);
+                }
+            }
+            
+            if (!added.isEmpty()) {
+                addedByLanguage.put(language, added);
+                totalAdded += added.size();
+            }
+        }
+        
+        if (totalAdded > 0) {
+            System.out.println("\n" + "=".repeat(68));
+            System.out.println(Utils.bold(Utils.blue("STOPWORDS SYNC FROM PEER")));
+            System.out.println("=".repeat(68));
+            System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName));
+            System.out.println(Utils.blue("Total recebido:") + " " + Utils.bold(String.valueOf(totalAdded) + " novas stopwords"));
+            System.out.println("-".repeat(68));
+            
+            for (Map.Entry<String, Set<String>> entry : addedByLanguage.entrySet()) {
+                String language = entry.getKey();
+                Set<String> added = entry.getValue();
+                
+                System.out.println(Utils.yellow("\nLinguagem: " + language) + " (" + added.size() + " palavras)");
+                
+                List<String> addedList = new ArrayList<>(added);
+                addedList.sort(String::compareTo);
+                int maxShow = Math.min(5, addedList.size());
+                for (int i = 0; i < maxShow; i++) {
+                    System.out.println("   - " + Utils.bold(addedList.get(i)));
+                }
+                if (addedList.size() > 5) {
+                    System.out.println(Utils.yellow("   ... e mais " + (addedList.size() - 5) + " palavra(s)"));
+                }
+                
+                List<String> currentWords = stopwordsByLanguage.get(language);
+                System.out.println(Utils.blue("   Total ativo (" + language + "):") + " " + Utils.bold(String.valueOf(currentWords.size())));
+            }
+            
+            System.out.println("-".repeat(68));
+            System.out.println(Utils.blue("Total global de stopwords:") + " " + Utils.bold(String.valueOf(getStopwordsCount())));
+            System.out.println("=".repeat(68));
+        }
+    }
+    
+    /**
+     * Faz merge de stopwords de outro barrel (compatibilidade com código antigo)
+     * 
+     * @param externalStopwords Stopwords de outro barrel (sem separação por linguagem)
      */
     public synchronized void mergeStopwords(List<String> externalStopwords) {
         if (externalStopwords == null || externalStopwords.isEmpty()) {
             return;
         }
         
-        Set<String> added = new HashSet<>();
-        for (String word : externalStopwords) {
-            if (!stopwords.contains(word)) {
-                stopwords.add(word);
-                added.add(word);
-            }
-        }
-        
-        if (!added.isEmpty()) {
-            System.out.println("\n" + "=".repeat(68));
-            System.out.println(Utils.bold(Utils.blue("STOPWORDS SYNC FROM PEER")));
-            System.out.println("=".repeat(68));
-            System.out.println(Utils.blue("Barrel:") + " " + Utils.bold(barrelName));
-            System.out.println(Utils.blue("Recebidas de outro barrel:") + " " + Utils.bold(String.valueOf(added.size()) + " novas stopwords"));
-            System.out.println("-".repeat(68));
-            
-            List<String> addedList = new ArrayList<>(added);
-            addedList.sort(String::compareTo);
-            int maxShow = Math.min(10, addedList.size());
-            for (int i = 0; i < maxShow; i++) {
-                System.out.println("   - " + Utils.bold(addedList.get(i)));
-            }
-            if (addedList.size() > 10) {
-                System.out.println(Utils.yellow("   ... e mais " + (addedList.size() - 10) + " palavra(s)"));
-            }
-            
-            System.out.println("-".repeat(68));
-            System.out.println(Utils.blue("Total de stopwords ativas:") + " " + Utils.bold(String.valueOf(stopwords.size())));
-            System.out.println("=".repeat(68));
-        }
+        // Trata como linguagem desconhecida
+        Map<String, List<String>> byLanguage = new HashMap<>();
+        byLanguage.put("unknown", externalStopwords);
+        mergeStopwords(byLanguage);
     }
 }

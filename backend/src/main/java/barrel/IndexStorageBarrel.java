@@ -478,19 +478,45 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
 
 
     /**
-     * Adiciona contagens de palavras para uma URL específica.
+     * Adiciona contagens de palavras para análise de stopwords (com linguagem).
      * 
      * @param wordCounts                Mapa de palavras e suas contagens
-     * @param url                       URL associada às contagens
+     * @param url                       URL do documento
+     * @param language                  Linguagem detetada do documento
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public void addWordCounts(Map<String, Integer> wordCounts, String url, String language) throws RemoteException {
+        stopWordsManager.addWordCounts(wordCounts, url, language);
+    }
+    
+    /**
+     * Adiciona contagens de palavras para análise de stopwords (compatibilidade com código antigo).
+     * 
+     * @param wordCounts                Mapa de palavras e suas contagens
+     * @param url                       URL do documento
      * @throws RemoteException          Se ocorrer um erro de comunicação remota
      */
     @Override
     public void addWordCounts(Map<String, Integer> wordCounts, String url) throws RemoteException {
-        stopWordsManager.addWordCounts(wordCounts, url);
+        stopWordsManager.addWordCounts(wordCounts, url, "unknown");
     }
     
     /**
-     * Verifica se uma palavra é uma stopword.
+     * Verifica se uma palavra é uma stopword em uma linguagem específica.
+     * 
+     * @param palavra                   Palavra a ser verificada
+     * @param language                  Linguagem da palavra
+     * @return                          true se for uma stopword, false caso contrário
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public boolean isStopword(String palavra, String language) throws RemoteException {
+        return stopWordsManager.isStopword(palavra, language);
+    }
+    
+    /**
+     * Verifica se uma palavra é uma stopword (compatibilidade com código antigo).
      * 
      * @param palavra                   Palavra a ser verificada
      * @return                          true se for uma stopword, false caso contrário
@@ -502,17 +528,52 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     }
     
     /**
-     * Obtém a lista de stopwords gerenciadas pelo Barrel.
+     * Obtém a lista de stopwords de uma linguagem específica.
+     * 
+     * @param language                  Linguagem desejada
+     * @return                          Lista de stopwords dessa linguagem
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public List<String> getStopwords(String language) throws RemoteException {
+        return stopWordsManager.getStopwords(language);
+    }
+    
+    /**
+     * Obtém a lista de todas as stopwords gerenciadas pelo Barrel.
      * 
      * @return                          Lista de stopwords
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
      */
     @Override
     public List<String> getStopwords() throws RemoteException {
         return stopWordsManager.getStopwords();
     }
+    
+    /**
+     * Obtém o mapa completo de stopwords organizadas por linguagem.
+     * 
+     * @return                          Mapa de stopwords por linguagem
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public Map<String, List<String>> getAllStopwordsByLanguage() throws RemoteException {
+        return stopWordsManager.getAllStopwordsByLanguage();
+    }
 
     /**
-     * Sincroniza stopwords com outro barrel.
+     * Sincroniza stopwords com outro barrel (por linguagem).
+     * 
+     * @param stopwordsByLanguage       Mapa de stopwords por linguagem
+     * @throws RemoteException          Se ocorrer um erro de comunicação remota
+     */
+    @Override
+    public synchronized void syncStopwordsByLanguage(Map<String, List<String>> stopwordsByLanguage) throws RemoteException {
+        stopWordsManager.mergeStopwords(stopwordsByLanguage);
+    }
+
+    /**
+     * Sincroniza stopwords com outro barrel (compatibilidade com código antigo).
      * 
      * @param stopwords                 Lista de stopwords a serem sincronizadas
      * @throws RemoteException          Se ocorrer um erro de comunicação remota
@@ -521,13 +582,13 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
     public synchronized void syncStopwords(List<String> stopwords) throws RemoteException {
         stopWordsManager.mergeStopwords(stopwords);
     }
-
+    
     /**
      * Retransmite stopwords para outros barrels ativos.
      * Chamado automaticamente quando stopwords são atualizadas localmente.
      */
     private void retransmitStopwords() {
-        List<String> currentStopwords = stopWordsManager.getStopwords();
+        Map<String, List<String>> currentStopwordsByLanguage = stopWordsManager.getAllStopwordsByLanguage();
         
         try {
             ConfigReader gatewayConfig = new ConfigReader("gateway");
@@ -552,7 +613,7 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 try {
                     Registry barrelRegistry = LocateRegistry.getRegistry(barrelHost, barrelPort);
                     BarrelInterface otherBarrel = (BarrelInterface) barrelRegistry.lookup(barrelName);
-                    otherBarrel.syncStopwords(currentStopwords);
+                    otherBarrel.syncStopwordsByLanguage(currentStopwordsByLanguage);
                     System.out.println(Utils.green("Stopwords sincronizadas com " + barrelName + ":" + barrelPort));
                 } catch (Exception e) {
                     Utils.printLogException("Erro ao sincronizar stopwords com " + barrelName + ": " + e.getMessage(), e);
