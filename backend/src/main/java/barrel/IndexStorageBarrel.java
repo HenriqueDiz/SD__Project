@@ -216,6 +216,8 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 }
             }
 
+            System.setProperty("java.rmi.server.hostname", host);
+
             // Criar o Barrel
             IndexStorageBarrel barrel = new IndexStorageBarrel(name, port, host);
 
@@ -229,8 +231,6 @@ public class IndexStorageBarrel extends UnicastRemoteObject implements BarrelInt
                 System.out.println(Utils.yellow("Nenhum progresso encontrado. Criando novo barrel: " + name));
                 barrel.copyAllData(); // Se não exitir progresso, copia tudo
             }
-
-            System.setProperty("java.rmi.server.hostname", host);
 
             // Criar Registry
             Registry registry = LocateRegistry.createRegistry(port);

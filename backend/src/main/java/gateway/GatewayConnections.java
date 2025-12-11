@@ -45,15 +45,34 @@ public class GatewayConnections {
                 return null;
             }
             int queuePort = Integer.parseInt(queuePortStr.trim());
+            
+            System.out.println("Tentando conectar ao URLQueue...");
+            System.out.println("  Host: " + queueHost);
+            System.out.println("  Porta: " + queuePort);
+            System.out.println("  Nome: " + queueName);
+            
+            // Configurar timeouts RMI
+            System.setProperty("sun.rmi.transport.tcp.responseTimeout", "10000");
+            System.setProperty("sun.rmi.transport.tcp.handshakeTimeout", "10000");
+            
             Registry queueRegistry = LocateRegistry.getRegistry(queueHost, queuePort);
+            System.out.println("  Registry obtido, fazendo lookup...");
             URLQueueInterface urlQueue = (URLQueueInterface) queueRegistry.lookup(queueName);
-            System.out.println("Conectado ao URLQueue: " + queueHost + ":" + queuePort + "/" + queueName);
+            System.out.println("  Lookup concluído, testando conexão...");
+            
+            // Testar a conexão
+            urlQueue.getQueueSize();
+            System.out.println(Utils.green("✓ Conectado ao URLQueue com sucesso!"));
             return urlQueue;
         } catch (Exception e) {
-            System.err.println("Erro ao conectar ao URLQueue: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.err.println(Utils.red("✗ Erro ao conectar ao URLQueue:"));
+            System.err.println("  Tipo: " + e.getClass().getSimpleName());
+            System.err.println("  Mensagem: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
+
 
     /**
      * Registra um barrel no Gateway.

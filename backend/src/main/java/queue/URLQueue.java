@@ -56,7 +56,6 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
     */
     public static void main(String args[]) {
         try {
-            URLQueue urlQueue = new URLQueue();
             int port;
             String host;
             String name;
@@ -72,10 +71,13 @@ public class URLQueue extends UnicastRemoteObject implements URLQueueInterface {
                 name = config.getName();
             }
 
+            // IMPORTANTE: Definir hostname ANTES de criar o objeto remoto
+            System.setProperty("java.rmi.server.hostname", host);
+            
+            URLQueue urlQueue = new URLQueue();
+
             // Tentar restaurar estado da queue a partir do gateway -> barrel
             restoreStateFromGatewayAsync(urlQueue);
-
-            System.setProperty("java.rmi.server.hostname", host);
 
             Registry registry = LocateRegistry.createRegistry(port);
             registry.rebind(name, urlQueue);

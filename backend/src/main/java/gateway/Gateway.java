@@ -106,16 +106,27 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
      */
     public static void main(String[] args) {
         try {
-            Gateway gateway = new Gateway();
+            // Carregar configuração ANTES de criar qualquer objeto remoto
+            Properties tempConfig = Utils.loadConfiguration();
+            String gatewayHost = tempConfig.getProperty("gateway.host");
+            int gatewayPort = Integer.parseInt(tempConfig.getProperty("gateway.port"));
+            String gatewayName = tempConfig.getProperty("gateway.name");
             
-            String gatewayHost = gateway.config.getProperty("gateway.host");
-            int gatewayPort = Integer.parseInt(gateway.config.getProperty("gateway.port"));
-            String gatewayName = gateway.config.getProperty("gateway.name");
+            // CRÍTICO: Configurar TODAS as propriedades RMI ANTES de criar o objeto Gateway
+            System.setProperty("java.rmi.server.hostname", gatewayHost);
+            System.setProperty("java.rmi.server.useLocalHostname", "false");
+            System.setProperty("sun.rmi.transport.tcp.responseTimeout", "10000");
+            System.setProperty("sun.rmi.transport.tcp.handshakeTimeout", "10000");
+            System.setProperty("sun.rmi.transport.connectionTimeout", "10000");
             
             System.out.println("Iniciando Gateway...");
             System.out.println("Host: " + gatewayHost);
             System.out.println("Porta: " + gatewayPort);
             System.out.println("Nome: " + gatewayName);
+            System.out.println("RMI Hostname definido para: " + System.getProperty("java.rmi.server.hostname"));
+            
+            // AGORA SIM criar o Gateway (será exportado com o hostname correto)
+            Gateway gateway = new Gateway();
             
             // Conectar ao URLQueue
             gateway.urlQueue = GatewayConnections.connectToURLQueue(gateway.config);
