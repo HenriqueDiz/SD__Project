@@ -33,7 +33,7 @@ public class WebApplication {
         SpringApplication.run(WebApplication.class, args);
         System.out.println("╔════════════════════════════════════════════════╗");
         System.out.println("║   Spring Boot API REST iniciado com sucesso    ║");
-        System.out.println("║   Acesse: http://localhost:8080/api/health     ║");
+        System.out.println("║   Acesse: https://localhost:8443/api/health    ║");
         System.out.println("╚════════════════════════════════════════════════╝");
     }
 }

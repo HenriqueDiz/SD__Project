@@ -34,9 +34,11 @@ public class CorsConfig {
         // Permite credenciais (cookies, authorization headers)
         config.setAllowCredentials(true);
         
-        // Permite requisições do frontend React
+        // Permite requisições do frontend React (HTTP e HTTPS)
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:3001");
+        config.addAllowedOrigin("https://localhost:3000");
+        config.addAllowedOrigin("https://localhost:3001");
         
         // Permite todos os headers
         config.addAllowedHeader("*");

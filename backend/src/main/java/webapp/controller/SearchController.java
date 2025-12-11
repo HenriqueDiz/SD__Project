@@ -31,7 +31,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/search")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
+@CrossOrigin(origins = {"https://localhost:3000", "https://localhost:3001"})
 public class SearchController {
     
     private final GatewayServiceClient gatewayClient;

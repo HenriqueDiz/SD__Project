@@ -25,7 +25,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/barrels")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
+@CrossOrigin(origins = {"https://localhost:3000", "https://localhost:3001"})
 public class BarrelController {
     
     private final GatewayServiceClient gatewayClient;
