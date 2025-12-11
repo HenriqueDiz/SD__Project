@@ -134,6 +134,9 @@ export default function DemoPage() {
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  
+  // Ref para rastrear a última pesquisa e evitar duplicatas
+  const lastSearchRef = useRef<string>('');
 
   const menuItems = [
     { label: 'Procurar palavra', ariaLabel: 'Procurar palavra no sistema', link: '/' },
@@ -150,6 +153,15 @@ export default function DemoPage() {
     const pageNum = p ? parseInt(p) - 1 : 0; // Convert from 1-based to 0-based
     
     if (q) {
+      // Criar identificador único para esta pesquisa
+      const searchKey = `${q}-${pageNum}`;
+      
+      // Se for a mesma pesquisa que acabámos de fazer, ignorar (previne duplicatas do Strict Mode)
+      if (lastSearchRef.current === searchKey) {
+        return;
+      }
+      
+      lastSearchRef.current = searchKey;
       setQuery(q);
       performSearch(q, pageNum);
     }

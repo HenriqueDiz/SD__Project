@@ -196,8 +196,6 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         List<String> results = searchWithFailover(word);
         
         if (results != null && !results.isEmpty()) {
-            stats.updateSearchStats(word);
-            notifyStatsUpdateAsync();
             System.out.println("Resultado para '" + word + "': " + results.size() + " resultado(s)");
         } else {
             System.out.println("Nenhum resultado encontrado para '" + word + "'");
@@ -296,6 +294,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
         if (intersection.isEmpty()) return new ArrayList<>();
 
+        // Registar estatísticas APENAS UMA VEZ - uma pesquisa do utilizador
+        // Usar a primeira palavra como representação da pesquisa (ou poderia ser todas juntas)
+        String searchQuery = String.join(" ", norm);
+        stats.updateSearchStats(searchQuery);
+        notifyStatsUpdateAsync();
+
         // Recolher contagens inbound (0 por omissão)
         Map<String, Integer> inbound = new HashMap<>();
         for (BarrelInterface barrel : new ArrayList<>(activeBarrels)) {
@@ -342,11 +346,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
         if (norm.isEmpty()) return 0;
 
-        // Resultados por palavra
+        // Resultados por palavra - usar searchWithFailover diretamente
+        // para evitar duplicar estatísticas
         List<HashSet<String>> resultsPerWord = new ArrayList<>();
         for (String w : norm) {
-            List<String> result = searchWordGateway(w);
-            resultsPerWord.add(new HashSet<>(result));
+            List<String> result = searchWithFailover(w);
+            resultsPerWord.add(new HashSet<>(result != null ? result : new ArrayList<>()));
         }
 
         // Interseção
