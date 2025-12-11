@@ -86,8 +86,14 @@ public class GatewayConnections {
     */
     public static void registerBarrel(String host, int port, String name, List<BarrelInterface> activeBarrels, List<BarrelInterface> barrelsRegisters, Map<String, Integer> registeredBarrelInfo) throws RemoteException {
         try {
+            // Configurar timeouts RMI para operações com Barrels
+            System.setProperty("sun.rmi.transport.tcp.responseTimeout", "5000");
+            System.setProperty("sun.rmi.transport.tcp.handshakeTimeout", "5000");
+            System.setProperty("sun.rmi.transport.connectionTimeout", "5000");
+
             Registry barrelRegistry = LocateRegistry.getRegistry(host, port);
             BarrelInterface newBarrel = (BarrelInterface) barrelRegistry.lookup(name);
+
 
             // Verificar se já está registrado usando o mapa de informações
             boolean alreadyRegistered = registeredBarrelInfo.containsKey(name) && 
@@ -127,11 +133,19 @@ public class GatewayConnections {
      */
     private static void syncBarrelWithOthers(BarrelInterface newBarrel, List<BarrelInterface> barrelsRegisters) {
         try {
-            Map<String, HashSet<String>> newBarrelIndex = newBarrel.getIndex();
+            Map<String, HashSet<String>> newBarrelIndex;
+            try {
+                newBarrelIndex = newBarrel.getIndex();
+            } catch (RemoteException e) {
+                System.err.println("Falha ao obter índice do novo barrel: " + e.getMessage());
+                return; // não prosseguir se não conseguimos ler o índice local
+            }
+
             Map<String, HashSet<String>> missingData = new HashMap<>();
             
             System.out.println(Utils.yellow("Iniciando sincronização do barrel: " + newBarrel.getName()));
             System.out.println("Barrel atual tem " + newBarrelIndex.size() + " palavra(s)");
+
             
             // Contadores para estatísticas detalhadas
             int completelyNewWords = 0;
@@ -142,11 +156,18 @@ public class GatewayConnections {
             for (BarrelInterface barrel : barrelsRegisters) {
                 try {
                     if (!barrel.getName().equals(newBarrel.getName())) {
-                        Map<String, HashSet<String>> otherBarrelIndex = barrel.getIndex();
+                        Map<String, HashSet<String>> otherBarrelIndex;
+                        try {
+                            otherBarrelIndex = barrel.getIndex();
+                        } catch (RemoteException e) {
+                            System.err.println("Timeout/erro ao obter índice de " + barrel.getName() + ": " + e.getMessage());
+                            continue; // pular barrels lentos/inacessíveis
+                        }
                         System.out.println("Comparando com barrel " + barrel.getName() + " que tem " + otherBarrelIndex.size() + " palavra(s)");
                         
                         // Encontrar palavras que o novo barrel não tem
                         for (Map.Entry<String, HashSet<String>> entry : otherBarrelIndex.entrySet()) {
+
                             String word = entry.getKey();
                             HashSet<String> urls = entry.getValue();
                             
@@ -198,8 +219,11 @@ public class GatewayConnections {
             
         } catch (RemoteException e) {
             System.err.println("Erro durante sincronização: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Erro inesperado durante sincronização: " + e.getMessage());
         }
     }
+
 
     /**
      * Remove um barrel da lista com base no nome e porta.

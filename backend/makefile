@@ -10,6 +10,9 @@ run-b2:
 run-b3:
 	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="barrel3"
 
+run-b4:
+	mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" -Dexec.args="barrel4"
+
 run-c:
 	mvn exec:java -Dexec.mainClass="client.Client"
 
