@@ -27,6 +27,7 @@ public class SearchResultDTO implements Serializable {
     private String title;
     private String description;
     private int references;  // Número de inbound links
+    private boolean isHackerNews;  // Flag para identificar se é do HackerNews
     
     public SearchResultDTO() {}
     
@@ -35,6 +36,15 @@ public class SearchResultDTO implements Serializable {
         this.title = title;
         this.description = description;
         this.references = references;
+        this.isHackerNews = false;
+    }
+    
+    public SearchResultDTO(String url, String title, String description, int references, boolean isHackerNews) {
+        this.url = url;
+        this.title = title;
+        this.description = description;
+        this.references = references;
+        this.isHackerNews = isHackerNews;
     }
     
     // Getters e Setters (necessários para serialização JSON)
@@ -71,12 +81,21 @@ public class SearchResultDTO implements Serializable {
         this.references = references;
     }
     
+    public boolean isHackerNews() {
+        return isHackerNews;
+    }
+    
+    public void setHackerNews(boolean isHackerNews) {
+        this.isHackerNews = isHackerNews;
+    }
+    
     @Override
     public String toString() {
         return "SearchResultDTO{" +
                 "url='" + url + '\'' +
                 ", title='" + title + '\'' +
                 ", references=" + references +
+                ", isHackerNews=" + isHackerNews +
                 '}';
     }
 }

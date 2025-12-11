@@ -10,6 +10,7 @@ export interface AnimatedListItem {
   description?: string;
   links?: string[];
   references?: number;
+  hackerNews?: boolean;
 }
 
 interface AnimatedListProps {
@@ -135,14 +136,23 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
                   aria-expanded={isOpen}
                 >
                   <div className="animated-list-item-texts">
-                    <h3 className="animated-list-item-title">{item.title || item.url}</h3>
+                    <h3 className="animated-list-item-title">
+                      {item.title || item.url}
+                    </h3>
                     <p className="animated-list-item-url">{item.url}</p>
                   </div>
-                  {item.references !== undefined && (
-                    <div className="animated-list-item-references">
-                      {item.references}
+                    <div className="animated-list-item-right">
+                      {item.references !== undefined && (
+                        <div className="animated-list-item-references">
+                          {item.references}
+                        </div>
+                      )}
+                      {item.hackerNews === true && (
+                        <div className="hackernews-badge-container">
+                            HackerNews
+                        </div>
+                      )}
                     </div>
-                  )}
                 </button>
                 <motion.div
                   className="animated-list-item-content"

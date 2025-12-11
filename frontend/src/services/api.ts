@@ -12,6 +12,7 @@ export interface SearchResult {
   title: string;
   description: string;  // Description/preview text
   references: number;   // Number of backlinks
+  isHackerNews?: boolean; // Flag to identify HackerNews items
 }
 
 export interface SearchResponse {

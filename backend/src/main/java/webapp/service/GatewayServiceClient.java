@@ -43,6 +43,15 @@ public class GatewayServiceClient {
     }
     
     /**
+     * Verifica se uma URL é do HackerNews pelo domínio.
+     * @param url URL para verificar
+     * @return true se for do HackerNews
+     */
+    private boolean isHackerNewsUrl(String url) {
+        return url != null && url.contains("news.ycombinator.com");
+    }
+    
+    /**
      * Realiza uma busca por múltiplas palavras.
      * 
      * Fluxo:
@@ -75,12 +84,16 @@ public class GatewayServiceClient {
                     // PageInfo busca título e descrição da página
                     PageInfo pageInfo = new PageInfo(url);
                     
+                    // Verificar se é do HackerNews pelo domínio
+                    boolean isHackerNews = isHackerNewsUrl(url);
+                    
                     // Criar DTO com todas as informações
                     return new SearchResultDTO(
                         url,
                         pageInfo.getTitle(),
                         pageInfo.getDescription(),
-                        references
+                        references,
+                        isHackerNews
                     );
                 })
                 .collect(java.util.stream.Collectors.toList());

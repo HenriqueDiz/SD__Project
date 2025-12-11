@@ -124,14 +124,63 @@
 .animated-list-item-texts { 
   flex: 1;
   min-width: 0;
-  padding-right: 55px;
-  max-width: 100%;
+  padding-right: 10px;
+  max-width: calc(100% - 140px);
+}
+
+/* Coluna direita - contém badge e referências */
+.animated-list-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 130px;
+  padding-left: 10px;
+}
+
+/* HackerNews Badge Container */
+.hackernews-badge-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hackernews-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ff6600;
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.1), rgba(255, 102, 0, 0.05));
+  border: 1px solid rgba(255, 102, 0, 0.3);
+  border-radius: 8px;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 102, 0, 0.1);
+}
+
+.hackernews-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.animated-list-item-header:hover .hackernews-badge {
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.15), rgba(255, 102, 0, 0.08));
+  border-color: rgba(255, 102, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.animated-list-item.selected .hackernews-badge {
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.18), rgba(255, 102, 0, 0.1));
+  border-color: rgba(255, 102, 0, 0.5);
 }
 
 .animated-list-item-references {
-  position: absolute;
-  top: 14px;
-  right: 14px;
   font-size: 0.96rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.25);
