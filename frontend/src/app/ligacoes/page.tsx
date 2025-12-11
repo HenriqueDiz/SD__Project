@@ -32,8 +32,8 @@ export default function LigacoesPage() {
     setLoading(true);
     setMessage(null);
 
-    // Redirect to results page with URL parameter
-    router.push(`/ligacoes/results?url=${encodeURIComponent(url)}`);
+    // Redirect to results page with URL parameter and page 1
+    router.push(`/ligacoes/results?url=${encodeURIComponent(url)}&page=1`);
   };
 
   const menuItems = [

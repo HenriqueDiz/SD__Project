@@ -38,15 +38,8 @@ export default function LigacoesResultsPage() {
       // Call the real API endpoint with page parameter
       const response = await getConnections(url, page);
       
-      // Apply client-side pagination: 10 items per page
-      const pageSize = 10;
-      const startIndex = page * pageSize;
-      const endIndex = startIndex + pageSize;
-
-      const pagedConnections = response.connections.slice(startIndex, endIndex);
-
       // Convert SearchResult[] to AnimatedListItem[]
-      const connectionItems: AnimatedListItem[] = pagedConnections.map(conn => ({
+      const connectionItems: AnimatedListItem[] = response.connections.map(conn => ({
         url: conn.url,
         title: conn.title,
         description: conn.description,
@@ -54,9 +47,8 @@ export default function LigacoesResultsPage() {
 
       setResults(connectionItems);
       setTotalResults(response.totalConnections);
-      setCurrentPage(page);
-      // Calculate total pages based on 10 items per page
-      setTotalPages(Math.ceil(response.totalConnections / pageSize));
+      setCurrentPage(response.currentPage);
+      setTotalPages(response.totalPages);
     } catch (err) {
       console.error('Connections fetch error:', err);
       if (err instanceof ApiError) {
@@ -119,15 +111,16 @@ export default function LigacoesResultsPage() {
     <main style={{ 
       position: 'relative', 
       width: '100%', 
-      minHeight: '100vh', 
-      overflow: 'auto',
+      height: '100vh',
+      overflow: 'hidden',
       background: '#0a0a0a',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
 
       {/* Top Bar with Logo and Search */}
       <div style={{
-        position: 'sticky',
-        top: 0,
+        position: 'relative',
         zIndex: 10,
         background: 'rgba(10, 10, 10, 0.8)',
         backdropFilter: 'blur(20px)',
@@ -136,6 +129,7 @@ export default function LigacoesResultsPage() {
         display: 'flex',
         alignItems: 'center',
         gap: '2rem',
+        flexShrink: 0
       }}>
         {/* Googol Logo - Clickable */}
         <div 
@@ -264,12 +258,13 @@ export default function LigacoesResultsPage() {
       <div style={{
         position: 'relative',
         zIndex: 1,
-        paddingTop: '2rem',
+        paddingTop: '1.5rem',
         paddingBottom: '1rem',
         width: '95%',
         maxWidth: '1200px',
         margin: '0 auto',
         textAlign: 'center',
+        flexShrink: 0
       }}>
         {(isLoading || error || (searchedQuery && results.length > 0)) && (
           <h2 style={{
@@ -300,8 +295,21 @@ export default function LigacoesResultsPage() {
         width: '95%',
         maxWidth: '1200px',
         margin: '0 auto',
-        paddingBottom: '4rem'
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        minHeight: 0,
+        maxHeight: '100%',
+        boxSizing: 'border-box'
       }}>
+        {/* Scrollable Results Area */}
+        <div style={{
+          flex: 1,
+          overflow: 'hidden',
+          position: 'relative',
+          boxSizing: 'border-box'
+        }}>
         {isLoading ? (
           <Loader primaryColor="#6bff9d" secondaryColor="#00ff88" accentColor="#c5ff42" textColor="#c5ff42" />
         ) : error ? (
@@ -372,6 +380,7 @@ export default function LigacoesResultsPage() {
             enableArrowNavigation={true}
           />
         )}
+        </div>
 
         {/* Pagination Component */}
         {!isLoading && !error && results.length > 0 && totalPages > 1 && (
@@ -380,8 +389,8 @@ export default function LigacoesResultsPage() {
             justifyContent: 'center',
             alignItems: 'center',
             gap: '0.5rem',
-            marginTop: '3rem',
-            paddingBottom: '2rem',
+            padding: '1rem 0',
+            flexShrink: 0
           }}>
             {/* Previous Button */}
             <button

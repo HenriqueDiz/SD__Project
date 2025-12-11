@@ -60,6 +60,9 @@ export interface ConnectionsResponse {
   url: string;
   connections: SearchResult[];
   totalConnections: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
   hasConnections: boolean;
 }
 
