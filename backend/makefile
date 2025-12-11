@@ -26,7 +26,7 @@ ifeq ($(OS),Windows_NT)
 else
 	@echo "Inicializando Frontend (macOS/Linux)..."
 	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)\" && mvn spring-boot:run"'
-	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)/../frontend\" && npm run dev"'
+	osascript -e 'tell application "Terminal" to do script "cd \"$(CURDIR)/../frontend\" && npm run dev:https"'
 endif
 
 run-backend:

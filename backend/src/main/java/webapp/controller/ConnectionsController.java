@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/connections")
-@CrossOrigin(origins = {"https://localhost:3000", "https://localhost:3001"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://localhost:3000", "https://localhost:3001", "https://localhost:3002"})
 public class ConnectionsController {
     
     private final GatewayServiceClient gatewayClient;

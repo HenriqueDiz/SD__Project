@@ -1,0 +1,1342 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% Geometry
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Googol - Motor de Busca Distribuído}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Colors for code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Code listing style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Googol - Relatório de Arquitetura},
+    pdfpagemode=FullScreen,
+}
+
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds}
+
+\tikzstyle{component} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!20]
+\tikzstyle{barrel} = [rectangle, rounded corners, minimum width=2.5cm, minimum height=1cm, text centered, draw=black, fill=green!20]
+\tikzstyle{service} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!20]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\begin{document}
+
+% Title Page
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries Googol\par}
+    \vspace{0.5cm}
+    {\LARGE Motor de Busca Distribuído\par}
+    \vspace{1cm}
+    {\Large\bfseries Relatório de Arquitetura do Sistema\par}
+    
+    \vspace{2cm}
+    
+    {\Large Sistemas Distribuídos\par}
+    \vspace{0.5cm}
+    {\large Universidade de Coimbra\par}
+    {\large Departamento de Engenharia Informática\par}
+    
+    \vfill
+    
+    {\large\bfseries Autores:\par}
+    \vspace{0.5cm}
+    \begin{tabular}{ll}
+        Henrique Diz & 2023213681 \\
+        Rodrigo Manão & 2023207589 \\
+        João Francisco & 2023228417 \\
+    \end{tabular}
+    
+    \vspace{1cm}
+    
+    {\large \today\par}
+\end{titlepage}
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+% Abstract
+\begin{abstract}
+Este relatório descreve a arquitetura completa do Googol, um motor de busca distribuído desenvolvido como projeto da disciplina de Sistemas Distribuídos. O sistema utiliza tecnologias como Java RMI para comunicação entre componentes distribuídos, Spring Boot para a camada de API REST, e React/Next.js para o frontend. A arquitetura implementa conceitos avançados como balanceamento de carga, tolerância a falhas, replicação de dados, deteção dinâmica de stopwords, e análise contextual com inteligência artificial.
+\end{abstract}
+
+\newpage
+
+% ========================================
+% SECTION 1: INTRODUÇÃO
+% ========================================
+\section{Introdução}
+
+\subsection{Visão Geral}
+O Googol é um motor de busca distribuído que implementa uma arquitetura escalável e tolerante a falhas. O sistema é composto por múltiplos componentes que comunicam através de Java RMI (Remote Method Invocation), coordenados por um Gateway central que gere o balanceamento de carga e a agregação de resultados.
+
+\subsection{Objetivos do Sistema}
+\begin{itemize}
+    \item Indexação distribuída de páginas web
+    \item Pesquisa eficiente com suporte a múltiplas palavras
+    \item Balanceamento de carga entre servidores de índice (Barrels)
+    \item Tolerância a falhas com replicação de dados
+    \item Interface web moderna e responsiva
+    \item Análise contextual com IA
+    \item Estatísticas em tempo real
+\end{itemize}
+
+\subsection{Tecnologias Utilizadas}
+\begin{itemize}
+    \item \textbf{Backend:} Java 21, Spring Boot 3.2.0, Java RMI, JSoup
+    \item \textbf{Frontend:} React 19, Next.js 16, TypeScript, Framer Motion, GSAP, WebGL (OGL)
+    \item \textbf{Comunicação:} RMI Registry, REST API (HTTP/JSON)
+    \item \textbf{IA:} OpenRouter API (integração com modelos de linguagem)
+\end{itemize}
+
+\newpage
+
+% ========================================
+% SECTION 2: ARQUITETURA GLOBAL
+% ========================================
+\section{Arquitetura Global do Sistema}
+
+\subsection{Diagrama de Arquitetura}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=2cm]
+
+% Frontend
+\node (frontend) [component] {Frontend (React/Next.js)};
+
+% WebApp
+\node (webapp) [service, below of=frontend, yshift=-0.5cm] {WebApp (Spring Boot)};
+
+% Gateway
+\node (gateway) [component, below of=webapp, yshift=-0.5cm] {Gateway (Port 8183)};
+
+% Barrels
+\node (barrel1) [barrel, below left of=gateway, xshift=-3cm, yshift=-1cm] {Barrel 1\\Port 8182};
+\node (barrel2) [barrel, below of=gateway, yshift=-1cm] {Barrel 2\\Port 8184};
+\node (barrel3) [barrel, below right of=gateway, xshift=3cm, yshift=-1cm] {Barrel 3\\Port 8185};
+
+% Queue
+\node (queue) [component, below of=barrel2, yshift=-1.5cm] {URL Queue\\Port 8181};
+
+% Downloader
+\node (downloader) [service, below of=queue, yshift=-0.5cm] {Downloader(s)};
+
+% Arrows
+\draw [arrow] (frontend) -- node[anchor=west] {HTTP/JSON} (webapp);
+\draw [arrow] (webapp) -- node[anchor=west] {RMI} (gateway);
+\draw [arrow] (gateway) -- (barrel1);
+\draw [arrow] (gateway) -- (barrel2);
+\draw [arrow] (gateway) -- (barrel3);
+\draw [arrow] (barrel1) -- (queue);
+\draw [arrow] (barrel2) -- (queue);
+\draw [arrow] (barrel3) -- (queue);
+\draw [arrow] (queue) -- (downloader);
+\draw [arrow, bend left=60] (downloader) to node[anchor=west] {Index} (barrel1);
+\draw [arrow] (downloader) -- (barrel2);
+\draw [arrow, bend right=60] (downloader) to (barrel3);
+
+\end{tikzpicture}
+\caption{Arquitetura global do sistema Googol}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Componentes Principais}
+
+\begin{enumerate}
+    \item \textbf{Frontend:} Interface web em React/Next.js
+    \item \textbf{WebApp:} API REST em Spring Boot (porta 8080)
+    \item \textbf{Gateway:} Coordenador central RMI (porta 8183)
+    \item \textbf{Barrels:} Servidores de índice invertido (portas 8182, 8184, 8185)
+    \item \textbf{URL Queue:} Fila de URLs a indexar (porta 8181)
+    \item \textbf{Downloader(s):} Serviços de download e processamento de páginas
+\end{enumerate}
+
+\subsection{Fluxo de Dados}
+
+\subsubsection{Fluxo de Indexação}
+\begin{enumerate}
+    \item Utilizador submete URL através do frontend
+    \item WebApp recebe pedido e envia para Gateway via RMI
+    \item Gateway verifica se URL já foi indexado
+    \item Se não, Gateway adiciona URL à URL Queue
+    \item Downloader retira URL da fila (operação bloqueante)
+    \item Downloader faz download da página com JSoup
+    \item Downloader extrai palavras e links
+    \item Downloader envia palavras para TODOS os Barrels ativos
+    \item Cada Barrel armazena no índice invertido e retransmite para outros Barrels
+    \item Downloader adiciona links descobertos à fila (baixa prioridade)
+\end{enumerate}
+
+\subsubsection{Fluxo de Pesquisa}
+\begin{enumerate}
+    \item Utilizador introduz query no frontend
+    \item Frontend envia pedido GET para WebApp
+    \item WebApp chama Gateway.searchWords() via RMI
+    \item Gateway divide query em palavras
+    \item Para cada palavra, Gateway chama Barrel.searchWord() (round-robin)
+    \item Gateway faz interseção dos resultados (AND lógico)
+    \item Gateway obtém contagens de inbound links de todos os Barrels
+    \item Gateway ordena resultados por número de referências (PageRank-like)
+    \item Gateway aplica paginação
+    \item WebApp enriquece resultados com PageInfo (título, descrição)
+    \item WebApp retorna JSON para frontend
+    \item Frontend exibe resultados com AnimatedList
+\end{enumerate}
+
+\newpage
+
+% ========================================
+% SECTION 3: BACKEND - RMI
+% ========================================
+\section{Backend - Camada RMI}
+
+\subsection{Gateway}
+
+\subsubsection{Responsabilidades}
+O Gateway é o componente central do sistema, responsável por:
+\begin{itemize}
+    \item \textbf{Balanceamento de carga:} Round-robin entre Barrels ativos
+    \item \textbf{Tolerância a falhas:} Retry automático em caso de falha de Barrel
+    \item \textbf{Coordenação de pesquisa:} Agregação e interseção de resultados
+    \item \textbf{Gestão de Barrels:} Registo, ativação/desativação, sincronização
+    \item \textbf{Integração com fila:} Verificação de URLs já indexados
+    \item \textbf{Estatísticas:} Coleta de métricas de pesquisa e tempos de resposta
+    \item \textbf{Notificações em tempo real:} Callbacks para atualizações de estado
+\end{itemize}
+
+\subsubsection{Interface RMI}
+\begin{lstlisting}[language=Java, caption={GatewayInterface - Métodos principais}]
+public interface GatewayInterface extends Remote {
+    // Pesquisa
+    List<String> searchWordGateway(String word) throws RemoteException;
+    List<String[]> searchWords(List<String> words, int page, int pageSize) 
+        throws RemoteException;
+    int getTotalResults(List<String> words) throws RemoteException;
+    
+    // Gestao de URLs
+    String addURL(String url, boolean indexAnyway) throws RemoteException;
+    List<String[]> getUrlsForIndexedUrl(String url) throws RemoteException;
+    
+    // Gestao de Barrels
+    void registerBarrel(String host, int port, String name) 
+        throws RemoteException;
+    void unActiveBarrel(String name, int port) throws RemoteException;
+    List<String> getActiveBarrels() throws RemoteException;
+    List<String> getRegisteredBarrels() throws RemoteException;
+    
+    // Estatisticas e Callbacks
+    Map<String, Object> getBarrelStatistics() throws RemoteException;
+    void registerStatsCallback(StatsCallback callback) 
+        throws RemoteException;
+    void registerBarrelStateCallback(BarrelStateCallback callback) 
+        throws RemoteException;
+}
+\end{lstlisting}
+
+\subsubsection{Algoritmo de Balanceamento de Carga}
+\begin{lstlisting}[language=Java, caption={Round-robin load balancing}]
+private BarrelInterface getNextBarrel() {
+    if (activeBarrels.isEmpty()) return null;
+    BarrelInterface barrel = activeBarrels.get(currentBarrelIndex);
+    currentBarrelIndex = (currentBarrelIndex + 1) % activeBarrels.size();
+    return barrel;
+}
+\end{lstlisting}
+
+\subsubsection{Algoritmo de Pesquisa Multi-palavra}
+\begin{lstlisting}[language=Java, caption={Interseção de resultados para múltiplas palavras}]
+// Obter resultados para cada palavra
+List<HashSet<String>> resultsPerWord = new ArrayList<>();
+for (String word : words) {
+    resultsPerWord.add(new HashSet<>(searchWordGateway(word)));
+}
+
+// Intersecao (AND logico)
+HashSet<String> intersection = new HashSet<>(resultsPerWord.get(0));
+for (int i = 1; i < resultsPerWord.size(); i++) {
+    intersection.retainAll(resultsPerWord.get(i));
+}
+
+// Ranking por inbound links
+List<String[]> ranked = new ArrayList<>();
+for (String url : intersection) {
+    int refCount = inboundLinkCounts.getOrDefault(url, 0);
+    ranked.add(new String[]{url, String.valueOf(refCount)});
+}
+
+// Ordenacao decrescente
+ranked.sort((a, b) -> Integer.compare(
+    Integer.parseInt(b[1]), 
+    Integer.parseInt(a[1])
+));
+\end{lstlisting}
+
+\subsection{Barrels (Servidores de Índice)}
+
+\subsubsection{Estruturas de Dados}
+\begin{lstlisting}[language=Java, caption={Estruturas principais dos Barrels}]
+// Indice invertido: palavra -> conjunto de URLs
+private ConcurrentHashMap<String, HashSet<String>> indexedItems;
+
+// Grafo de URLs: URL -> conjunto de URLs linkados
+private ConcurrentHashMap<String, HashSet<String>> urlsIndexed;
+
+// Prevencao de duplicacao
+private Set<String> receivedMessages;
+
+// Gestor de stopwords
+private BarrelStopWords stopWordsManager;
+
+// Backup da fila
+private BlockingDeque<String> queueBackup;
+private Set<String> queueSeenUrls;
+\end{lstlisting}
+
+\subsubsection{Replicação de Índice}
+Quando um Barrel recebe uma entrada de índice, retransmite para outros Barrels:
+
+\begin{lstlisting}[language=Java, caption={Retransmissão para replicação}]
+public void addToIndex(String word, String url, boolean shouldRetransmit) 
+    throws RemoteException {
+    // Adicionar ao indice local
+    indexedItems.computeIfAbsent(word, k -> new HashSet<>()).add(url);
+    
+    // Retransmitir para outros Barrels
+    if (shouldRetransmit) {
+        List<String> activeBarrels = gateway.getActiveBarrels();
+        ExecutorService executor = Executors.newCachedThreadPool();
+        
+        for (String barrelKey : activeBarrels) {
+            if (!barrelKey.equals(myKey)) {
+                executor.submit(() -> {
+                    BarrelInterface barrel = getBarrelByKey(barrelKey);
+                    barrel.addToIndex(word, url, false); // Nao retransmitir novamente
+                });
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Deteção Dinâmica de Stopwords}
+
+\subsubsection{Algoritmo de Deteção}
+O sistema utiliza análise estatística para identificar stopwords dinamicamente:
+
+\begin{enumerate}
+    \item \textbf{Contagem de frequências:} Para cada página, contar ocorrências de palavras
+    \item \textbf{Deteção de outliers:} Usar método IQR (Interquartile Range)
+    \begin{align*}
+        Q1 &= \text{Percentil 25} \\
+        Q3 &= \text{Percentil 75} \\
+        IQR &= Q3 - Q1 \\
+        \text{Threshold} &= Q3 + (2.0 \times IQR)
+    \end{align*}
+    \item \textbf{Análise cross-document:} Palavra torna-se stopword se aparecer como outlier em $\geq 70\%$ dos documentos
+    \item \textbf{Sincronização:} Quando stopwords mudam, retransmitir para todos os Barrels
+\end{enumerate}
+
+\begin{lstlisting}[language=Java, caption={Configuração de stopwords}]
+private static final double STOPWORD_THRESHOLD = 0.70;  // 70% documentos
+private static final double OUTLIER_K = 2.0;             // Multiplicador IQR
+private static final int MIN_WORD_FREQUENCY = 5;         // Frequencia minima
+\end{lstlisting}
+
+\subsection{URL Queue}
+
+\subsubsection{Gestão de Prioridades}
+A fila implementa duas prioridades:
+\begin{itemize}
+    \item \textbf{Alta prioridade:} URLs adicionados manualmente pelo utilizador (frente da fila)
+    \item \textbf{Baixa prioridade:} URLs descobertos pelo Downloader (fim da fila)
+\end{itemize}
+
+\begin{lstlisting}[language=Java, caption={Implementação de fila com prioridade}]
+private BlockingDeque<String> urlsToIndex;  // Deque para prioridade
+private Set<String> seenUrls;                // Prevencao de duplicados
+
+public void putNew(String url, boolean priority) throws RemoteException {
+    if (!seenUrls.add(url)) return;  // Ja visto
+    if (priority) 
+        urlsToIndex.putFirst(url);   // Alta prioridade
+    else 
+        urlsToIndex.putLast(url);    // Baixa prioridade
+}
+\end{lstlisting}
+
+\subsection{Downloader}
+
+\subsubsection{Pipeline de Processamento}
+\begin{enumerate}
+    \item Obter URL da fila (operação bloqueante)
+    \item Download da página com JSoup
+    \item Tokenização do conteúdo textual
+    \item Para cada palavra:
+    \begin{itemize}
+        \item Converter para minúsculas
+        \item Remover caracteres não alfanuméricos
+        \item Filtrar palavras com $< 3$ caracteres
+        \item Contar frequência
+        \item Enviar para todos os Barrels ativos via \texttt{addToIndex()}
+    \end{itemize}
+    \item Extrair todos os links \texttt{<a href>}
+    \item Adicionar links à fila (baixa prioridade)
+    \item Enviar backlinks para Barrels via \texttt{addUrlsForIndexedUrl()}
+    \item Enviar frequências para análise de stopwords via \texttt{addWordCounts()}
+\end{enumerate}
+
+\subsubsection{Retry Logic}
+O Downloader implementa retry com backoff:
+\begin{itemize}
+    \item 3 tentativas por URL
+    \item Timeout de 10 segundos por tentativa
+    \item Em caso de falha persistente, URL é descartado
+\end{itemize}
+
+\subsection{Persistência e Recuperação}
+
+\subsubsection{Backup de Estado}
+Os Barrels guardam estado em disco (\texttt{barrelX\_progress.dat}):
+\begin{itemize}
+    \item Índice invertido (\texttt{indexedItems})
+    \item Grafo de URLs (\texttt{urlsIndexed})
+    \item Backup da fila (\texttt{urlsToIndex}, \texttt{seenUrls})
+\end{itemize}
+
+\subsubsection{Recuperação após Falha}
+\begin{enumerate}
+    \item Ao iniciar, Barrel verifica existência de ficheiro de progresso
+    \item Se existe: carregar de disco
+    \item Se não: copiar índice de outros Barrels ativos
+    \item Registar no Gateway
+    \item Sincronizar dados em falta
+\end{enumerate}
+
+\newpage
+
+% ========================================
+% SECTION 4: BACKEND - WebApp
+% ========================================
+\section{Backend - WebApp (Spring Boot)}
+
+\subsection{Arquitetura em Camadas}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=1.5cm]
+\node (controllers) [component] {Controllers};
+\node (service) [service, below of=controllers] {Service Layer};
+\node (rmi) [component, below of=service] {RMI Layer};
+
+\draw [arrow] (controllers) -- node[anchor=west] {DTOs} (service);
+\draw [arrow] (service) -- node[anchor=west] {RMI Calls} (rmi);
+\end{tikzpicture}
+\caption{Arquitetura em camadas do WebApp}
+\end{figure}
+
+\subsection{REST API Endpoints}
+
+\begin{longtable}{|p{3cm}|p{3.5cm}|p{7cm}|}
+\hline
+\textbf{Endpoint} & \textbf{Método} & \textbf{Descrição} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Endpoint} & \textbf{Método} & \textbf{Descrição} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+\texttt{/api/search} & GET & Pesquisa simples com query params \\
+\texttt{/api/search} & POST & Pesquisa avançada com JSON body \\
+\texttt{/api/connections} & GET & Obter backlinks de um URL \\
+\texttt{/api/barrels/active} & GET & Listar Barrels ativos \\
+\texttt{/api/barrels/registered} & GET & Listar Barrels registados \\
+\texttt{/api/barrels/add-url} & POST & Adicionar URL ao índice \\
+\texttt{/api/statistics} & GET & Obter estatísticas do sistema \\
+\texttt{/api/health} & GET & Health check \\
+\texttt{/api/info} & GET & Informação do sistema \\
+\texttt{/api/context-analysis} & POST & Análise contextual com IA \\
+\hline
+\caption{Endpoints da REST API}
+\label{tab:endpoints}
+\end{longtable}
+
+\subsection{DTOs (Data Transfer Objects)}
+
+\subsubsection{SearchResponseDTO}
+\begin{lstlisting}[language=Java, caption={Estrutura de resposta de pesquisa}]
+public class SearchResponseDTO {
+    private String query;
+    private List<SearchResultDTO> results;
+    private int currentPage;
+    private int pageSize;
+    private int totalResults;
+    private int totalPages;
+    private boolean hasResults;
+}
+\end{lstlisting}
+
+\subsubsection{SearchResultDTO}
+\begin{lstlisting}[language=Java, caption={Estrutura de resultado individual}]
+public class SearchResultDTO {
+    private String url;
+    private String title;
+    private String description;
+    private int references;  // Numero de inbound links
+}
+\end{lstlisting}
+
+\subsection{Configuração UTF-8}
+
+Para garantir codificação correta de caracteres especiais (acentos, cedilhas):
+
+\begin{lstlisting}[caption={application.properties}]
+# UTF-8 Encoding
+spring.http.encoding.charset=UTF-8
+spring.http.encoding.enabled=true
+spring.http.encoding.force=true
+spring.http.encoding.force-request=true
+spring.http.encoding.force-response=true
+
+# JSON Encoding
+spring.jackson.charset=UTF-8
+\end{lstlisting}
+
+\begin{lstlisting}[language=Java, caption={EncodingConfig.java}]
+@Configuration
+public class EncodingConfig implements WebMvcConfigurer {
+    @Override
+    public void configureMessageConverters(
+        List<HttpMessageConverter<?>> converters) {
+        StringHttpMessageConverter stringConverter = 
+            new StringHttpMessageConverter(StandardCharsets.UTF_8);
+        stringConverter.setWriteAcceptCharset(false);
+        converters.add(0, stringConverter);
+    }
+}
+\end{lstlisting}
+
+\subsection{Integração RMI via Spring}
+
+\begin{lstlisting}[language=Java, caption={RMIConfig.java - Bean de Gateway}]
+@Configuration
+public class RMIConfig {
+    @Bean
+    public GatewayInterface gatewayService() throws Exception {
+        ConfigReader config = new ConfigReader("gateway");
+        Registry registry = LocateRegistry.getRegistry(
+            config.getHost(), 
+            config.getPort()
+        );
+        return (GatewayInterface) registry.lookup(config.getName());
+    }
+}
+\end{lstlisting}
+
+\subsection{Análise Contextual com IA}
+
+O sistema integra com OpenRouter API para análise contextual:
+
+\begin{lstlisting}[language=Java, caption={ContextAnalysisController.java}]
+@PostMapping("/context-analysis")
+public ResponseEntity<Map<String, Object>> getContextAnalysis(
+    @RequestBody Map<String, String> request) {
+    
+    String query = request.get("query");
+    String citations = request.get("citations");
+    
+    String prompt = String.format(
+        "Analisa a seguinte pesquisa: '%s'. " +
+        "Contexto dos resultados: %s", 
+        query, citations
+    );
+    
+    // Chamada ao OpenRouter API
+    Map<String, Object> response = openRouterService.analyze(prompt);
+    return ResponseEntity.ok(response);
+}
+\end{lstlisting}
+
+\newpage
+
+% ========================================
+% SECTION 5: FRONTEND
+% ========================================
+\section{Frontend - React/Next.js}
+
+\subsection{Stack Tecnológica}
+
+\begin{itemize}
+    \item \textbf{Framework:} Next.js 16 (React 19) - App Router
+    \item \textbf{Linguagem:} TypeScript (strict mode)
+    \item \textbf{Animações:} Framer Motion, GSAP
+    \item \textbf{WebGL:} OGL (shader 3D para orbe animado)
+    \item \textbf{UI:} HeroUI, componentes custom
+\end{itemize}
+
+\subsection{Estrutura de Rotas}
+
+\begin{longtable}{|p{4cm}|p{9cm}|}
+\hline
+\textbf{Rota} & \textbf{Descrição} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Rota} & \textbf{Descrição} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+\texttt{/} & Página inicial com interface de pesquisa \\
+\texttt{/results} & Resultados de pesquisa paginados \\
+\texttt{/indexar} & Formulário para adicionar URLs \\
+\texttt{/ligacoes} & Formulário para pesquisar backlinks \\
+\texttt{/ligacoes/results} & Resultados de backlinks \\
+\texttt{/statistics} & Dashboard de estatísticas em tempo real \\
+\texttt{/autores} & Página da equipa \\
+\hline
+\caption{Rotas do frontend}
+\end{longtable}
+
+\subsection{Componentes Principais}
+
+\subsubsection{AnimatedList}
+Lista animada de resultados com funcionalidades:
+\begin{itemize}
+    \item Navegação por teclado (setas, Tab, Enter)
+    \item Expansão/colapso de detalhes
+    \item Auto-scroll para item selecionado
+    \item Gradientes de fade no topo e base
+    \item Animações com Framer Motion
+\end{itemize}
+
+\subsubsection{Orb (WebGL)}
+Orbe 3D animado com shaders GLSL:
+\begin{itemize}
+    \item Simplex noise para distorção
+    \item Rotação em hover
+    \item Mudança de cor por hue (0-360°)
+    \item Efeito wave baseado na posição do rato
+    \item 60 FPS com requestAnimationFrame
+\end{itemize}
+
+\begin{lstlisting}[language=JavaScript, caption={Shader GLSL do Orb (fragmento)}]
+vec3 color1 = hsv2rgb(vec3(hue / 360.0, 0.8, 1.0));
+vec3 color2 = hsv2rgb(vec3((hue + 60.0) / 360.0, 0.9, 0.8));
+
+float noise = snoise(vPosition * noiseScale + uTime * 0.2);
+vec3 finalColor = mix(color1, color2, noise * 0.5 + 0.5);
+\end{lstlisting}
+
+\subsubsection{Cursor Customizado}
+Cursor com trail de 30 círculos:
+\begin{itemize}
+    \item Física de spring (30\% damping)
+    \item Cores adaptativas por rota
+    \item Z-index alto (99999999)
+    \item Esconde cursor padrão
+\end{itemize}
+
+\subsubsection{StaggeredMenu}
+Menu lateral com animações GSAP:
+\begin{itemize}
+    \item 3 camadas de background com entrada staggered
+    \item Itens com rotação + fade-in
+    \item Efeito de texto alternado (Menu $\leftrightarrow$ Close)
+    \item Rotação de ícone (0° → 225°)
+\end{itemize}
+
+\subsubsection{ProfileCard}
+Cards 3D com efeito holográfico:
+\begin{itemize}
+    \item Tilt baseado na posição do rato
+    \item Perspetiva 3D com CSS transforms
+    \item Suporte a orientação do dispositivo (mobile)
+    \item Links para redes sociais
+    \item Efeito de shine holográfico
+\end{itemize}
+
+\subsection{Sistema de Cores por Rota}
+
+\begin{longtable}{|p{3.5cm}|p{3cm}|p{3cm}|p{2cm}|}
+\hline
+\textbf{Rota} & \textbf{Cor Primária} & \textbf{Cor Secundária} & \textbf{Hue} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Rota} & \textbf{Cor Primária} & \textbf{Cor Secundária} & \textbf{Hue} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+Home/Results & \texttt{\#9c43ff} (Roxo) & \texttt{\#4cb8e9} (Azul) & 0° \\
+Indexar & \texttt{\#ff6b9d} (Rosa) & \texttt{\#ff8c42} (Laranja) & 270° \\
+Ligações & \texttt{\#00ff88} (Verde) & \texttt{\#88ff00} (Amarelo) & 117° \\
+Estatísticas & \texttt{\#ff3333} (Vermelho) & \texttt{\#cc0000} (Verm. Escuro) & 0° \\
+\hline
+\caption{Sistema de cores adaptativo}
+\end{longtable}
+
+\subsection{Funcionalidades Avançadas}
+
+\subsubsection{Análise Contextual com IA}
+\begin{itemize}
+    \item Botão info flutuante ao lado da barra de pesquisa
+    \item Hover para mostrar análise
+    \item Cache de 30 minutos por query
+    \item Envia query + top 5 descrições para backend
+    \item Exibe insights contextuais
+\end{itemize}
+
+\subsubsection{Estatísticas em Tempo Real}
+\begin{itemize}
+    \item Polling a cada 2 segundos
+    \item Top 10 pesquisas mais frequentes
+    \item Tempo médio de resposta por Barrel
+    \item Estado de Barrels (ativos/registados)
+    \item Dashboard responsivo
+\end{itemize}
+
+\subsubsection{Paginação Inteligente}
+\begin{itemize}
+    \item Mostra primeiras 3, últimas 3, e atual ±2 páginas
+    \item Ellipsis para páginas omitidas
+    \item Sincronização com URL (\texttt{?page=N})
+    \item Scroll suave ao mudar de página
+\end{itemize}
+
+\subsection{Otimizações de Performance}
+
+\begin{enumerate}
+    \item \textbf{Code splitting:} Automático via Next.js
+    \item \textbf{Animações:} \texttt{requestAnimationFrame} para 60 FPS
+    \item \textbf{Cache de API:} Análise contextual em cache (30 min)
+    \item \textbf{Debouncing:} Polling de estatísticas a cada 2s
+    \item \textbf{WebGL:} Contexto único, cleanup em unmount
+    \item \textbf{Memory management:} Cleanup em todos os \texttt{useEffect}
+\end{enumerate}
+
+\subsection{Acessibilidade}
+
+\begin{itemize}
+    \item HTML semântico (\texttt{<main>}, \texttt{<nav>}, \texttt{<section>})
+    \item Labels ARIA em todos os botões de ícone
+    \item Navegação completa por teclado
+    \item Estados de focus visíveis
+    \item Alto contraste (branco em fundo escuro)
+    \item Suporte a screen readers
+\end{itemize}
+
+\newpage
+
+% ========================================
+% SECTION 6: COMUNICAÇÃO
+% ========================================
+\section{Comunicação Entre Componentes}
+
+\subsection{RMI (Remote Method Invocation)}
+
+\subsubsection{Configuração de Registry}
+\begin{lstlisting}[caption={Configuração RMI (Config.properties)}]
+gateway.host=127.0.0.1
+gateway.port=8183
+gateway.name=gateway
+
+queue.host=127.0.0.1
+queue.port=8181
+queue.name=urlqueue
+
+barrel1.host=127.0.0.1
+barrel1.port=8182
+barrel1.name=barrel1
+
+barrel2.host=127.0.0.1
+barrel2.port=8184
+barrel2.name=barrel2
+
+barrel3.host=127.0.0.1
+barrel3.port=8185
+barrel3.name=barrel3
+\end{lstlisting}
+
+\subsubsection{Padrão de Callbacks}
+O sistema implementa callbacks para notificações em tempo real:
+
+\begin{lstlisting}[language=Java, caption={StatsCallback interface}]
+public interface StatsCallback extends Remote {
+    void onStatsUpdate(Map<String, Object> stats) throws RemoteException;
+}
+\end{lstlisting}
+
+Uso:
+\begin{enumerate}
+    \item Cliente regista callback no Gateway
+    \item Gateway armazena callback em \texttt{CopyOnWriteArrayList}
+    \item Em mudança de estado, Gateway chama \texttt{callback.onStatsUpdate()}
+    \item Cliente recebe e exibe estatísticas atualizadas
+    \item Callbacks mortos removidos automaticamente em erro
+\end{enumerate}
+
+\subsection{REST API (HTTP/JSON)}
+
+\subsubsection{Exemplo de Request/Response}
+
+\textbf{Request:}
+\begin{lstlisting}[language=bash]
+GET /api/search?q=distributed%20systems&page=0&pageSize=10
+\end{lstlisting}
+
+\textbf{Response:}
+\begin{lstlisting}[language=JSON]
+{
+  "query": "distributed systems",
+  "results": [
+    {
+      "url": "https://example.com",
+      "title": "Introduction to Distributed Systems",
+      "description": "Learn about distributed computing...",
+      "references": 42
+    }
+  ],
+  "currentPage": 0,
+  "pageSize": 10,
+  "totalResults": 5,
+  "totalPages": 1,
+  "hasResults": true
+}
+\end{lstlisting}
+
+\subsection{CORS (Cross-Origin Resource Sharing)}
+
+\begin{lstlisting}[language=Java, caption={Configuração CORS}]
+@Configuration
+public class CorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("http://localhost:3001");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        
+        UrlBasedCorsConfigurationSource source = 
+            new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        
+        return new CorsFilter(source);
+    }
+}
+\end{lstlisting}
+
+\newpage
+
+% ========================================
+% SECTION 7: ALGORITMOS CHAVE
+% ========================================
+\section{Algoritmos e Padrões Implementados}
+
+\subsection{Algoritmos de Pesquisa}
+
+\subsubsection{Pesquisa Multi-palavra com Interseção}
+\begin{enumerate}
+    \item Normalizar query (lowercase, split por espaços)
+    \item Para cada palavra $w_i$:
+    \begin{itemize}
+        \item $R_i = \text{searchWord}(w_i)$ via Barrel (round-robin)
+    \end{itemize}
+    \item Calcular interseção: $R = R_1 \cap R_2 \cap \ldots \cap R_n$
+    \item Obter inbound link counts de todos os Barrels
+    \item Ordenar por \texttt{references} (descendente)
+    \item Aplicar paginação: $\text{results}[\text{page} \times \text{pageSize} : (\text{page}+1) \times \text{pageSize}]$
+\end{enumerate}
+
+\subsubsection{Ranking por PageRank-like}
+\begin{lstlisting}[language=Java, caption={Algoritmo de ranking}]
+// Agregar contagens de inbound links
+Map<String, Integer> inbound = new HashMap<>();
+for (BarrelInterface barrel : activeBarrels) {
+    Map<String, Integer> m = barrel.getInboundLinkCounts();
+    for (Map.Entry<String, Integer> e : m.entrySet()) {
+        inbound.merge(e.getKey(), e.getValue(), Integer::sum);
+    }
+}
+
+// Ordenar por contagem (decrescente)
+ranked.sort((a, b) -> Integer.compare(
+    Integer.parseInt(b[1]),  // Inbound count de b
+    Integer.parseInt(a[1])   // Inbound count de a
+));
+\end{lstlisting}
+
+\subsection{Padrões de Design Implementados}
+
+\begin{enumerate}
+    \item \textbf{Distributed Hash Table (DHT):} Cada Barrel mantém parte do índice
+    \item \textbf{Replication:} Entradas de índice replicadas em todos os Barrels
+    \item \textbf{Load Balancing:} Round-robin entre Barrels
+    \item \textbf{Failover:} Retry automático em falha de Barrel
+    \item \textbf{Observer Pattern:} Callbacks para atualizações em tempo real
+    \item \textbf{Service Locator:} RMI Registry para descoberta de serviços
+    \item \textbf{DTO Pattern:} Separação entre objetos RMI e REST
+    \item \textbf{Layered Architecture:} WebApp → Gateway → Barrels → Queue
+    \item \textbf{Eventual Consistency:} Sincronização de índice via retransmissão
+    \item \textbf{Persistence:} Estado guardado em disco para recuperação
+\end{enumerate}
+
+\newpage
+
+% ========================================
+% SECTION 8: TOLERÂNCIA A FALHAS
+% ========================================
+\section{Tolerância a Falhas e Resiliência}
+
+\subsection{Mecanismos de Failover}
+
+\subsubsection{Failover em Pesquisa}
+\begin{lstlisting}[language=Java, caption={Retry automático}]
+private List<String> searchWithFailover(String word) {
+    for (int attempt = 0; attempt < activeBarrels.size(); attempt++) {
+        try {
+            BarrelInterface barrel = getNextBarrel();
+            return barrel.searchWord(word);
+        } catch (RemoteException e) {
+            // Tentar proximo Barrel
+            continue;
+        }
+    }
+    // Todos falharam
+    return Collections.emptyList();
+}
+\end{lstlisting}
+
+\subsubsection{Recuperação de Barrel}
+Quando um Barrel volta online:
+\begin{enumerate}
+    \item Barrel carrega estado de disco (se disponível)
+    \item Regista-se no Gateway
+    \item Gateway chama \texttt{syncIndex()} para sincronizar dados em falta
+    \item Barrel recebe índice completo de outros Barrels
+    \item Barrel marca-se como ativo
+\end{enumerate}
+
+\subsection{Backup e Recuperação}
+
+\subsubsection{Backup de Fila}
+Quando a URL Queue vai fazer shutdown:
+\begin{lstlisting}[language=Java, caption={Backup para Barrels}]
+public void shutdown() {
+    List<BarrelInterface> barrels = getActiveBarrels();
+    for (BarrelInterface barrel : barrels) {
+        barrel.backupQueueState(urlsToIndex, seenUrls);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Restore de Fila}
+Ao iniciar, URL Queue tenta restaurar de Barrels:
+\begin{lstlisting}[language=Java, caption={Restore de backup}]
+public void startup() {
+    List<BarrelInterface> barrels = getActiveBarrels();
+    for (BarrelInterface barrel : barrels) {
+        Map<String, Object> backup = barrel.restoreQueueState();
+        if (backup != null) {
+            urlsToIndex = (BlockingDeque) backup.get("queue");
+            seenUrls = (Set) backup.get("seen");
+            return;
+        }
+    }
+    // Sem backup, iniciar vazio
+}
+\end{lstlisting}
+
+\subsection{Replicação de Dados}
+
+\subsubsection{Consistência Eventual}
+\begin{itemize}
+    \item Downloader envia palavras para TODOS os Barrels
+    \item Cada Barrel retransmite para outros Barrels
+    \item Uso de \texttt{receivedMessages} previne duplicação
+    \item Convergência garantida após todas as retransmissões
+\end{itemize}
+
+\subsubsection{Sincronização de Stopwords}
+\begin{lstlisting}[language=Java, caption={Sincronização de stopwords}]
+private void retransmitStopwords() {
+    List<String> activeBarrels = gateway.getActiveBarrels();
+    List<String> stopwords = new ArrayList<>(this.stopwords);
+    
+    for (String barrelKey : activeBarrels) {
+        if (!barrelKey.equals(myKey)) {
+            BarrelInterface barrel = getBarrelByKey(barrelKey);
+            barrel.syncStopwords(stopwords);
+        }
+    }
+}
+\end{lstlisting}
+
+\newpage
+
+% ========================================
+% SECTION 9: ESTATÍSTICAS E MONITORIZAÇÃO
+% ========================================
+\section{Estatísticas e Monitorização}
+
+\subsection{Métricas Coletadas}
+
+\begin{enumerate}
+    \item \textbf{Estatísticas de Pesquisa:}
+    \begin{itemize}
+        \item \texttt{Map<String, Integer>} - Palavra → Contagem
+        \item Top 10 pesquisas mais frequentes
+    \end{itemize}
+    
+    \item \textbf{Tempo de Resposta:}
+    \begin{itemize}
+        \item \texttt{Map<String, Long>} - Barrel → Tempo total (ns)
+        \item \texttt{Map<String, Long>} - Barrel → Contagem de requests
+        \item Média = Tempo total / Contagem
+    \end{itemize}
+    
+    \item \textbf{Estado de Barrels:}
+    \begin{itemize}
+        \item Lista de Barrels ativos
+        \item Lista de Barrels registados
+        \item Tamanho de índice por Barrel
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Dashboard de Estatísticas}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=1.5cm]
+\node (top10) [component, minimum width=5cm, minimum height=3cm] {Top 10 Searches};
+\node (tempo) [component, right of=top10, xshift=5cm, minimum width=5cm, minimum height=3cm] {Avg Response Time};
+\node (barrels) [component, below of=top10, xshift=2.5cm, minimum width=10cm, minimum height=4cm] {Barrels Status};
+\end{tikzpicture}
+\caption{Layout do dashboard de estatísticas}
+\end{figure}
+
+\subsection{Atualização em Tempo Real}
+
+\subsubsection{Polling do Frontend}
+\begin{lstlisting}[language=JavaScript, caption={Polling a cada 2 segundos}]
+useEffect(() => {
+  const fetchStats = async () => {
+    const stats = await getStatistics();
+    const active = await getActiveBarrels();
+    const registered = await getRegisteredBarrels();
+    setData(stats);
+    // ...
+  };
+  
+  fetchStats(); // Inicial
+  const interval = setInterval(fetchStats, 2000); // 2s
+  return () => clearInterval(interval);
+}, []);
+\end{lstlisting}
+
+\subsubsection{Callbacks RMI (Backend)}
+\begin{lstlisting}[language=Java, caption={Notificação assíncrona}]
+private void notifyStatsUpdateAsync() {
+    for (StatsCallback cb : statsCallbacks) {
+        callbackExecutor.submit(() -> {
+            try {
+                cb.onStatsUpdate(stats.getStatistics());
+            } catch (Exception e) {
+                statsCallbacks.remove(cb); // Auto-cleanup
+            }
+        });
+    }
+}
+\end{lstlisting}
+
+\newpage
+
+% ========================================
+% SECTION 10: CONCLUSÃO
+% ========================================
+\section{Conclusão}
+
+\subsection{Objetivos Alcançados}
+
+O projeto Googol implementou com sucesso:
+\begin{itemize}
+    \item \textbf{Arquitetura distribuída} com múltiplos componentes RMI
+    \item \textbf{Balanceamento de carga} round-robin entre Barrels
+    \item \textbf{Tolerância a falhas} com retry automático e replicação
+    \item \textbf{Índice invertido} distribuído e replicado
+    \item \textbf{Deteção dinâmica de stopwords} com análise estatística
+    \item \textbf{Ranking por PageRank} baseado em inbound links
+    \item \textbf{API REST} moderna com Spring Boot
+    \item \textbf{Frontend responsivo} com animações avançadas e WebGL
+    \item \textbf{Análise contextual com IA} via OpenRouter
+    \item \textbf{Estatísticas em tempo real} com dashboard interativo
+\end{itemize}
+
+\subsection{Destaques Técnicos}
+
+\subsubsection{Backend}
+\begin{itemize}
+    \item Comunicação RMI robusta com failover
+    \item Replicação assíncrona de índice
+    \item Persistência com serialização Java
+    \item Callbacks para notificações em tempo real
+    \item Integração Spring Boot + RMI
+\end{itemize}
+
+\subsubsection{Frontend}
+\begin{itemize}
+    \item WebGL shaders customizados (orbe 3D)
+    \item Animações GSAP com timelines complexas
+    \item Cursor customizado com física de spring
+    \item Cards holográficos 3D
+    \item Sistema de cores adaptativo por rota
+    \item Paginação inteligente com ellipsis
+\end{itemize}
+
+\subsection{Pontos Fortes}
+
+\begin{enumerate}
+    \item \textbf{Escalabilidade:} Arquitetura permite adicionar Barrels dinamicamente
+    \item \textbf{Resiliência:} Sistema continua operacional com falha de componentes
+    \item \textbf{Performance:} Índice distribuído permite pesquisas paralelas
+    \item \textbf{UX excepcional:} Interface moderna com animações fluidas
+    \item \textbf{Inovação:} Deteção automática de stopwords e análise com IA
+\end{enumerate}
+
+\subsection{Possíveis Melhorias Futuras}
+
+\begin{enumerate}
+    \item \textbf{Sharding:} Distribuir índice por hash de palavra (não replicação total)
+    \item \textbf{Caching:} Adicionar camada de cache Redis para queries frequentes
+    \item \textbf{Ranking:} Implementar TF-IDF e algoritmo completo de PageRank
+    \item \textbf{Crawling:} Downloader com rate limiting e robots.txt
+    \item \textbf{Frontend:} Server-side rendering para SEO
+    \item \textbf{Segurança:} Autenticação e rate limiting na API
+    \item \textbf{Monitorização:} Prometheus + Grafana para métricas
+\end{enumerate}
+
+\subsection{Considerações Finais}
+
+O Googol demonstra uma implementação completa e funcional de um motor de busca distribuído, combinando conceitos avançados de sistemas distribuídos (RMI, replicação, balanceamento) com tecnologias web modernas (Spring Boot, React, WebGL). O sistema é robusto, escalável e fornece uma excelente experiência ao utilizador.
+
+A arquitetura modular permite fácil extensão e manutenção, enquanto os mecanismos de failover e replicação garantem alta disponibilidade. A interface moderna com animações WebGL e análise contextual com IA elevam o projeto além de um simples motor de busca académico.
+
+\newpage
+
+% ========================================
+% REFERÊNCIAS
+% ========================================
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+
+\begin{enumerate}
+    \item Oracle. \textit{Java RMI Tutorial}. \url{https://docs.oracle.com/javase/tutorial/rmi/}
+    \item Spring Framework. \textit{Spring Boot Reference Documentation}. \url{https://spring.io/projects/spring-boot}
+    \item Next.js. \textit{Next.js Documentation}. \url{https://nextjs.org/docs}
+    \item React. \textit{React Documentation}. \url{https://react.dev/}
+    \item GSAP. \textit{GreenSock Animation Platform}. \url{https://greensock.com/gsap/}
+    \item OGL. \textit{OGL - Minimal WebGL Library}. \url{https://github.com/oframe/ogl}
+    \item JSoup. \textit{Java HTML Parser}. \url{https://jsoup.org/}
+    \item OpenRouter. \textit{AI Model Routing API}. \url{https://openrouter.ai/}
+\end{enumerate}
+
+\newpage
+
+% ========================================
+% APÊNDICES
+% ========================================
+\appendix
+
+\section{Configuração do Ambiente}
+
+\subsection{Requisitos}
+\begin{itemize}
+    \item Java 21
+    \item Maven 3.8+
+    \item Node.js 18+
+    \item npm 9+
+\end{itemize}
+
+\subsection{Instalação}
+
+\subsubsection{Backend}
+\begin{lstlisting}[language=bash]
+cd backend
+mvn clean install
+\end{lstlisting}
+
+\subsubsection{Frontend}
+\begin{lstlisting}[language=bash]
+cd frontend
+npm install
+\end{lstlisting}
+
+\subsection{Execução}
+
+\subsubsection{Componentes RMI}
+\begin{lstlisting}[language=bash]
+# Gateway
+cd backend
+mvn exec:java -Dexec.mainClass="gateway.Gateway"
+
+# Barrel 1
+mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" \
+  -Dexec.args="barrel1"
+
+# Barrel 2
+mvn exec:java -Dexec.mainClass="barrel.IndexStorageBarrel" \
+  -Dexec.args="barrel2"
+
+# URL Queue
+mvn exec:java -Dexec.mainClass="queue.URLQueue"
+
+# Downloader
+mvn exec:java -Dexec.mainClass="downloader.Downloader"
+\end{lstlisting}
+
+\subsubsection{WebApp (Spring Boot)}
+\begin{lstlisting}[language=bash]
+cd backend
+mvn spring-boot:run
+\end{lstlisting}
+
+\subsubsection{Frontend}
+\begin{lstlisting}[language=bash]
+cd frontend
+npm run dev
+\end{lstlisting}
+
+\subsection{Scripts PowerShell (Windows Terminal)}
+\begin{lstlisting}[language=bash]
+# Backend com multiplos terminais
+.\scripts\runBackendWT.ps1
+
+# Frontend
+.\scripts\runFrontendWT.ps1
+\end{lstlisting}
+
+\section{Estrutura de Ficheiros}
+
+\subsection{Backend}
+\begin{lstlisting}
+backend/
+├── src/main/java/
+│   ├── barrel/
+│   │   ├── IndexStorageBarrel.java
+│   │   ├── BarrelInterface.java
+│   │   ├── BarrelStopWords.java
+│   │   └── BarrelProgress.java
+│   ├── gateway/
+│   │   ├── Gateway.java
+│   │   └── GatewayInterface.java
+│   ├── queue/
+│   │   ├── URLQueue.java
+│   │   └── URLQueueInterface.java
+│   ├── downloader/
+│   │   └── Downloader.java
+│   ├── statistics/
+│   │   ├── Statistics.java
+│   │   ├── StatsCallback.java
+│   │   └── BarrelStateCallback.java
+│   ├── webapp/
+│   │   ├── WebApplication.java
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── dto/
+│   │   └── config/
+│   └── common/
+├── src/main/resources/
+│   ├── Config.properties
+│   └── application.properties
+└── pom.xml
+\end{lstlisting}
+
+\subsection{Frontend}
+\begin{lstlisting}
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── results/page.tsx
+│   │   ├── indexar/page.tsx
+│   │   ├── ligacoes/
+│   │   ├── statistics/page.tsx
+│   │   └── autores/page.tsx
+│   ├── components/
+│   │   ├── AnimatedList/
+│   │   ├── Orb/
+│   │   ├── Cursor/
+│   │   ├── StaggeredMenu/
+│   │   └── ProfileCard/
+│   └── services/
+│       └── api.ts
+├── public/
+├── package.json
+└── tsconfig.json
+\end{lstlisting}
+
+\end{document}

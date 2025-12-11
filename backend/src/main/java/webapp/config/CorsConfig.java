@@ -37,8 +37,10 @@ public class CorsConfig {
         // Permite requisições do frontend React (HTTP e HTTPS)
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:3001");
+        config.addAllowedOrigin("http://localhost:3002");
         config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedOrigin("https://localhost:3001");
+        config.addAllowedOrigin("https://localhost:3002");
         
         // Permite todos os headers
         config.addAllowedHeader("*");

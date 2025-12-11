@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/context-analysis")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "https://localhost:3000", "https://localhost:3001"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://localhost:3000", "https://localhost:3001", "https://localhost:3002"})
 public class ContextAnalysisController {
 
     private final String apiKey;
