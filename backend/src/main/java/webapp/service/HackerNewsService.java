@@ -45,6 +45,9 @@ public class HackerNewsService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     
+    @org.springframework.beans.factory.annotation.Value("${hackernews.index-on-startup:true}")
+    private boolean indexOnStartup;
+    
     /**
      * Construtor com injeção de dependência.
      * 
@@ -60,9 +63,18 @@ public class HackerNewsService {
     /**
      * Executa automaticamente quando a aplicação está pronta.
      * Busca as top 50 histórias do HackerNews e indexa.
+     * Controlado pela propriedade hackernews.index-on-startup no application.properties.
      */
     @EventListener(ApplicationReadyEvent.class)
     public void indexTopStories() {
+        if (!indexOnStartup) {
+            System.out.println("╔════════════════════════════════════════════════╗");
+            System.out.println("║  Indexação do HackerNews desativada            ║");
+            System.out.println("║  (hackernews.index-on-startup=false)           ║");
+            System.out.println("╚════════════════════════════════════════════════╝");
+            return;
+        }
+        
         CompletableFuture.runAsync(() -> {
             try {
                 System.out.println("╔════════════════════════════════════════════════╗");
