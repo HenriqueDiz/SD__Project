@@ -62,8 +62,10 @@ public class StatisticsController {
      * Resposta JSON:
      * {
      *   "topSearches": {"java": 15, "python": 10},
-     *   "averageResponseTime": {"Barrel1:8001": 125000}
+     *   "averageResponseTime": {"Barrel1:8001": 125}
      * }
+     * 
+     * Nota: averageResponseTime está em milissegundos (ms)
      * 
      * @return Estatísticas atuais do sistema ou DTO vazio em caso de erro
      */

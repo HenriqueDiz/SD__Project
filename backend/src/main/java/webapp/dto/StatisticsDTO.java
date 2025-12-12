@@ -17,10 +17,12 @@ import java.util.Map;
  *     "javascript": 8
  *   },
  *   "averageResponseTime": {
- *     "Barrel1:8001": 125000,
- *     "Barrel2:8002": 98000
+ *     "Barrel1:8001": 125,
+ *     "Barrel2:8002": 98
  *   }
  * }
+ * 
+ * Nota: averageResponseTime está em milissegundos (ms)
  * 
  * @author Rodrigo Manão - 2023207589
  * @author Henrique Diz - 2023213681
@@ -36,7 +38,7 @@ public class StatisticsDTO {
     private Map<String, Integer> topSearches = new LinkedHashMap<>();
     
     /**
-     * Mapa do tempo médio de resposta dos barrels (nome:porta -> tempo em nanossegundos).
+     * Mapa do tempo médio de resposta dos barrels (nome:porta -> tempo em milissegundos).
      */
     private Map<String, Long> averageResponseTime = new LinkedHashMap<>();
 
@@ -77,7 +79,7 @@ public class StatisticsDTO {
     /**
      * Obtém o mapa dos tempos médios de resposta dos barrels.
      * 
-     * @return Mapa de barrels e seus tempos médios (em nanossegundos)
+     * @return Mapa de barrels e seus tempos médios (em milissegundos)
      */
     public Map<String, Long> getAverageResponseTime() {
         return averageResponseTime;

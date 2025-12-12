@@ -289,13 +289,13 @@ export default function StatisticsPage() {
               <p style={{ opacity: 0.7 }}>Sem tempos registados.</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: 20 }}>
-                {avgList.map(([barrel, time]) => {
-                  const timeValue = Number(time); // Já está em décimas de segundo
+                {avgList.map(([barrel, nanos]) => {
+                  const ms = Number(nanos) / 1_000_000;
                   const barrelName = barrel.split(':')[0]; // Só o nome antes dos ':'
                   return (
                     <li key={barrel} style={{ marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, color: '#ff3333', fontSize: '0.95rem' }}>{barrelName}</span>
-                      <span style={textMuted}>{timeValue.toFixed(1)} ds</span>
+                      <span style={textMuted}>{ms.toFixed(2)} ms</span>
                     </li>
                   );
                 })}
@@ -328,4 +328,3 @@ export default function StatisticsPage() {
     </main>
   );
 }
-
