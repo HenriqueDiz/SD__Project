@@ -140,8 +140,8 @@ O Googol é um motor de busca distribuído que implementa uma arquitetura escal�
 \begin{itemize}
     \item \textbf{Backend:} Java 21, Spring Boot 3.2.0, Java RMI, JSoup
     \item \textbf{Frontend:} React 19, Next.js 16, TypeScript, Framer Motion, GSAP, WebGL (OGL)
-    \item \textbf{Comunicação:} RMI Registry, REST API (HTTP/JSON)
-    \item \textbf{IA:} OpenRouter API (integração com modelos de linguagem)
+    \item \textbf{Comunicação:} RMI Registry, REST API (HTTPS/JSON), SSE
+    \item \textbf{IA:} Google Gemini API (via HttpURLConnection)
 \end{itemize}
 
 \newpage
@@ -172,21 +172,21 @@ O Googol é um motor de busca distribuído que implementa uma arquitetura escal�
 \node (barrel3) [barrel, below right of=gateway, xshift=3cm, yshift=-1cm] {Barrel 3\\Port 8185};
 
 % Queue
-\node (queue) [component, below of=barrel2, yshift=-1.5cm] {URL Queue\\Port 8181};
+\node (queue) [component, below of=gateway, yshift=-1.5cm] {URL Queue\\Port 8181};
 
 % Downloader
 \node (downloader) [service, below of=queue, yshift=-0.5cm] {Downloader(s)};
 
 % Arrows
-\draw [arrow] (frontend) -- node[anchor=west] {HTTP/JSON} (webapp);
+\draw [arrow] (frontend) -- node[anchor=west] {HTTPS/JSON} (webapp);
 \draw [arrow] (webapp) -- node[anchor=west] {RMI} (gateway);
 \draw [arrow] (gateway) -- (barrel1);
 \draw [arrow] (gateway) -- (barrel2);
 \draw [arrow] (gateway) -- (barrel3);
-\draw [arrow] (barrel1) -- (queue);
-\draw [arrow] (barrel2) -- (queue);
-\draw [arrow] (barrel3) -- (queue);
+% Queue connections corrected
+\draw [arrow] (gateway) -- (queue);
 \draw [arrow] (queue) -- (downloader);
+% Downloader indexes into barrels
 \draw [arrow, bend left=60] (downloader) to node[anchor=west] {Index} (barrel1);
 \draw [arrow] (downloader) -- (barrel2);
 \draw [arrow, bend right=60] (downloader) to (barrel3);
@@ -200,7 +200,7 @@ O Googol é um motor de busca distribuído que implementa uma arquitetura escal�
 
 \begin{enumerate}
     \item \textbf{Frontend:} Interface web em React/Next.js
-    \item \textbf{WebApp:} API REST em Spring Boot (porta 8080)
+    \item \textbf{WebApp:} API REST em Spring Boot (HTTPS, porta 8443)
     \item \textbf{Gateway:} Coordenador central RMI (porta 8183)
     \item \textbf{Barrels:} Servidores de índice invertido (portas 8182, 8184, 8185)
     \item \textbf{URL Queue:} Fila de URLs a indexar (porta 8181)
@@ -544,35 +544,24 @@ public class SearchResultDTO {
 }
 \end{lstlisting}
 
-\subsection{Configuração UTF-8}
+\subsection{Segurança e SSL}
+ 
+O WebApp expõe HTTPS na porta 8443, usando um keystore PKCS12 embebido no classpath, protegendo todas as rotas \texttt{/api/**} durante o desenvolvimento.
+ 
+\begin{lstlisting}[caption={application.properties - SSL}]
+# Web Server info
+server.port=8443
+server.servlet.context-path=/
 
-Para garantir codificação correta de caracteres especiais (acentos, cedilhas):
-
-\begin{lstlisting}[caption={application.properties}]
-# UTF-8 Encoding
-spring.http.encoding.charset=UTF-8
-spring.http.encoding.enabled=true
-spring.http.encoding.force=true
-spring.http.encoding.force-request=true
-spring.http.encoding.force-response=true
-
-# JSON Encoding
-spring.jackson.charset=UTF-8
+# SSL Configuration (Spring Boot)
+server.ssl.enabled=true
+server.ssl.key-store=classpath:keystore.p12
+server.ssl.key-store-type=PKCS12
+server.ssl.key-store-password=dev-ssl-password
+server.ssl.key-password=dev-ssl-password
+server.ssl.key-alias=tomcat
 \end{lstlisting}
 
-\begin{lstlisting}[language=Java, caption={EncodingConfig.java}]
-@Configuration
-public class EncodingConfig implements WebMvcConfigurer {
-    @Override
-    public void configureMessageConverters(
-        List<HttpMessageConverter<?>> converters) {
-        StringHttpMessageConverter stringConverter = 
-            new StringHttpMessageConverter(StandardCharsets.UTF_8);
-        stringConverter.setWriteAcceptCharset(false);
-        converters.add(0, stringConverter);
-    }
-}
-\end{lstlisting}
 
 \subsection{Integração RMI via Spring}
 
@@ -593,7 +582,7 @@ public class RMIConfig {
 
 \subsection{Análise Contextual com IA}
 
-O sistema integra com OpenRouter API para análise contextual:
+O sistema integra com a Google Gemini API para análise contextual (chamada direta por HttpURLConnection; chave lida de variáveis de ambiente ou do ficheiro Config.properties):
 
 \begin{lstlisting}[language=Java, caption={ContextAnalysisController.java}]
 @PostMapping("/context-analysis")
@@ -750,11 +739,11 @@ Estatísticas & \texttt{\#ff3333} (Vermelho) & \texttt{\#cc0000} (Verm. Escuro) 
 
 \subsubsection{Estatísticas em Tempo Real}
 \begin{itemize}
-    \item Polling a cada 2 segundos
-    \item Top 10 pesquisas mais frequentes
-    \item Tempo médio de resposta por Barrel
-    \item Estado de Barrels (ativos/registados)
-    \item Dashboard responsivo
+    \item SSE via EventSource (sem polling)
+    \item Eventos: ``stats'', ``barrels-active'', ``barrels-registered''
+    \item Snapshot inicial via REST e reconciliação por eventos
+    \item Tempo médio de resposta e Top 10 pesquisas
+    \item Lista unificada de Barrels (ativos/registados)
 \end{itemize}
 
 \subsubsection{Paginação Inteligente}
@@ -837,7 +826,7 @@ Uso:
     \item Callbacks mortos removidos automaticamente em erro
 \end{enumerate}
 
-\subsection{REST API (HTTP/JSON)}
+\subsection{REST API (HTTPS/JSON)}
 
 \subsubsection{Exemplo de Request/Response}
 
@@ -875,8 +864,15 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+        // HTTP
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:3001");
+        config.addAllowedOrigin("http://localhost:3002");
+        // HTTPS
+        config.addAllowedOrigin("https://localhost:3000");
+        config.addAllowedOrigin("https://localhost:3001");
+        config.addAllowedOrigin("https://localhost:3002");
+        // Headers/Methods
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         
@@ -1080,20 +1076,16 @@ private void retransmitStopwords() {
 
 \subsection{Atualização em Tempo Real}
 
-\subsubsection{Polling do Frontend}
-\begin{lstlisting}[language=JavaScript, caption={Polling a cada 2 segundos}]
+\subsubsection{SSE no Frontend}
+\begin{lstlisting}[language=JavaScript, caption={Assinatura SSE com EventSource}]
+// Subscribe at mount, cleanup at unmount
 useEffect(() => {
-  const fetchStats = async () => {
-    const stats = await getStatistics();
-    const active = await getActiveBarrels();
-    const registered = await getRegisteredBarrels();
-    setData(stats);
-    // ...
-  };
-  
-  fetchStats(); // Inicial
-  const interval = setInterval(fetchStats, 2000); // 2s
-  return () => clearInterval(interval);
+  const unsubscribe = subscribeStatistics(
+    (stats) => setStats(stats),
+    (active) => setActiveBarrels(active),
+    (registered) => setRegisteredBarrels(registered)
+  );
+  return () => unsubscribe();
 }, []);
 \end{lstlisting}
 
@@ -1115,7 +1107,118 @@ private void notifyStatsUpdateAsync() {
 \newpage
 
 % ========================================
-% SECTION 10: CONCLUSÃO
+% SECTION 10: PÁGINAS DA APLICAÇÃO
+% ========================================
+\section{Páginas da Aplicação}
+
+\subsection{Home (/)}
+A página inicial fornece a entrada para o fluxo de pesquisa. O componente \texttt{SearchBar} valida a query, persiste o termo na \textit{query string} e redireciona para \texttt{/results?page=0}. Elementos visuais como \texttt{Header}, \texttt{Orb} (WebGL) e \texttt{StaggeredMenu} compõem a identidade visual sem impactar o caminho crítico de interação.
+
+\subsection{Resultados (/results)}
+Carrega resultados via \texttt{GET /api/search?q=...\&page=N}. O algoritmo de paginação é estável e sincronizado com a URL, mantendo scroll suave e preservando o estado entre navegações. Os itens são exibidos por \texttt{AnimatedList} (navegação por teclado e foco visível). A análise contextual (\texttt{AIDropdown}) agrega um sumário da query alimentado por \texttt{/api/context-analysis}, com cache leve em memória por query para evitar recomputações e chamadas redundantes. Cada entrada mostra \texttt{title}, \texttt{description} (derivado de \texttt{PageInfo}) e \texttt{references} (soma de inbound links agregada no Gateway).
+
+\subsection{Ligações (/ligacoes e /ligacoes/results)}
+A página de entrada valida o URL (formato canónico, protocolo obrigatório) e redireciona para \texttt{/ligacoes/results?url=...\&page=0}. A página de resultados invoca \texttt{GET /api/connections?url=...\&page=N}, com paginação local consistente com o backend. É aplicado o mesmo esqueleto de \texttt{AnimatedList} para coerência de UX.
+
+\subsection{Indexar (/indexar)}
+Submete \texttt{POST /api/barrels/add-url} com \texttt{url} e, em caso de URL previamente visto, o backend devolve \texttt{alreadyIndexed=true}. O UI apresenta um modal de confirmação para \textit{reindex} com \texttt{indexAnyway=true}. Inclui ainda a indexação opcional de HackerNews via \texttt{POST /api/hackernews/index-top50}, refletindo um conector externo simples.
+
+\subsection{Estatísticas (/statistics)}
+Faz \textit{bootstrap} do estado com \texttt{GET /api/statistics} e inicia a subscrição SSE em \texttt{/api/statistics/stream}. Os eventos nomeados "\texttt{stats}", "\texttt{barrels-active}" e "\texttt{barrels-registered}" atualizam o estado reativo. O layout apresenta Top 10 pesquisas, tempos médios por Barrel (ns) e uma lista unificada de Barrels com extração \texttt{name:port:host:indexSize} e estado (ativo/registado), coerente com os snapshots fornecidos pelo Gateway.
+
+\subsection{Autores (/autores)}
+Página estática responsiva com \texttt{ProfileCard} e efeitos gráficos, servindo como identificação da equipa e ponte para contactos.
+
+\newpage
+
+% ========================================
+% SECTION 11: INTEGRAÇÕES
+% ========================================
+\section{Integrações}
+
+\subsection{Spring Boot + RPC/RMI}
+A camada WebApp (Spring Boot) atua como \textit{BFF} (Backend for Frontend) exposta em HTTPS (porta 8443), traduzindo requisições REST para invocações RMI no \texttt{GatewayInterface}. A composição de respostas aplica DTOs, enriquece resultados com \texttt{PageInfo} e isola falhas RMI com tratamento de exceções e \textit{timeouts}.
+
+\subsection{REST WebServices}
+A API pública expõe endpoints REST JSON sob \texttt{/api}, com CORS configurado para origens \texttt{localhost:3000-3002} em HTTP e HTTPS. SSL encontra-se ativo por \texttt{keystore.p12} (PKCS12) no classpath, garantindo confidencialidade ponto-a-ponto em desenvolvimento.
+
+\subsection{SSE e plano de WebSockets}
+As atualizações em tempo real adotam SSE (\texttt{SseEmitter}) por simplicidade e alinhamento com o padrão de emissor único (servidor→cliente). Caso seja requerido canal bidirecional (notificações cliente→servidor), o plano de evolução consiste em habilitar WebSockets (STOMP/SockJS) no Spring e publicar os mesmos tópicos "\texttt{stats}", "\texttt{barrels-active}", "\texttt{barrels-registered}", mantendo a mesma semântica de mensagens.
+
+\subsection{Integração opcional com FastAPI}
+Como alternativa/\textit{gateway} paralelo, uma aplicação FastAPI pode expor endpoints equivalentes e consumir o WebApp via REST ou comunicar com o ecossistema Java por uma ponte (p.ex., gRPC/HTTP para um adaptador Spring). O desenho preserva RMI para tráfego intra-JVM e usa FastAPI apenas como \textit{edge} HTTP para casos específicos (p.ex., \textit{prototyping} de features de AI), mantendo coerência de contratos JSON.
+
+\newpage
+
+% ========================================
+% SECTION 12: TESTES DE SOFTWARE
+% ========================================
+\section{Testes de Software}
+
+\subsection{Tabela de testes e resultados}
+\begin{longtable}{|p{1.5cm}|p{4.2cm}|p{5.3cm}|p{2.2cm}|}
+\hline
+\textbf{ID} & \textbf{Caso} & \textbf{Descrição} & \textbf{Resultado} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Caso} & \textbf{Descrição} & \textbf{Resultado} \\
+\hline
+\endhead
+\hline
+\endfoot
+T1 & GET /api/health & API UP, Gateway ligado/desligado refletido no JSON & Passou \\
+\hline
+T2 & GET /api/search & \texttt{totalResults} coerente com \texttt{results} e paginação & Passou \\
+\hline
+T3 & POST /api/search & Corpo JSON com múltiplas palavras, interseção correta & Passou \\
+\hline
+T4 & POST /api/barrels/add-url & URL novo retorna \texttt{success=true} & Passou \\
+\hline
+T5 & Reindex & URL já indexado retorna \texttt{alreadyIndexed} e aceita \texttt{indexAnyway=true} & Passou \\
+\hline
+T6 & GET /api/connections & Backlinks paginados, \texttt{totalPages} consistente & Passou \\
+\hline
+T7 & GET /api/statistics & Snapshot com Top 10 e médias por Barrel & Passou \\
+\hline
+T8 & SSE /api/statistics/stream & Eventos \texttt{stats}, \texttt{barrels-active}, \texttt{barrels-registered} & Passou \\
+\hline
+T9 & CORS & Origens http/https localhost:3000-3002 permitidas & Passou \\
+\hline
+T10 & SSL & Handshake válido com \texttt{https://localhost:8443} & Passou \\
+\hline
+T11 & Failover RMI & Queda de um Barrel não interrompe pesquisa (retry/round-robin) & Passou \\
+\hline
+T12 & /api/context-analysis & Responde com análise quando chave Gemini ativa; erro tratável sem chave & Passou \\
+\hline
+T13 & HackerNews & \texttt{/hackernews/index-top50} indexa itens e responde com contagem & Passou \\
+\hline
+\caption{Casos de teste funcionais com resultado observado}
+\end{longtable}
+
+\subsection{Cobertura de cenários}
+Os testes cobrem o \textit{happy path} e condições de falha expectáveis (CORS, ausência de chave de IA, desconexão de Barrels). A validação de consistência de paginação e de interseção multi-palavra assegura a correção do algoritmo de ranking por referências agregadas.
+
+\newpage
+
+% ========================================
+% SECTION 13: DISTRIBUIÇÃO DE TAREFAS
+% ========================================
+\section{Distribuição de Tarefas}
+
+\textbf{Henrique Diz} — Liderança de frontend: arquitetura Next.js, componentes avançados (\texttt{AnimatedList}, \texttt{Orb}, \texttt{StaggeredMenu}), acessibilidade e integração SSE com \texttt{/statistics/stream}. Responsável pela página de Resultados e \textit{UX} geral.
+
+\textbf{Rodrigo Manão} — Núcleo backend distribuído: \texttt{Gateway}, \texttt{IndexStorageBarrel}, \texttt{URLQueue} e \texttt{Downloader}. Implementação de replicação, stopwords dinâmicas (IQR), failover e estatísticas. Hardening de serialização e recuperação de estado.
+
+\textbf{João Francisco} — WebApp Spring Boot: controllers REST, DTOs, \texttt{GatewayServiceClient}, CORS/SSL, SSE (\texttt{SseEmitter}) e integração de IA (Google Gemini). Automatização com scripts e endpoints de suporte (health/info/HackerNews).
+
+\vspace{0.2cm}
+A colaboração incluiu revisões cruzadas, testes integrados ponta-a-ponta e documentação técnica deste relatório.
+
+\newpage
+
+% ========================================
+% SECTION 14: CONCLUSÃO
 % ========================================
 \section{Conclusão}
 
@@ -1131,7 +1234,7 @@ O projeto Googol implementou com sucesso:
     \item \textbf{Ranking por PageRank} baseado em inbound links
     \item \textbf{API REST} moderna com Spring Boot
     \item \textbf{Frontend responsivo} com animações avançadas e WebGL
-    \item \textbf{Análise contextual com IA} via OpenRouter
+    \item \textbf{Análise contextual com IA} via Google Gemini
     \item \textbf{Estatísticas em tempo real} com dashboard interativo
 \end{itemize}
 
@@ -1186,24 +1289,7 @@ A arquitetura modular permite fácil extensão e manutenção, enquanto os mecan
 
 \newpage
 
-% ========================================
-% REFERÊNCIAS
-% ========================================
-\section*{Referências}
-\addcontentsline{toc}{section}{Referências}
 
-\begin{enumerate}
-    \item Oracle. \textit{Java RMI Tutorial}. \url{https://docs.oracle.com/javase/tutorial/rmi/}
-    \item Spring Framework. \textit{Spring Boot Reference Documentation}. \url{https://spring.io/projects/spring-boot}
-    \item Next.js. \textit{Next.js Documentation}. \url{https://nextjs.org/docs}
-    \item React. \textit{React Documentation}. \url{https://react.dev/}
-    \item GSAP. \textit{GreenSock Animation Platform}. \url{https://greensock.com/gsap/}
-    \item OGL. \textit{OGL - Minimal WebGL Library}. \url{https://github.com/oframe/ogl}
-    \item JSoup. \textit{Java HTML Parser}. \url{https://jsoup.org/}
-    \item OpenRouter. \textit{AI Model Routing API}. \url{https://openrouter.ai/}
-\end{enumerate}
-
-\newpage
 
 % ========================================
 % APÊNDICES
@@ -1285,58 +1371,77 @@ npm run dev
 backend/
 ├── src/main/java/
 │   ├── barrel/
-│   │   ├── IndexStorageBarrel.java
-│   │   ├── BarrelInterface.java
-│   │   ├── BarrelStopWords.java
-│   │   └── BarrelProgress.java
-│   ├── gateway/
-│   │   ├── Gateway.java
-│   │   └── GatewayInterface.java
-│   ├── queue/
-│   │   ├── URLQueue.java
-│   │   └── URLQueueInterface.java
+│   ├── client/
+│   ├── common/
 │   ├── downloader/
-│   │   └── Downloader.java
+│   ├── gateway/
+│   ├── queue/
 │   ├── statistics/
-│   │   ├── Statistics.java
-│   │   ├── StatsCallback.java
-│   │   └── BarrelStateCallback.java
-│   ├── webapp/
-│   │   ├── WebApplication.java
-│   │   ├── controller/
-│   │   ├── service/
-│   │   ├── dto/
-│   │   └── config/
-│   └── common/
+│   └── webapp/
+│       ├── WebApplication.java
+│       ├── controller/
+│       ├── service/
+│       ├── dto/
+│       └── config/
 ├── src/main/resources/
+│   ├── application.properties
 │   ├── Config.properties
-│   └── application.properties
+│   └── keystore.p12
+├── files/
+│   └── Log_Exceptions.txt
+├── barrel1_progress.dat
+├── barrel2_progress.dat
+├── makefile
 └── pom.xml
 \end{lstlisting}
 
 \subsection{Frontend}
 \begin{lstlisting}
 frontend/
+├── certificates/
+│   ├── localhost-key.pem
+│   └── localhost.pem
+├── certs/
+│   ├── cert.pem
+│   └── key.pem
+├── public/
+│   ├── Henrique.jpg
+│   ├── Joao.jpg
+│   └── Rodrigo.jpg
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── results/page.tsx
+│   │   ├── autores/page.tsx
 │   │   ├── indexar/page.tsx
 │   │   ├── ligacoes/
+│   │   │   ├── page.tsx
+│   │   │   └── results/page.tsx
+│   │   ├── results/page.tsx
 │   │   ├── statistics/page.tsx
-│   │   └── autores/page.tsx
+│   │   ├── layout.tsx
+│   │   └── page.tsx
 │   ├── components/
+│   │   ├── AIDropdown/
 │   │   ├── AnimatedList/
-│   │   ├── Orb/
+│   │   ├── ApiStatus/
 │   │   ├── Cursor/
-│   │   ├── StaggeredMenu/
-│   │   └── ProfileCard/
+│   │   ├── GradientText/
+│   │   ├── Header/
+│   │   ├── Loader/
+│   │   ├── Modal/
+│   │   ├── Noise/
+│   │   ├── Orb/
+│   │   ├── ProfileCard/
+│   │   ├── SearchBar/
+│   │   └── StaggeredMenu/
 │   └── services/
 │       └── api.ts
-├── public/
+├── .env.local
+├── next.config.js
 ├── package.json
-└── tsconfig.json
+├── package-lock.json
+├── server.js
+├── tsconfig.json
+└── .gitignore
 \end{lstlisting}
 
 \end{document}
