@@ -378,6 +378,7 @@ export default function LigacoesResultsPage() {
             onItemSelect={handleItemSelect}
             showGradients={true}
             enableArrowNavigation={true}
+            compactMode={true}
           />
         )}
         </div>

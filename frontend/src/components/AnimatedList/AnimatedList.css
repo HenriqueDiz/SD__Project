@@ -107,6 +107,11 @@
   box-sizing: border-box;
 }
 
+/* Modo compacto - sem padding superior (para páginas sem AI Dropdown) */
+.animated-list.compact {
+  padding: 8px;
+}
+
 .animated-list-item {
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);

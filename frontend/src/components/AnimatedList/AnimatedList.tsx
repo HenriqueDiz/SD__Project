@@ -27,6 +27,7 @@ interface AnimatedListProps {
   showAIDropdown?: boolean;
   query?: string;
   onAnalysisFetch?: (query: string, citations: string) => Promise<string>;
+  compactMode?: boolean; // Remove top padding when true
 }
 
 const AnimatedList: React.FC<AnimatedListProps> = ({
@@ -42,6 +43,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   showAIDropdown = false,
   query = '',
   onAnalysisFetch,
+  compactMode = false,
 }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(initialSelectedIndex);
@@ -136,7 +138,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="animated-list"
+          className={`animated-list ${compactMode ? 'compact' : ''}`}
         >
           {items.map((item, index) => {
             const isSelected = selectedIndex === index;
