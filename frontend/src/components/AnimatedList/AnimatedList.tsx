@@ -73,9 +73,8 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
       } else if (e.key === 'Enter') {
         if (selectedIndex >= 0 && selectedIndex < items.length) {
           e.preventDefault();
-          // Toggle open state on Enter
+          // Toggle open state on Enter (não abre o site)
           setOpenIndex(prev => prev === selectedIndex ? -1 : selectedIndex);
-          if (onItemSelect) onItemSelect(items[selectedIndex], selectedIndex);
         }
       }
     };
