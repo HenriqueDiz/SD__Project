@@ -18,7 +18,6 @@ export default function IndexarURL() {
   const [showModal, setShowModal] = useState(false);
   const [pendingUrl, setPendingUrl] = useState('');
   const [isIndexingHN, setIsIndexingHN] = useState(false);
-  const [hnProgress, setHnProgress] = useState<{ indexed: number; total: number } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,29 +104,23 @@ export default function IndexarURL() {
 
   const handleIndexHackerNews = async () => {
     setIsIndexingHN(true);
-    setHnProgress({ indexed: 0, total: 50 });
     setMessage(null);
 
     try {
-      const result = await indexHackerNewsTop50((indexed, total) => {
-        setHnProgress({ indexed, total });
-      });
+      const result = await indexHackerNewsTop50();
       
       setMessage({ 
         type: 'success', 
-        text: `HackerNews indexado! ${result.indexed} URLs adicionados com sucesso${result.failed > 0 ? `, ${result.failed} falharam` : ''}.` 
+        text: `HackerNews reindexado! ${result.indexed} URLs adicionados com sucesso.` 
       });
-      
-      setHnProgress(null);
       
       // Clear success message after 5 seconds
       setTimeout(() => setMessage(null), 5000);
     } catch (error: any) {
       setMessage({ 
         type: 'error', 
-        text: error.message || 'Erro ao indexar HackerNews' 
+        text: error.message || 'Erro ao reindexar HackerNews' 
       });
-      setHnProgress(null);
     } finally {
       setIsIndexingHN(false);
     }
@@ -425,7 +418,7 @@ export default function IndexarURL() {
                   borderRadius: '50%',
                   animation: 'spin 0.8s linear infinite',
                 }} />
-                <span>Indexando HackerNews...</span>
+                <span>Reindexando HackerNews...</span>
                 <style jsx>{`
                   @keyframes spin {
                     0% { transform: rotate(0deg); }
@@ -440,56 +433,12 @@ export default function IndexarURL() {
                   <path d="M8 7 L12 12 L12 17" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                   <path d="M16 7 L12 12" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 </svg>
-                <span>Indexar Top 50 HackerNews</span>
+                <span>Reindexar Top 50 HackerNews</span>
               </>
             )}
           </button>
 
-          {/* Progress indicator */}
-          {hnProgress && (
-            <div style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              background: 'rgba(157, 0, 255, 0.1)',
-              border: '1px solid rgba(157, 0, 255, 0.3)',
-              borderRadius: '12px',
-            }}>
-              <div style={{
-                fontSize: '0.85rem',
-                color: 'rgba(255, 255, 255, 0.8)',
-                textAlign: 'center',
-                marginBottom: '0.5rem',
-              }}>
-                Indexando: {hnProgress.indexed} / {hnProgress.total}
-              </div>
-              
-              {/* Progress bar */}
-              <div style={{
-                width: '100%',
-                height: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '4px',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  width: `${(hnProgress.indexed / hnProgress.total) * 100}%`,
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #9d00ff, #ff6b9d)',
-                  transition: 'width 0.3s ease',
-                  borderRadius: '4px',
-                }} />
-              </div>
-              
-              <div style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.6)',
-                textAlign: 'center',
-                marginTop: '0.5rem',
-              }}>
-                {Math.round((hnProgress.indexed / hnProgress.total) * 100)}% completo
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
 

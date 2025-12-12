@@ -1,12 +1,5 @@
 package webapp.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -14,6 +7,14 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Serviço para buscar e indexar as top 50 histórias do HackerNews.
@@ -71,36 +72,49 @@ public class HackerNewsService {
                 // Dar tempo para o sistema inicializar completamente
                 Thread.sleep(5000);
                 
-                List<Long> topStoryIds = fetchTopStoryIds();
-                System.out.println("Obtidos " + topStoryIds.size() + " story IDs do HackerNews");
-                
-                // Indexar apenas as TOP 50 stories do HackerNews
-                int indexed = 0;
-                for (Long storyId : topStoryIds) {
-                    try {
-                        // Indexar o link da story no HackerNews (news.ycombinator.com)
-                        String hnStoryUrl = String.format(HN_ITEM_PAGE_URL, storyId);
-                        gatewayClient.addURL(hnStoryUrl, false);
-                        indexed++;
-                        System.out.println("✓ HackerNews story indexado (" + indexed + "/" + topStoryIds.size() + "): " + hnStoryUrl);
-                        
-                        // Rate limiting - não sobrecarregar o sistema
-                        Thread.sleep(100);
-                    } catch (Exception e) {
-                        System.err.println("Erro ao indexar story " + storyId + ": " + e.getMessage());
-                    }
-                }
-                
-                System.out.println("╔════════════════════════════════════════════════╗");
-                System.out.println("║  Indexação do HackerNews concluída!            ║");
-                System.out.println("║  Total indexado: " + indexed + " URLs                       ║");
-                System.out.println("╚════════════════════════════════════════════════╝");
+                indexTopStoriesSync();
                 
             } catch (Exception e) {
                 System.err.println("Erro na indexação do HackerNews: " + e.getMessage());
                 e.printStackTrace();
             }
         });
+    }
+    
+    /**
+     * Indexa as top 50 histórias do HackerNews de forma síncrona.
+     * Este método pode ser chamado tanto na inicialização quanto via API REST.
+     * 
+     * @return Número de URLs indexados com sucesso
+     * @throws Exception Se houver erro na indexação
+     */
+    public int indexTopStoriesSync() throws Exception {
+        List<Long> topStoryIds = fetchTopStoryIds();
+        System.out.println("Obtidos " + topStoryIds.size() + " story IDs do HackerNews");
+        
+        // Indexar apenas as TOP 50 stories do HackerNews
+        int indexed = 0;
+        for (Long storyId : topStoryIds) {
+            try {
+                // Indexar o link da story no HackerNews (news.ycombinator.com)
+                String hnStoryUrl = String.format(HN_ITEM_PAGE_URL, storyId);
+                gatewayClient.addURL(hnStoryUrl, false);
+                indexed++;
+                System.out.println("HackerNews story indexado (" + indexed + "/" + topStoryIds.size() + "): " + hnStoryUrl);
+                
+                // Rate limiting - não sobrecarregar o sistema
+                Thread.sleep(100);
+            } catch (Exception e) {
+                System.err.println("Erro ao indexar story " + storyId + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("╔════════════════════════════════════════════════╗");
+        System.out.println("║  Indexação do HackerNews concluída!            ║");
+        System.out.println("║  Total indexado: " + indexed + " URLs                       ║");
+        System.out.println("╚════════════════════════════════════════════════╝");
+        
+        return indexed;
     }
     
     /**
