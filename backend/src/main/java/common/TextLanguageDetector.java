@@ -16,6 +16,13 @@ import org.apache.tika.language.detect.LanguageResult;
  */
 public class TextLanguageDetector {
     
+    /**
+     * Construtor privado para classe utilitária.
+     */
+    private TextLanguageDetector() {
+        // Construtor privado - classe utilitária com métodos estáticos
+    }
+    
     private static LanguageDetector detector;
     
     static {

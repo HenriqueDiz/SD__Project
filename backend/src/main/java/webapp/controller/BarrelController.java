@@ -30,6 +30,11 @@ public class BarrelController {
     
     private final GatewayServiceClient gatewayClient;
     
+    /**
+     * Construtor com injeção de dependência.
+     * 
+     * @param gatewayClient Cliente do serviço Gateway para comunicação RMI
+     */
     @Autowired
     public BarrelController(GatewayServiceClient gatewayClient) {
         this.gatewayClient = gatewayClient;
@@ -37,10 +42,11 @@ public class BarrelController {
     
     /**
      * Obtém lista de barrels ativos.
-     * 
+     *
      * GET http://localhost:8080/api/barrels/active
-     * 
+     *
      * Resposta JSON:
+     * <pre>
      * {
      *   "barrels": [
      *     "Barrel1:8001:localhost:1500",
@@ -48,6 +54,9 @@ public class BarrelController {
      *   ],
      *   "count": 2
      * }
+     * </pre>
+     * 
+     * @return ResponseEntity com lista de barrels ativos e contador
      */
     @GetMapping("/active")
     public ResponseEntity<Map<String, Object>> getActiveBarrels() {
@@ -70,8 +79,10 @@ public class BarrelController {
     
     /**
      * Obtém lista de barrels registrados (histórico).
-     * 
+     *
      * GET http://localhost:8080/api/barrels/registered
+     * 
+     * @return ResponseEntity com lista de barrels registrados e contador
      */
     @GetMapping("/registered")
     public ResponseEntity<Map<String, Object>> getRegisteredBarrels() {
@@ -94,20 +105,28 @@ public class BarrelController {
     
     /**
      * Adiciona uma URL para indexação.
-     * 
+     *
      * POST http://localhost:8080/api/barrels/add-url
+     *
      * Body JSON:
+     * <pre>
      * {
      *   "url": "https://example.com",
      *   "indexAnyway": false
      * }
-     * 
+     * </pre>
+     *
      * Resposta:
+     * <pre>
      * {
      *   "success": true,
      *   "alreadyIndexed": false,
      *   "message": "URL adicionada à fila"
      * }
+     * </pre>
+     * 
+     * @param request Mapa com "url" e opcionalmente "indexAnyway"
+     * @return ResponseEntity com resultado da operação
      */
     @PostMapping("/add-url")
     public ResponseEntity<Map<String, Object>> addURL(@RequestBody Map<String, Object> request) {

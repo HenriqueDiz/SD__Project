@@ -11,8 +11,8 @@ import common.ConfigReader;
 
 /**
  * Configuração do cliente RMI para conexão com o Gateway.
- * 
- * @Configuration indica que esta classe contém beans de configuração.
+ *
+ * A anotação {@code @Configuration} indica que esta classe contém beans de configuração.
  * Beans são objetos gerenciados pelo Spring que podem ser injetados em outros componentes.
  * 
  * @author Rodrigo Manão - 2023207589
@@ -23,6 +23,13 @@ import common.ConfigReader;
  */
 @Configuration
 public class RMIConfig {
+    
+    /**
+     * Construtor padrão.
+     */
+    public RMIConfig() {
+        // Construtor vazio - Spring gerencia a instanciação
+    }
     
     /**
      * Host do Gateway RMI
@@ -41,9 +48,9 @@ public class RMIConfig {
     
     /**
      * Cria um bean do tipo GatewayInterface conectando ao servidor RMI.
-     * 
+     *
      * Este bean é criado UMA VEZ na inicialização e reutilizado em todas as requisições.
-     * Spring injeta automaticamente onde for necessário via @Autowired.
+     * Spring injeta automaticamente onde for necessário via {@code @Autowired}.
      * 
      * @return Referência remota ao Gateway RMI
      * @throws Exception Se não conseguir conectar ao Gateway

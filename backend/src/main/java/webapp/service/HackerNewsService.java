@@ -44,6 +44,11 @@ public class HackerNewsService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     
+    /**
+     * Construtor com injeção de dependência.
+     * 
+     * @param gatewayClient Cliente do serviço Gateway para comunicação RMI
+     */
     @Autowired
     public HackerNewsService(GatewayServiceClient gatewayClient) {
         this.gatewayClient = gatewayClient;

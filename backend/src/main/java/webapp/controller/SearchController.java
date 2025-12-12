@@ -13,15 +13,17 @@ import java.util.List;
 
 /**
  * REST Controller para operações de busca.
- * 
- * @RestController combina @Controller + @ResponseBody
- * Todos os métodos retornam JSON automaticamente
- * 
- * @RequestMapping("/api/search") define o prefixo /api/search para todas as rotas
- * 
+ *
+ * A anotação {@code @RestController} combina {@code @Controller} + {@code @ResponseBody}.
+ * Todos os métodos retornam JSON automaticamente.
+ *
+ * A anotação {@code @RequestMapping("/api/search")} define o prefixo /api/search para todas as rotas.
+ *
  * Endpoints:
- * - GET  /api/search?q=java&page=0&pageSize=10  -> Buscar
- * - POST /api/search                             -> Buscar (com JSON no body)
+ * <ul>
+ * <li>GET  /api/search?q=java&amp;page=0&amp;pageSize=10  -&gt; Buscar</li>
+ * <li>POST /api/search                             -&gt; Buscar (com JSON no body)</li>
+ * </ul>
  * 
  * @author Rodrigo Manão - 2023207589
  * @author Henrique Diz - 2023213681
@@ -36,6 +38,11 @@ public class SearchController {
     
     private final GatewayServiceClient gatewayClient;
     
+    /**
+     * Construtor com injeção de dependência.
+     * 
+     * @param gatewayClient Cliente do serviço Gateway para comunicação RMI
+     */
     @Autowired
     public SearchController(GatewayServiceClient gatewayClient) {
         this.gatewayClient = gatewayClient;
@@ -43,9 +50,9 @@ public class SearchController {
     
     /**
      * Endpoint GET para busca (mais simples, usado para testes).
-     * 
+     *
      * Exemplo de uso:
-     * GET http://localhost:8080/api/search?q=java+programming&page=0&pageSize=10
+     * GET http://localhost:8080/api/search?q=java+programming&amp;page=0&amp;pageSize=10
      * 
      * Resposta JSON:
      * {

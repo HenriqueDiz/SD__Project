@@ -22,14 +22,43 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+/**
+ * REST Controller para análise contextual de pesquisas usando Google Gemini AI.
+ * 
+ * Este controlador fornece análise inteligente dos resultados de pesquisa,
+ * usando a API do Google Gemini para gerar insights contextuais.
+ * 
+ * Endpoints:
+ * - POST /api/context-analysis -> Analisa query e citações
+ * 
+ * @author Rodrigo Manão - 2023207589
+ * @author Henrique Diz - 2023213681
+ * @author João Francisco - 2023228417
+ * 
+ * @version 1.0
+ */
 @RestController
 @RequestMapping("/api/context-analysis")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://localhost:3000", "https://localhost:3001", "https://localhost:3002"})
 public class ContextAnalysisController {
 
+    /**
+     * Chave da API do Google Gemini.
+     */
     private final String apiKey;
+    
+    /**
+     * Modelo do Google Gemini a ser utilizado.
+     */
     private final String model;
 
+    /**
+     * Construtor que carrega a configuração da API Gemini.
+     * Tenta carregar a configuração na seguinte ordem:
+     * 1. Ficheiro .env
+     * 2. Variáveis de ambiente do sistema
+     * 3. Ficheiro Config.properties (fallback)
+     */
     public ContextAnalysisController() {
         // Try to load .env file first
         Dotenv dotenv = null;
@@ -84,6 +113,28 @@ public class ContextAnalysisController {
         }
     }
 
+    /**
+     * Endpoint POST para análise contextual de uma pesquisa.
+     * 
+     * Recebe a query do utilizador e trechos de citações dos resultados,
+     * envia para a API do Google Gemini, e retorna uma análise contextual.
+     * 
+     * Exemplo de uso:
+     * POST http://localhost:8080/api/context-analysis
+     * Body JSON:
+     * {
+     *   "query": "java programming",
+     *   "citations": "Java is a programming language..."
+     * }
+     * 
+     * Resposta JSON:
+     * {
+     *   "analysis": "Java é uma linguagem de programação..."
+     * }
+     * 
+     * @param payload   Mapa contendo "query" e "citations"
+     * @return          Resposta com análise contextual ou erro
+     */
     @PostMapping
     public ResponseEntity<?> analyze(@RequestBody Map<String, Object> payload) {
         String query = (String) payload.getOrDefault("query", "");
@@ -105,6 +156,20 @@ public class ContextAnalysisController {
         }
     }
 
+    /**
+     * Constrói o prompt para a API do Google Gemini.
+     * 
+     * Cria um prompt estruturado com:
+     * - Definição do papel do assistente
+     * - Query do utilizador
+     * - Citações dos resultados (se disponíveis)
+     * - Instruções específicas baseadas na qualidade das citações
+     * - Restrições de formato de saída
+     * 
+     * @param query         Query de pesquisa do utilizador
+     * @param citations     Trechos de texto dos resultados
+     * @return              Prompt formatado para envio à API
+     */
     private String buildPrompt(String query, String citations) {
         StringBuilder sb = new StringBuilder();
         
@@ -153,6 +218,21 @@ public class ContextAnalysisController {
         return sb.toString();
     }
 
+    /**
+     * Realiza a chamada HTTP à API do Google Gemini.
+     * 
+     * Processo:
+     * 1. Monta a URL do endpoint com a chave da API
+     * 2. Prepara o corpo da requisição em formato JSON
+     * 3. Faz escape de caracteres especiais no prompt
+     * 4. Envia requisição POST com o prompt
+     * 5. Parse da resposta JSON
+     * 6. Extração do texto gerado
+     * 
+     * @param prompt            Prompt construído para análise
+     * @return                  Texto da análise gerada pelo Gemini
+     * @throws IOException      Se houver erro na comunicação ou no parse da resposta
+     */
     private String callGeminiAPI(String prompt) throws IOException {
         // Google Gemini API endpoint
         String urlString = String.format("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", 

@@ -13,17 +13,19 @@ import java.util.Map;
 
 /**
  * REST Controller para operações de ligações/backlinks.
- * 
+ *
  * Este controlador lida com requisições relacionadas a encontrar
  * URLs que fazem referência (linkam) para uma URL específica.
- * 
- * @RestController combina @Controller + @ResponseBody
- * Todos os métodos retornam JSON automaticamente
- * 
- * @RequestMapping("/api/connections") define o prefixo /api/connections para todas as rotas
- * 
+ *
+ * A anotação {@code @RestController} combina {@code @Controller} + {@code @ResponseBody}.
+ * Todos os métodos retornam JSON automaticamente.
+ *
+ * A anotação {@code @RequestMapping("/api/connections")} define o prefixo /api/connections para todas as rotas.
+ *
  * Endpoints:
- * - GET  /api/connections?url=https://example.com  -> Obter ligações para uma URL
+ * <ul>
+ * <li>GET  /api/connections?url=https://example.com  -&gt; Obter ligações para uma URL</li>
+ * </ul>
  * 
  * @author Rodrigo Manão - 2023207589
  * @author Henrique Diz - 2023213681
@@ -38,6 +40,11 @@ public class ConnectionsController {
     
     private final GatewayServiceClient gatewayClient;
     
+    /**
+     * Construtor com injeção de dependência.
+     * 
+     * @param gatewayClient Cliente do serviço Gateway para comunicação RMI
+     */
     @Autowired
     public ConnectionsController(GatewayServiceClient gatewayClient) {
         this.gatewayClient = gatewayClient;
@@ -45,9 +52,9 @@ public class ConnectionsController {
     
     /**
      * Endpoint GET para obter ligações/backlinks de uma URL com paginação.
-     * 
+     *
      * Exemplo de uso:
-     * GET http://localhost:8080/api/connections?url=https://example.com&page=0
+     * GET http://localhost:8080/api/connections?url=https://example.com&amp;page=0
      * 
      * Resposta JSON:
      * {

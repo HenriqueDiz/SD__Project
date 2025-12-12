@@ -28,6 +28,11 @@ public class HealthController {
     
     private final GatewayServiceClient gatewayClient;
     
+    /**
+     * Construtor com injeção de dependência.
+     * 
+     * @param gatewayClient Cliente do serviço Gateway para comunicação RMI
+     */
     @Autowired
     public HealthController(GatewayServiceClient gatewayClient) {
         this.gatewayClient = gatewayClient;
@@ -35,15 +40,19 @@ public class HealthController {
     
     /**
      * Health check endpoint.
-     * 
+     *
      * GET http://localhost:8080/api/health
-     * 
+     *
      * Resposta JSON:
+     * <pre>
      * {
      *   "status": "UP",
      *   "gateway": "CONNECTED",
      *   "activeBarrels": 2
      * }
+     * </pre>
+     * 
+     * @return ResponseEntity com status de saúde do sistema
      */
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
@@ -70,8 +79,10 @@ public class HealthController {
     
     /**
      * Informações do sistema.
-     * 
+     *
      * GET http://localhost:8080/api/info
+     * 
+     * @return ResponseEntity com informações da aplicação
      */
     @GetMapping("/info")
     public ResponseEntity<Map<String, Object>> info() {

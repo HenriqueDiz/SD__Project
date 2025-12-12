@@ -12,15 +12,17 @@ import java.util.List;
  
 /**
  * Service Layer que abstrai a comunicação com o Gateway RMI.
- * 
- * @Service indica que é um componente de serviço do Spring.
+ *
+ * A anotação {@code @Service} indica que é um componente de serviço do Spring.
  * É automaticamente detectado pelo component scan e pode ser injetado.
- * 
+ *
  * Responsabilidades:
- * - Comunicar com o Gateway via RMI
- * - Converter dados RMI para DTOs
- * - Tratar exceções RMI
- * - Enriquecer resultados com PageInfo
+ * <ul>
+ * <li>Comunicar com o Gateway via RMI</li>
+ * <li>Converter dados RMI para DTOs</li>
+ * <li>Tratar exceções RMI</li>
+ * <li>Enriquecer resultados com PageInfo</li>
+ * </ul>
  * 
  * @author Rodrigo Manão - 2023207589
  * @author Henrique Diz - 2023213681
@@ -35,7 +37,9 @@ public class GatewayServiceClient {
     
     /**
      * Construtor com injeção de dependência.
-     * @Autowired diz ao Spring para injetar o bean GatewayInterface
+     * A anotação {@code @Autowired} diz ao Spring para injetar o bean GatewayInterface.
+     * 
+     * @param gateway Interface do Gateway RMI injetada pelo Spring
      */
     @Autowired
     public GatewayServiceClient(GatewayInterface gateway) {
@@ -53,13 +57,15 @@ public class GatewayServiceClient {
     
     /**
      * Realiza uma busca por múltiplas palavras.
-     * 
+     *
      * Fluxo:
-     * 1. Chama gateway.searchWords() via RMI
-     * 2. Recebe List<String[]> onde cada array é [url, references]
-     * 3. Para cada URL, busca título e descrição com PageInfo (PARALELO)
-     * 4. Converte tudo para SearchResultDTO
-     * 5. Retorna lista de DTOs
+     * <ol>
+     * <li>Chama gateway.searchWords() via RMI</li>
+     * <li>Recebe {@code List<String[]>} onde cada array é [url, references]</li>
+     * <li>Para cada URL, busca título e descrição com PageInfo (PARALELO)</li>
+     * <li>Converte tudo para SearchResultDTO</li>
+     * <li>Retorna lista de DTOs</li>
+     * </ol>
      * 
      * @param words     Lista de palavras para buscar
      * @param page      Número da página (0-based)
@@ -168,13 +174,15 @@ public class GatewayServiceClient {
     
     /**
      * Obtém as URLs que fazem referência (links) a uma URL específica.
-     * 
+     *
      * Fluxo:
-     * 1. Chama gateway.getUrlsForIndexedUrl() via RMI
-     * 2. Recebe HashSet<String> com URLs que linkam para a URL fornecida
-     * 3. Para cada URL, busca título e descrição com PageInfo (PARALELO)
-     * 4. Converte tudo para SearchResultDTO
-     * 5. Retorna lista de DTOs
+     * <ol>
+     * <li>Chama gateway.getUrlsForIndexedUrl() via RMI</li>
+     * <li>Recebe {@code HashSet<String>} com URLs que linkam para a URL fornecida</li>
+     * <li>Para cada URL, busca título e descrição com PageInfo (PARALELO)</li>
+     * <li>Converte tudo para SearchResultDTO</li>
+     * <li>Retorna lista de DTOs</li>
+     * </ol>
      * 
      * @param url   URL para a qual queremos encontrar as ligações/backlinks
      * @return      Lista de resultados formatados com as URLs que linkam para a URL fornecida
@@ -215,6 +223,8 @@ public class GatewayServiceClient {
  
     /**
      * Obtém estatísticas diretamente do Gateway (objeto Statistics).
+     * 
+     * @return Objeto Statistics com estatísticas dos barrels
      */
     public statistics.Statistics getBarrelStatistics() {
         try {
@@ -225,16 +235,38 @@ public class GatewayServiceClient {
         }
     }
  
-    // Registro/deregistro de callbacks para SSE
+    /**
+     * Registra um callback para receber atualizações de estatísticas via SSE.
+     * 
+     * @param cb Callback de estatísticas a ser registrado
+     */
     public void registerStatsCallback(statistics.StatsCallback cb) {
         try { gateway.registerStatsCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
     }
+    
+    /**
+     * Remove o registro de um callback de estatísticas.
+     * 
+     * @param cb Callback de estatísticas a ser removido
+     */
     public void unregisterStatsCallback(statistics.StatsCallback cb) {
         try { gateway.unregisterStatsCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
     }
+    
+    /**
+     * Registra um callback para receber atualizações de estado dos barrels via SSE.
+     * 
+     * @param cb Callback de estado dos barrels a ser registrado
+     */
     public void registerBarrelStateCallback(statistics.BarrelStateCallback cb) {
         try { gateway.registerBarrelStateCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
     }
+    
+    /**
+     * Remove o registro de um callback de estado dos barrels.
+     * 
+     * @param cb Callback de estado dos barrels a ser removido
+     */
     public void unregisterBarrelStateCallback(statistics.BarrelStateCallback cb) {
         try { gateway.unregisterBarrelStateCallback(cb); } catch (RemoteException e) { throw new RuntimeException(e); }
     }

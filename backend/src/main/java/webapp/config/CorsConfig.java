@@ -8,7 +8,7 @@ import org.springframework.web.filter.CorsFilter;
 
 /**
  * Configuração de CORS (Cross-Origin Resource Sharing).
- * 
+ *
  * Permite que o frontend React (localhost:3000) acesse a API (localhost:8080).
  * Sem isso, o browser bloqueia as requisições por segurança.
  * 
@@ -20,6 +20,13 @@ import org.springframework.web.filter.CorsFilter;
  */
 @Configuration
 public class CorsConfig {
+    
+    /**
+     * Construtor padrão.
+     */
+    public CorsConfig() {
+        // Construtor vazio - Spring gerencia a instanciação
+    }
     
     /**
      * Configura CORS para permitir requisições do frontend React.
