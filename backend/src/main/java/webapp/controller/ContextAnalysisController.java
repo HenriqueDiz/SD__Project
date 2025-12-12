@@ -186,34 +186,36 @@ public class ContextAnalysisController {
             sb.append("Trechos relevantes encontrados nos resultados:\n");
             sb.append(citations).append("\n\n");
             sb.append("Instrucoes:\n");
-            sb.append("- Analise os trechos fornecidos e resuma o que foi encontrado sobre \"").append(query).append("\"\n");
-            sb.append("- Destaque informacoes-chave e conceitos principais mencionados nos trechos\n");
-            sb.append("- Se os trechos contem informacoes contraditorias ou diferentes perspectivas, mencione isso\n");
-            sb.append("- Mantenha a resposta concisa (maximo 3-4 frases)\n");
+            sb.append("- Forneca uma analise concisa mas informativa sobre \"").append(query).append("\"\n");
+            sb.append("- Comece com 3-4 frases de contexto geral\n");
+            sb.append("- Contextualize ao máximo com base nos trechos fornecidos\n");
+            sb.append("- Se apropriado, liste 2-4 pontos-chave em bullet points (use - para bullet points)\n");
+            sb.append("- Total: aproximadamente 7-9 frases OU 4-6 frases + uma pequena lista de bullet points\n");
         } else if (!citations.isBlank()) {
             // Poor quality citations - acknowledge but don't rely heavily
             sb.append("Alguns resultados foram encontrados, mas com informacao limitada.\n\n");
             sb.append("Instrucoes:\n");
-            sb.append("- Forneca um contexto geral sobre \"").append(query).append("\"\n");
-            sb.append("- Explique brevemente o que o usuario provavelmente esta buscando\n");
-            sb.append("- Sugira que tipo de informacao seria util para esta pesquisa\n");
-            sb.append("- Mantenha a resposta concisa (maximo 3-4 frases)\n");
+            sb.append("- Forneca uma descricao breve sobre \"").append(query).append("\"\n");
+            sb.append("- Explique o que o usuario provavelmente esta buscando\n");
+            sb.append("- Total: aproximadamente 4-6 frases\n");
         } else {
             // No citations - provide contextual understanding
             sb.append("Nenhum trecho especifico foi fornecido.\n\n");
             sb.append("Instrucoes:\n");
-            sb.append("- Forneca uma breve explicacao contextual sobre \"").append(query).append("\"\n");
-            sb.append("- Ajude o usuario a entender melhor o topico ou termo pesquisado\n");
-            sb.append("- Mencione que tipo de informacao normalmente se encontra ao pesquisar sobre isso\n");
-            sb.append("- Mantenha a resposta concisa (maximo 3-4 frases)\n");
+            sb.append("- Forneca uma explicacao breve sobre \"").append(query).append("\"\n");
+            sb.append("- Mencione que tipo de informacao se encontra ao pesquisar sobre isso\n");
+            sb.append("- Total: aproximadamente 4-6 frases\n");
         }
         
         // Output format constraints
         sb.append("\nFormato de resposta:\n");
         sb.append("- Escreva em portugues de Portugal\n");
-        sb.append("- NAO use emojis ou caracteres especiais\n");
-        sb.append("- Use apenas letras, numeros, espacos e pontuacao basica (. , ! ?)\n");
-        sb.append("- Seja claro, objetivo e informativo\n");
+        sb.append("- NAO use emojis ou caracteres especiais decorativos\n");
+        sb.append("- Use letras, numeros, espacos, pontuacao basica (. , ! ?) e hifens para bullet points\n");
+        sb.append("- Separe paragrafos com linha em branco (duplo \\n)\n");
+        sb.append("- Se usar bullet points, use hifen (-) no inicio da linha\n");
+        sb.append("- Seja claro, objetivo e conciso, com uma boa explicação\n");
+        sb.append("- Mantenha a resposta curta e focada\n");
         
         return sb.toString();
     }

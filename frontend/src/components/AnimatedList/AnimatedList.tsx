@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect, UIEvent } from 'react';
 import { motion } from 'motion/react';
 import './AnimatedList.css';
+import AIDropdown from '@/components/AIDropdown/AIDropdown';
 
 export interface AnimatedListItem {
   url: string;
@@ -20,8 +21,12 @@ interface AnimatedListProps {
   enableArrowNavigation?: boolean;
   className?: string;
   itemClassName?: string;
-
   initialSelectedIndex?: number;
+  
+  // AI Dropdown props
+  showAIDropdown?: boolean;
+  query?: string;
+  onAnalysisFetch?: (query: string, citations: string) => Promise<string>;
 }
 
 const AnimatedList: React.FC<AnimatedListProps> = ({
@@ -31,8 +36,12 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   enableArrowNavigation = true,
   className = '',
   itemClassName = '',
-
-  initialSelectedIndex = -1
+  initialSelectedIndex = -1,
+  
+  // AI Dropdown
+  showAIDropdown = false,
+  query = '',
+  onAnalysisFetch,
 }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(initialSelectedIndex);
@@ -40,6 +49,16 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   const [keyboardNav, setKeyboardNav] = useState<boolean>(false);
   const [topGradientOpacity, setTopGradientOpacity] = useState<number>(0);
   const [bottomGradientOpacity, setBottomGradientOpacity] = useState<number>(0);
+  const [isAIExpanded, setIsAIExpanded] = useState<boolean>(false);
+
+  // Handler for AI dropdown expansion
+  const handleAIDropdownExpand = (isExpanded: boolean) => {
+    setIsAIExpanded(isExpanded);
+    if (isExpanded && listRef.current) {
+      // Scroll to top when AI dropdown expands
+      listRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -212,6 +231,18 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
           })}
         </motion.div>
       </div>
+
+      {/* AI Dropdown - overlay absoluto no topo */}
+      {showAIDropdown && onAnalysisFetch && (
+        <div className={`ai-dropdown-overlay ${isAIExpanded ? 'visible' : ''}`}>
+          <AIDropdown
+            query={query}
+            results={items}
+            onAnalysisFetch={onAnalysisFetch}
+            onExpandChange={handleAIDropdownExpand}
+          />
+        </div>
+      )}
 
       {showGradients && (
         <>

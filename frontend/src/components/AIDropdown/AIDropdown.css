@@ -1,0 +1,308 @@
+.ai-dropdown-container {
+  width: 100%;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px 14px 0 0;
+}
+
+.ai-dropdown-container.expanded {
+  height: 100%;
+  flex: 1;
+}
+
+/* Barra do topo */
+.ai-dropdown-bar {
+  width: 100%;
+  height: 45px;
+  background: linear-gradient(90deg, 
+    #9c43ff 0%, 
+    #4cb8e9 25%, 
+    #9c43ff 50%, 
+    #4cb8e9 75%, 
+    #9c43ff 100%
+  );
+  background-size: 200% 100%;
+  border: none;
+  border-radius: 14px 14px 0 0 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(156, 67, 255, 0.3);
+  animation: gradientShift 8s linear infinite;
+  position: relative;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.ai-dropdown-bar:hover {
+  transform: translateY(-1px);
+  border-radius: 14px 14px 0 0 !important;
+}
+
+.ai-dropdown-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 6px 30px rgba(156, 67, 255, 0.5), 0 0 40px rgba(76, 184, 233, 0.3);
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ai-dropdown-bar:hover::after {
+  opacity: 1;
+}
+
+.ai-dropdown-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-dropdown-bar:hover::before {
+  left: 100%;
+}
+
+.ai-dropdown-bar-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.ai-dropdown-bar-text {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ai-dropdown-chevron-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+  animation: bounceUpDown 2s ease-in-out infinite;
+}
+
+.ai-dropdown-chevron-group:first-child {
+  position: absolute;
+  left: 25%;
+  transform: translateX(-50%);
+}
+
+.ai-dropdown-chevron-group:last-child {
+  position: absolute;
+  left: 75%;
+  transform: translateX(-50%);
+}
+
+/* Conteúdo expansível */
+.ai-dropdown-content {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-left: 1px solid rgba(156, 67, 255, 0.3);
+  border-right: 1px solid rgba(156, 67, 255, 0.3);
+  border-bottom: 1px solid rgba(156, 67, 255, 0.3);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 
+              0 0 0 1px rgba(255, 255, 255, 0.05) inset, 
+              0 2px 20px rgba(156, 67, 255, 0.25);
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+.ai-dropdown-content::-webkit-scrollbar {
+  display: none;
+}
+
+.ai-dropdown-inner {
+  padding: 1.5rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: justify;
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+}
+
+/* Loading state */
+.ai-dropdown-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+}
+
+.ai-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #9c43ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.ai-dropdown-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 1rem;
+  background: rgba(255, 107, 157, 0.1);
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  border-radius: 12px;
+  color: #ff6b9d;
+}
+
+.ai-error-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ai-error-text {
+  flex: 1;
+}
+
+.ai-error-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Analysis content */
+.ai-dropdown-analysis {
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.9;
+  font-size: 14.5px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  white-space: pre-line;
+}
+
+.ai-dropdown-analysis p {
+  margin: 0 0 1rem 0;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.ai-dropdown-analysis p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-dropdown-analysis strong,
+.ai-dropdown-analysis b {
+  color: #9c43ff;
+  font-weight: 600;
+}
+
+.ai-dropdown-analysis em,
+.ai-dropdown-analysis i {
+  color: #4cb8e9;
+  font-style: italic;
+}
+
+.ai-dropdown-analysis ul,
+.ai-dropdown-analysis ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.ai-dropdown-analysis li {
+  margin: 0.5rem 0;
+  line-height: 1.8;
+}
+
+.ai-dropdown-analysis li::marker {
+  color: #9c43ff;
+}
+
+.ai-dropdown-analysis code {
+  background: rgba(156, 67, 255, 0.1);
+  border: 1px solid rgba(156, 67, 255, 0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  color: #4cb8e9;
+}
+
+.ai-dropdown-analysis blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid #9c43ff;
+  background: rgba(156, 67, 255, 0.05);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Empty state */
+.ai-dropdown-empty {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Gradient animation - perfectly seamless loop */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 100% center;
+  }
+}
+
+/* Bounce animation for chevrons - up and down movement */
+@keyframes bounceUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}

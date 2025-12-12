@@ -15,280 +15,6 @@ import { getContextAnalysis } from '@/services/api';
 const analysisCache = new Map<string, { analysis: string; timestamp: number }>();
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos em milissegundos
 
-function ContextAnalysisButton({ query, results }: { query: string, results: any[] }) {
-  const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [analysis, setAnalysis] = useState('');
-  const [error, setError] = useState('');
-  const prevQueryRef = useRef<string>('');
-
-  // Quando a query muda, verifica se existe no cache
-  useEffect(() => {
-    if (query !== prevQueryRef.current) {
-      prevQueryRef.current = query;
-      setError('');
-      
-      // Verifica se existe uma análise em cache para esta query
-      const cached = analysisCache.get(query);
-      if (cached) {
-        const isExpired = Date.now() - cached.timestamp > CACHE_DURATION;
-        if (!isExpired) {
-          // Usa a análise do cache
-          setAnalysis(cached.analysis);
-          return;
-        } else {
-          // Remove do cache se expirou
-          analysisCache.delete(query);
-        }
-      }
-      
-      // Se não há cache válido, limpa a análise
-      setAnalysis('');
-    }
-  }, [query]);
-
-  // Build citations string from results
-  const citations = results && results.length > 0
-    ? results.slice(0, 5).map(r => r.description || r.title || '').join(' | ')
-    : '';
-
-  const fetchAnalysis = async () => {
-    if (!query) return;
-    
-    // Verifica novamente o cache antes de fazer request
-    const cached = analysisCache.get(query);
-    if (cached && Date.now() - cached.timestamp <= CACHE_DURATION) {
-      setAnalysis(cached.analysis);
-      return;
-    }
-    
-    setLoading(true);
-    setError('');
-    try {
-      const res = await getContextAnalysis(query, citations);
-      setAnalysis(res);
-      
-      // Armazena no cache
-      analysisCache.set(query, {
-        analysis: res,
-        timestamp: Date.now()
-      });
-    } catch (e: any) {
-      setError(e.message || 'Erro ao obter análise');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        aria-label="Análise AI contextualizada"
-        className="ai-button"
-        style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-          backgroundSize: '200% 200%',
-          border: 'none',
-          borderRadius: '20px',
-          padding: '8px 16px',
-          color: 'white',
-          cursor: 'pointer',
-          marginLeft: 8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          fontWeight: 600,
-          fontSize: '13px',
-          letterSpacing: '0.5px',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-          transition: 'all 0.3s ease',
-          animation: 'gradientShift 3s ease infinite, pulse 2s ease-in-out infinite',
-        }}
-        onMouseEnter={(e) => { 
-          setShow(true); 
-          if (!analysis && !loading && query) fetchAnalysis();
-          e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
-          e.currentTarget.style.boxShadow = '0 6px 25px rgba(102, 126, 234, 0.6)';
-        }}
-        onMouseLeave={(e) => {
-          setShow(false);
-          e.currentTarget.style.transform = 'translateY(0) scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-          <path d="M12 8L13.5 11.5L17 13L13.5 14.5L12 18L10.5 14.5L7 13L10.5 11.5L12 8Z" fill="rgba(255, 255, 255, 0.5)"/>
-        </svg>
-        <span>AI</span>
-      </button>
-      {show && (
-        <div 
-          className="liquid-glass-popup"
-          style={{
-            position: 'absolute',
-            top: 48,
-            right: 0,
-            minWidth: 320,
-            maxWidth: 450,
-            background: 'rgba(0, 0, 0, 0.95)',
-            backdropFilter: 'blur(30px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-            color: 'white',
-            border: '1px solid rgba(102, 126, 234, 0.4)',
-            borderRadius: 20,
-            padding: '1.5rem',
-            zIndex: 100,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 2px 20px rgba(102, 126, 234, 0.3)',
-            fontSize: 14,
-            lineHeight: 1.6,
-            textAlign: 'left',
-            animation: 'slideIn 0.3s ease-out, glassShimmer 4s ease-in-out infinite',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Header with icon */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '12px',
-            paddingBottom: '12px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-            position: 'relative',
-            zIndex: 2,
-          }}>
-            <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="none">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                <path d="M12 8L13.5 11.5L17 13L13.5 14.5L12 18L10.5 14.5L7 13L10.5 11.5L12 8Z" fill="rgba(255, 255, 255, 0.4)"/>
-              </svg>
-            </div>
-            <div>
-              <div style={{ 
-                fontSize: 15, 
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #667eea, #f093fb)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>
-                Análise AI
-              </div>
-              <div style={{ 
-                fontSize: 11, 
-                color: 'rgba(255, 255, 255, 0.6)',
-                marginTop: 2,
-              }}>
-                Contextual Intelligence
-              </div>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div style={{
-            color: 'rgba(255, 255, 255, 0.95)',
-            fontSize: 14,
-            lineHeight: 1.7,
-            textAlign: 'justify',
-            position: 'relative',
-            zIndex: 2,
-          }}>
-            {loading ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', padding: '1rem 0' }}>
-                <div style={{
-                  width: 20,
-                  height: 20,
-                  border: '3px solid rgba(255, 255, 255, 0.2)',
-                  borderTop: '3px solid #667eea',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                }} />
-                <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>A gerar análise inteligente...</span>
-              </div>
-            ) : error ? (
-              <div style={{ 
-                color: '#ff6b9d',
-                background: 'rgba(255, 107, 157, 0.1)',
-                padding: '12px',
-                borderRadius: 12,
-                border: '1px solid rgba(255, 107, 157, 0.3)',
-              }}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>⚠️ Erro</div>
-                {error}
-              </div>
-            ) : analysis ? (
-              analysis
-            ) : (
-              <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontStyle: 'italic' }}>
-                Nenhuma análise disponível no momento.
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes gradientShift {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.85;
-          }
-        }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes glassShimmer {
-          0%, 100% {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 2px 20px rgba(102, 126, 234, 0.3);
-          }
-          50% {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 2px 20px rgba(102, 126, 234, 0.6);
-          }
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
-
 export default function DemoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -311,6 +37,26 @@ export default function DemoPage() {
     { label: 'Estatísticas', ariaLabel: 'Ver estatísticas do sistema', link: '/statistics' },
     { label: 'Autores', ariaLabel: 'Ver autores do projeto', link: '/autores' }
   ];
+
+  // Função para buscar análise AI com cache
+  const fetchAIAnalysis = async (searchQuery: string, citations: string): Promise<string> => {
+    // Verifica cache primeiro
+    const cached = analysisCache.get(searchQuery);
+    if (cached && Date.now() - cached.timestamp <= CACHE_DURATION) {
+      return cached.analysis;
+    }
+
+    // Faz request se não houver cache
+    const analysis = await getContextAnalysis(searchQuery, citations);
+    
+    // Armazena no cache
+    analysisCache.set(searchQuery, {
+      analysis,
+      timestamp: Date.now()
+    });
+
+    return analysis;
+  };
 
   // Fetch results when query changes
   useEffect(() => {
@@ -547,12 +293,10 @@ export default function DemoPage() {
                 strokeLinejoin="round"
               >
                 <circle cx="10" cy="10" r="7"></circle>
-                <line x1="21" y1="21" x2="15" y2="15"></line>
-              </svg>
-            </button>
-            {/* Contextual Analysis Button */}
-            <ContextAnalysisButton query={searchedQuery} results={results} />
-           </div>
+               <line x1="21" y1="21" x2="15" y2="15"></line>
+               </svg>
+             </button>
+            </div>
           </div>
          </div>
 
@@ -678,6 +422,9 @@ export default function DemoPage() {
             onItemSelect={handleItemSelect}
             showGradients={true}
             enableArrowNavigation={true}
+            showAIDropdown={true}
+            query={searchedQuery}
+            onAnalysisFetch={fetchAIAnalysis}
           />
         )}
         </div>

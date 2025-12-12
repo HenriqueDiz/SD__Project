@@ -222,7 +222,7 @@ export default function LigacoesPage() {
                   : 'linear-gradient(135deg, #6bff9d, #c5ff42)',
                 border: 'none',
                 borderRadius: '12px',
-                color: '#fff',
+                color: '#1a1a1aff',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s ease',
                 display: 'flex',

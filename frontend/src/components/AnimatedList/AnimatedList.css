@@ -8,14 +8,35 @@
   overflow: hidden;
 }
 
+/* AI Dropdown Overlay - posiciona por cima da lista */
+.ai-dropdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.ai-dropdown-overlay.visible {
+  bottom: 0;
+  pointer-events: auto;
+}
+
+.ai-dropdown-overlay > * {
+  pointer-events: auto;
+}
+
 /* Lista scrollável */
 .scroll-list {
   width: 100%;
-  height: 100%;
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -82,7 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 8px;
+  padding: 53px 8px 8px 8px;
   box-sizing: border-box;
 }
 
