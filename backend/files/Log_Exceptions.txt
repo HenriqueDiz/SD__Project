@@ -866,3 +866,718 @@ java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
 	at java.base/java.lang.Thread.run(Thread.java:1570)
 
+[2025-12-12 02:03:47.242] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.256] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.260] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.262] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.253] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorage[2025-12-12 02:03:47.258] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+Barrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.261] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.269] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.272] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.277] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorage[2025-12-12 02:03:47.277] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+Barrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.280] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.281] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.282] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.284] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.287] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.288] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.293] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.295] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.312] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.317] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.313] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.320] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.324] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.327] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.333] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.336] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.343] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.342] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.354] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.358] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.379] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.381] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.385] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.390] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.393] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.399] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.419] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.424] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.429] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.444] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.443] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.464] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.469] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.480] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.489] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.500] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.503] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.512] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.524] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorage[2025-12-12 02:03:47.523] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorage[2025-12-12 02:03:47.532] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+Barrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+Barrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.537] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.552] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+
+[2025-12-12 02:03:47.549] Erro ao obter lista de barrels do gateway: Nome inválido: não pode ser nulo ou vazio: Nome inválido: não pode ser nulo ou vazio
+java.lang.IllegalArgumentException: Nome inválido: não pode ser nulo ou vazio
+	at common.Utils.validateName(Utils.java:107)
+	at common.ConfigReader.requireProperty(ConfigReader.java:74)
+	at common.ConfigReader.<init>(ConfigReader.java:56)
+	at barrel.IndexStorageBarrel.retransmitToOtherBarrels(IndexStorageBarrel.java:299)
+	at barrel.IndexStorageBarrel.lambda$addToIndex$2(IndexStorageBarrel.java:371)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1570)
+

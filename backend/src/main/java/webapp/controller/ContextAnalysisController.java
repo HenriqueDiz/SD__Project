@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 @RestController
 @RequestMapping("/api/context-analysis")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://localhost:3000", "https://localhost:3001", "https://localhost:3002"})
@@ -29,16 +31,57 @@ public class ContextAnalysisController {
     private final String model;
 
     public ContextAnalysisController() {
-        Properties props = new Properties();
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("Config.properties")) {
-            if (input != null) {
-                props.load(input);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Try to load .env file first
+        Dotenv dotenv = null;
+        try {
+            dotenv = Dotenv.configure()
+                    .directory("./")  // Look in project root
+                    .ignoreIfMissing()
+                    .load();
+        } catch (Exception e) {
+            System.err.println("Could not load .env file: " + e.getMessage());
         }
-        this.apiKey = props.getProperty("openrouter.apiKey", "");
-        this.model = props.getProperty("openrouter.model", "");
+        
+        // Try .env file first, then system environment variables, then Config.properties
+        String envApiKey = null;
+        String envModel = null;
+        
+        if (dotenv != null) {
+            envApiKey = dotenv.get("GEMINI_API_KEY");
+            envModel = dotenv.get("GEMINI_MODEL");
+        }
+        
+        if (envApiKey == null || envApiKey.isEmpty()) {
+            envApiKey = System.getenv("GEMINI_API_KEY");
+            envModel = System.getenv("GEMINI_MODEL");
+        }
+        
+        if (envApiKey != null && !envApiKey.isEmpty()) {
+            this.apiKey = envApiKey;
+            this.model = envModel != null && !envModel.isEmpty() ? envModel : "gemini-1.5-flash";
+            System.out.println("Loaded Gemini API configuration from environment");
+        } else {
+            // Fallback to Config.properties
+            Properties props = new Properties();
+            try (InputStream input = getClass().getClassLoader().getResourceAsStream("Config.properties")) {
+                if (input != null) {
+                    props.load(input);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            this.apiKey = props.getProperty("gemini.apiKey", "");
+            this.model = props.getProperty("gemini.model", "gemini-1.5-flash");
+            System.out.println("Loaded Gemini API configuration from Config.properties");
+        }
+        
+        // Debug: Show if API key is loaded (without revealing the key)
+        if (this.apiKey != null && !this.apiKey.isEmpty()) {
+            System.out.println("Gemini API Key loaded successfully (length: " + this.apiKey.length() + ")");
+            System.out.println("Using model: " + this.model);
+        } else {
+            System.err.println("WARNING: Gemini API Key is empty or not loaded!");
+        }
     }
 
     @PostMapping
@@ -50,7 +93,7 @@ public class ContextAnalysisController {
         }
         try {
             String prompt = buildPrompt(query, citations);
-            String response = callOpenRouterAPI(prompt);
+            String response = callGeminiAPI(prompt);
             Map<String, Object> result = new HashMap<>();
             result.put("analysis", response);
             return ResponseEntity.ok()
@@ -110,12 +153,14 @@ public class ContextAnalysisController {
         return sb.toString();
     }
 
-    private String callOpenRouterAPI(String prompt) throws IOException {
-        URL url = new URL("https://openrouter.ai/api/v1/chat/completions");
+    private String callGeminiAPI(String prompt) throws IOException {
+        // Google Gemini API endpoint
+        String urlString = String.format("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", 
+                                        model, apiKey);
+        URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + apiKey);
         conn.setDoOutput(true);
 
         // Escape the prompt to prevent JSON injection and formatting issues
@@ -125,7 +170,8 @@ public class ContextAnalysisController {
                                      .replace("\r", "\\r")
                                      .replace("\t", "\\t");
 
-        String body = String.format("{\n  \"model\": \"%s\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"%s\"\n    }\n  ]\n}", model, escapedPrompt);
+        // Gemini API request body format
+        String body = String.format("{\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"%s\"\n    }]\n  }]\n}", escapedPrompt);
         byte[] input = body.getBytes(StandardCharsets.UTF_8);
         conn.getOutputStream().write(input);
 
@@ -148,30 +194,35 @@ public class ContextAnalysisController {
             String errorMessage = errorNode.has("message") 
                 ? errorNode.get("message").asText() 
                 : "Unknown API error";
-            throw new IOException("OpenRouter API error: " + errorMessage);
+            throw new IOException("Gemini API error: " + errorMessage);
         }
         
-        // Safely navigate the JSON structure
-        JsonNode choicesNode = root.path("choices");
-        if (choicesNode.isMissingNode() || !choicesNode.isArray() || choicesNode.size() == 0) {
-            throw new IOException("Invalid API response: missing or empty 'choices' array. Response: " + response.toString());
+        // Parse Gemini response structure
+        JsonNode candidatesNode = root.path("candidates");
+        if (candidatesNode.isMissingNode() || !candidatesNode.isArray() || candidatesNode.size() == 0) {
+            throw new IOException("Invalid API response: missing or empty 'candidates' array. Response: " + response.toString());
         }
         
-        JsonNode firstChoice = choicesNode.get(0);
-        if (firstChoice == null || firstChoice.isNull()) {
-            throw new IOException("Invalid API response: first choice is null. Response: " + response.toString());
+        JsonNode firstCandidate = candidatesNode.get(0);
+        if (firstCandidate == null || firstCandidate.isNull()) {
+            throw new IOException("Invalid API response: first candidate is null. Response: " + response.toString());
         }
         
-        JsonNode messageNode = firstChoice.path("message");
-        if (messageNode.isMissingNode()) {
-            throw new IOException("Invalid API response: missing 'message' in choice. Response: " + response.toString());
+        JsonNode contentNode = firstCandidate.path("content");
+        if (contentNode.isMissingNode()) {
+            throw new IOException("Invalid API response: missing 'content' in candidate. Response: " + response.toString());
         }
         
-        JsonNode contentNode = messageNode.path("content");
-        if (contentNode.isMissingNode() || contentNode.isNull()) {
-            throw new IOException("Invalid API response: missing or null 'content'. Response: " + response.toString());
+        JsonNode partsNode = contentNode.path("parts");
+        if (partsNode.isMissingNode() || !partsNode.isArray() || partsNode.size() == 0) {
+            throw new IOException("Invalid API response: missing or empty 'parts' array. Response: " + response.toString());
         }
         
-        return contentNode.asText();
+        JsonNode textNode = partsNode.get(0).path("text");
+        if (textNode.isMissingNode() || textNode.isNull()) {
+            throw new IOException("Invalid API response: missing or null 'text'. Response: " + response.toString());
+        }
+        
+        return textNode.asText();
     }
 }
