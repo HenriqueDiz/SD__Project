@@ -168,26 +168,28 @@ O Googol é um motor de busca distribuído que implementa uma arquitetura escal�
 
 % Barrels
 \node (barrel1) [barrel, below left of=gateway, xshift=-3cm, yshift=-1cm] {Barrel 1\\Port 8182};
-\node (barrel2) [barrel, below of=gateway, yshift=-1cm] {Barrel 2\\Port 8184};
+\node (barrel2) [barrel, below of=gateway, yshift=-0.4cm] {Barrel 2\\Port 8184};
 \node (barrel3) [barrel, below right of=gateway, xshift=3cm, yshift=-1cm] {Barrel 3\\Port 8185};
 
 % Queue
-\node (queue) [component, below of=gateway, yshift=-1.5cm] {URL Queue\\Port 8181};
-
+\node (queue) [component, right of=gateway, xshift=3.5cm] {URL Queue\\Port 8181};
+ 
 % Downloader
-\node (downloader) [service, below of=queue, yshift=-0.5cm] {Downloader(s)};
+\node (downloader) [service, below of=gateway, yshift=-2.5cm] {Downloader(s)};
 
 % Arrows
 \draw [arrow] (frontend) -- node[anchor=west] {HTTPS/JSON} (webapp);
 \draw [arrow] (webapp) -- node[anchor=west] {RMI} (gateway);
+\draw [arrow] (gateway) -- (webapp);
 \draw [arrow] (gateway) -- (barrel1);
 \draw [arrow] (gateway) -- (barrel2);
 \draw [arrow] (gateway) -- (barrel3);
 % Queue connections corrected
 \draw [arrow] (gateway) -- (queue);
-\draw [arrow] (queue) -- (downloader);
+% Route from right side of URL Queue, over components
+\draw [arrow] (queue.east) to[out=0, in=270, looseness=1.2] (downloader.south);
 % Downloader indexes into barrels
-\draw [arrow, bend left=60] (downloader) to node[anchor=west] {Index} (barrel1);
+\draw [arrow, bend left=60] (downloader) to (barrel1);
 \draw [arrow] (downloader) -- (barrel2);
 \draw [arrow, bend right=60] (downloader) to (barrel3);
 
@@ -479,7 +481,7 @@ Os Barrels guardam estado em disco (\texttt{barrelX\_progress.dat}):
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=1.5cm]
+\begin{tikzpicture}[node distance=2cm]
 \node (controllers) [component] {Controllers};
 \node (service) [service, below of=controllers] {Service Layer};
 \node (rmi) [component, below of=service] {RMI Layer};
@@ -492,7 +494,7 @@ Os Barrels guardam estado em disco (\texttt{barrelX\_progress.dat}):
 
 \subsection{REST API Endpoints}
 
-\begin{longtable}{|p{3cm}|p{3.5cm}|p{7cm}|}
+\begin{longtable}{|p{5cm}|p{3.5cm}|p{7cm}|}
 \hline
 \textbf{Endpoint} & \textbf{Método} & \textbf{Descrição} \\
 \hline
@@ -706,7 +708,7 @@ Cards 3D com efeito holográfico:
 
 \subsection{Sistema de Cores por Rota}
 
-\begin{longtable}{|p{3.5cm}|p{3cm}|p{3cm}|p{2cm}|}
+\begin{longtable}{|p{3cm}|p{4cm}|p{5cm}|p{2cm}|}
 \hline
 \textbf{Rota} & \textbf{Cor Primária} & \textbf{Cor Secundária} & \textbf{Hue} \\
 \hline
@@ -1066,10 +1068,12 @@ private void retransmitStopwords() {
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=1.5cm]
-\node (top10) [component, minimum width=5cm, minimum height=3cm] {Top 10 Searches};
-\node (tempo) [component, right of=top10, xshift=5cm, minimum width=5cm, minimum height=3cm] {Avg Response Time};
-\node (barrels) [component, below of=top10, xshift=2.5cm, minimum width=10cm, minimum height=4cm] {Barrels Status};
+\begin{tikzpicture}
+% Left column
+\node (top10) [component, minimum width=5.5cm, minimum height=3.25cm] at (0,1.875) {Top 10 Searches};
+\node (tempo) [component, minimum width=5.5cm, minimum height=3.25cm] at (0,-1.875) {Avg Response Time};
+% Right column (with more spacing)
+\node (barrels) [component, minimum width=7cm, minimum height=7cm] at (6.75,0) {Barrels Status};
 \end{tikzpicture}
 \caption{Layout do dashboard de estatísticas}
 \end{figure}
@@ -1156,7 +1160,7 @@ Como alternativa/\textit{gateway} paralelo, uma aplicação FastAPI pode expor e
 \section{Testes de Software}
 
 \subsection{Tabela de testes e resultados}
-\begin{longtable}{|p{1.5cm}|p{4.2cm}|p{5.3cm}|p{2.2cm}|}
+\begin{longtable}{|p{1cm}|p{5cm}|p{5.5cm}|p{2.2cm}|}
 \hline
 \textbf{ID} & \textbf{Caso} & \textbf{Descrição} & \textbf{Resultado} \\
 \hline
@@ -1207,8 +1211,10 @@ Os testes cobrem o \textit{happy path} e condições de falha expectáveis (CORS
 \section{Distribuição de Tarefas}
 
 \textbf{Henrique Diz} — Liderança de frontend: arquitetura Next.js, componentes avançados (\texttt{AnimatedList}, \texttt{Orb}, \texttt{StaggeredMenu}), acessibilidade e integração SSE com \texttt{/statistics/stream}. Responsável pela página de Resultados e \textit{UX} geral.
+\paragraph{}
 
 \textbf{Rodrigo Manão} — Núcleo backend distribuído: \texttt{Gateway}, \texttt{IndexStorageBarrel}, \texttt{URLQueue} e \texttt{Downloader}. Implementação de replicação, stopwords dinâmicas (IQR), failover e estatísticas. Hardening de serialização e recuperação de estado.
+\paragraph{}
 
 \textbf{João Francisco} — WebApp Spring Boot: controllers REST, DTOs, \texttt{GatewayServiceClient}, CORS/SSL, SSE (\texttt{SseEmitter}) e integração de IA (Google Gemini). Automatização com scripts e endpoints de suporte (health/info/HackerNews).
 
