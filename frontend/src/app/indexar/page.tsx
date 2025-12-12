@@ -7,7 +7,7 @@ import GradientText from '@/components/GradientText/GradientText';
 import Modal from '@/components/Modal/Modal';
 import StaggeredMenu from '@/components/StaggeredMenu/StaggeredMenu';
 import Cursor from '@/components/Cursor/Cursor';
-import { addUrl, AddUrlResponse } from '@/services/api';
+import { addUrl, AddUrlResponse, indexHackerNewsTop50 } from '@/services/api';
 
 export default function IndexarURL() {
   const router = useRouter();
@@ -17,6 +17,8 @@ export default function IndexarURL() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [pendingUrl, setPendingUrl] = useState('');
+  const [isIndexingHN, setIsIndexingHN] = useState(false);
+  const [hnProgress, setHnProgress] = useState<{ indexed: number; total: number } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +101,36 @@ export default function IndexarURL() {
   const handleCloseModal = () => {
     setShowModal(false);
     setPendingUrl('');
+  };
+
+  const handleIndexHackerNews = async () => {
+    setIsIndexingHN(true);
+    setHnProgress({ indexed: 0, total: 50 });
+    setMessage(null);
+
+    try {
+      const result = await indexHackerNewsTop50((indexed, total) => {
+        setHnProgress({ indexed, total });
+      });
+      
+      setMessage({ 
+        type: 'success', 
+        text: `HackerNews indexado! ${result.indexed} URLs adicionados com sucesso${result.failed > 0 ? `, ${result.failed} falharam` : ''}.` 
+      });
+      
+      setHnProgress(null);
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setMessage(null), 5000);
+    } catch (error: any) {
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Erro ao indexar HackerNews' 
+      });
+      setHnProgress(null);
+    } finally {
+      setIsIndexingHN(false);
+    }
   };
 
   const menuItems = [
@@ -279,6 +311,7 @@ export default function IndexarURL() {
                 border: 'none',
                 borderRadius: '12px',
                 color: '#fff',
+                cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
@@ -321,6 +354,130 @@ export default function IndexarURL() {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            margin: '2rem 0',
+          }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+            <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem' }}>ou</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+          </div>
+
+          {/* HackerNews Button */}
+          <button
+            type="button"
+            onClick={handleIndexHackerNews}
+            disabled={isIndexingHN || loading}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              background: isIndexingHN 
+                ? 'rgba(157, 0, 255, 0.3)' 
+                : 'linear-gradient(135deg, #9d00ff, #ff6b9d)',
+              border: 'none',
+              borderRadius: '12px',
+              color: '#fff',
+              cursor: (isIndexingHN || loading) ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+            }}
+            onMouseEnter={(e) => {
+              if (!isIndexingHN && !loading) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(157, 0, 255, 0.4)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isIndexingHN && !loading) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+          >
+            {isIndexingHN ? (
+              <>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderTop: '2px solid #fff',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+                <span>Indexando HackerNews...</span>
+                <style jsx>{`
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}</style>
+              </>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" fill="#9d00ff" />
+                  <path d="M8 7 L12 12 L12 17" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  <path d="M16 7 L12 12" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </svg>
+                <span>Indexar Top 50 HackerNews</span>
+              </>
+            )}
+          </button>
+
+          {/* Progress indicator */}
+          {hnProgress && (
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              background: 'rgba(157, 0, 255, 0.1)',
+              border: '1px solid rgba(157, 0, 255, 0.3)',
+              borderRadius: '12px',
+            }}>
+              <div style={{
+                fontSize: '0.85rem',
+                color: 'rgba(255, 255, 255, 0.8)',
+                textAlign: 'center',
+                marginBottom: '0.5rem',
+              }}>
+                Indexando: {hnProgress.indexed} / {hnProgress.total}
+              </div>
+              
+              {/* Progress bar */}
+              <div style={{
+                width: '100%',
+                height: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '4px',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: `${(hnProgress.indexed / hnProgress.total) * 100}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #9d00ff, #ff6b9d)',
+                  transition: 'width 0.3s ease',
+                  borderRadius: '4px',
+                }} />
+              </div>
+              
+              <div style={{
+                fontSize: '0.75rem',
+                color: 'rgba(255, 255, 255, 0.6)',
+                textAlign: 'center',
+                marginTop: '0.5rem',
+              }}>
+                {Math.round((hnProgress.indexed / hnProgress.total) * 100)}% completo
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -391,6 +391,84 @@ export async function getStatistics(): Promise<StatisticsResponse> {
   }
 }
 
+/**
+ * Fetch and index top 50 HackerNews stories
+ * @param onProgress - Callback for progress updates
+ * @returns Object with indexed count and failed count
+ */
+export async function indexHackerNewsTop50(
+  onProgress?: (indexed: number, total: number) => void
+): Promise<{
+  indexed: number;
+  failed: number;
+  errors: string[];
+}> {
+  try {
+    // Fetch top 50 story IDs from HackerNews API
+    const topStoriesResponse = await fetch(
+      'https://hacker-news.firebaseio.com/v0/topstories.json'
+    );
+    
+    if (!topStoriesResponse.ok) {
+      throw new Error('Failed to fetch top stories from HackerNews');
+    }
+    
+    const storyIds: number[] = await topStoriesResponse.json();
+    const top50Ids = storyIds.slice(0, 50);
+    
+    let indexed = 0;
+    let failed = 0;
+    const errors: string[] = [];
+    
+    // Fetch each story and add to index
+    for (let i = 0; i < top50Ids.length; i++) {
+      const id = top50Ids[i];
+      
+      try {
+        const storyResponse = await fetch(
+          `https://hacker-news.firebaseio.com/v0/item/${id}.json`
+        );
+        
+        if (!storyResponse.ok) {
+          throw new Error(`Failed to fetch story ${id}`);
+        }
+        
+        const story = await storyResponse.json();
+        
+        // Only index stories with URLs (not Ask HN, Show HN without URL, etc)
+        if (story.url) {
+          try {
+            await addUrl(story.url, false);
+            indexed++;
+            
+            // Report progress
+            if (onProgress) {
+              onProgress(indexed, top50Ids.length);
+            }
+          } catch (err) {
+            failed++;
+            errors.push(`Failed to index ${story.url}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          }
+        }
+        
+        // Small delay to avoid overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (err) {
+        failed++;
+        errors.push(`Failed to fetch story ${id}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    }
+    
+    return { indexed, failed, errors };
+    
+  } catch (error) {
+    throw new ApiError(
+      `Failed to index HackerNews stories: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
 export function subscribeStatistics(
   onStats: (data: StatisticsResponse) => void,
   onActiveBarrels?: (data: string[]) => void,
