@@ -146,15 +146,45 @@ export default function DemoPage() {
   };
 
   return (
-    <main style={{ 
-      position: 'relative', 
-      width: '100%', 
-      height: '100vh',
-      overflow: 'hidden',
-      background: '#0a0a0a',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <>
+      <style jsx>{`
+        .filled::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, #9c43ff, #4cb8e9);
+          border-radius: 50%;
+          opacity: 1;
+          transition: opacity 0.4s ease;
+          z-index: -1;
+        }
+
+        button:not(.filled)::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, #9c43ff, #4cb8e9);
+          border-radius: 50%;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          z-index: -1;
+        }
+      `}</style>
+      <main style={{ 
+        position: 'relative', 
+        width: '100%', 
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#0a0a0a',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
 
       {/* Top Bar with Logo and Search */}
       <div style={{
@@ -258,6 +288,7 @@ export default function DemoPage() {
             )}
             <button
               onClick={() => query.trim() && handleSearch(query)}
+              className={query.trim() ? 'filled' : ''}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -269,16 +300,21 @@ export default function DemoPage() {
                 height: '36px',
                 cursor: query.trim() ? 'pointer' : 'default',
                 transition: 'all 0.3s ease',
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: query.trim() ? 'white' : 'rgba(255, 255, 255, 0.5)',
                 flexShrink: 0,
                 position: 'relative',
+                overflow: 'hidden',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
+                if (!query.trim()) {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
+                }
                 e.currentTarget.style.transform = 'scale(1.1)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)';
+                if (!query.trim()) {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)';
+                }
                 e.currentTarget.style.transform = 'scale(1)';
               }}
             >
@@ -599,5 +635,6 @@ export default function DemoPage() {
         isFixed={true}
       />
     </main>
+    </>
   );
 }
