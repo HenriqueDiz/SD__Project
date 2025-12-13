@@ -267,26 +267,27 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
      */
     @Override
     public List<String[]> searchWords(List<String> words, int page, int pageSize) throws RemoteException {
+        // 1) Verificacoes
         if (words == null || words.isEmpty()) return new ArrayList<>();
         if (pageSize <= 0) pageSize = 10;
         if (page < 0) page = 0;
 
 
-        // Normalizar palavras de pesquisa
+        // 2) Normalizacao da(s) palavra(s) a pesquisar
         List<String> norm = new ArrayList<>();
         for (String w : words) {
             if (w != null && !w.isBlank()) norm.add(w.toLowerCase());
         }
         if (norm.isEmpty()) return new ArrayList<>();
 
-        // Resultados por palavra
+        // 3) Resultados devolvidos pela gateway
         List<HashSet<String>> resultsPerWord = new ArrayList<>();
         for (String w : norm) {
             List<String> result = searchWordGateway(w);
             resultsPerWord.add(new HashSet<>(result));
         }
 
-        // Interseção
+        // 4) Devolve a intersecao (apenas quando words.size() > 1)
         HashSet<String> intersection = new HashSet<>(resultsPerWord.get(0));
         for (int i = 1; i < resultsPerWord.size(); i++) {
             intersection.retainAll(resultsPerWord.get(i));
@@ -294,13 +295,12 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
         if (intersection.isEmpty()) return new ArrayList<>();
 
-        // Registar estatísticas APENAS UMA VEZ - uma pesquisa do utilizador
-        // Usar a primeira palavra como representação da pesquisa (ou poderia ser todas juntas)
+        // 5) Atualizamos as estatisticas
         String searchQuery = String.join(" ", norm);
         stats.updateSearchStats(searchQuery);
         notifyStatsUpdateAsync();
 
-        // Recolher contagens inbound (0 por omissão)
+        // 6) Numero de referencias de cada url
         Map<String, Integer> inbound = new HashMap<>();
         for (BarrelInterface barrel : new ArrayList<>(activeBarrels)) {
             try {
@@ -313,7 +313,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
             } catch (RemoteException ignore) {}
         }
 
-        // Construir ranking completo (ordenado) - depois recortar página
+        // 7) Ordenamos
         List<String[]> ranked = new ArrayList<>();
         for (String url : intersection) {
             int refs = inbound.getOrDefault(url, 0);
@@ -321,6 +321,7 @@ public class Gateway extends UnicastRemoteObject implements GatewayInterface {
         }
         ranked.sort((a, b) -> Integer.compare(Integer.parseInt(b[1]), Integer.parseInt(a[1])));
 
+        // 8) Cortamos para a pagina atual
         int from = page * pageSize;
         if (from >= ranked.size())
             return new ArrayList<>();
