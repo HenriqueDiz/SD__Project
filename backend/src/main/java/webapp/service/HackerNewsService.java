@@ -45,7 +45,7 @@ public class HackerNewsService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     
-    @org.springframework.beans.factory.annotation.Value("${hackernews.index-on-startup:true}")
+    @org.springframework.beans.factory.annotation.Value("${hackernews.index-on-startup:false}")
     private boolean indexOnStartup;
     
     /**

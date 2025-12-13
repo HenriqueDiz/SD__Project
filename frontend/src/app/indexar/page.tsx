@@ -78,19 +78,19 @@ export default function IndexarURL() {
       const response: AddUrlResponse = await addUrl(pendingUrl, true);
       
       if (response.success) {
-        setMessage({ type: 'success', text: 'URL reindexado com sucesso!' });
+        setMessage({ type: 'success', text: 'URL indexado com sucesso!' });
         setUrl('');
         setPendingUrl('');
         
         // Clear success message after 3 seconds
         setTimeout(() => setMessage(null), 3000);
       } else {
-        setMessage({ type: 'error', text: response.message || 'Erro ao reindexar URL' });
+        setMessage({ type: 'error', text: response.message || 'Erro ao indexar URL' });
       }
     } catch (error: any) {
       setMessage({ 
         type: 'error', 
-        text: error.message || 'Erro ao reindexar URL' 
+        text: error.message || 'Erro ao indexar URL' 
       });
     } finally {
       setLoading(false);
@@ -111,7 +111,7 @@ export default function IndexarURL() {
       
       setMessage({ 
         type: 'success', 
-        text: `HackerNews reindexado! ${result.indexed} URLs adicionados com sucesso.` 
+        text: `HackerNews indexado! ${result.indexed} URLs adicionados com sucesso.` 
       });
       
       // Clear success message after 5 seconds
@@ -119,7 +119,7 @@ export default function IndexarURL() {
     } catch (error: any) {
       setMessage({ 
         type: 'error', 
-        text: error.message || 'Erro ao reindexar HackerNews' 
+        text: error.message || 'Erro ao indexar HackerNews' 
       });
     } finally {
       setIsIndexingHN(false);
@@ -418,7 +418,7 @@ export default function IndexarURL() {
                   borderRadius: '50%',
                   animation: 'spin 0.8s linear infinite',
                 }} />
-                <span>Reindexando HackerNews...</span>
+                <span>Indexando HackerNews...</span>
                 <style jsx>{`
                   @keyframes spin {
                     0% { transform: rotate(0deg); }
@@ -433,7 +433,7 @@ export default function IndexarURL() {
                   <path d="M8 7 L12 12 L12 17" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                   <path d="M16 7 L12 12" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 </svg>
-                <span>Reindexar Top 50 HackerNews</span>
+                <span>Indexar Top 50 HackerNews</span>
               </>
             )}
           </button>
