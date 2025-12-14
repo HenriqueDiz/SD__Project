@@ -1,5 +1,6 @@
 package webapp.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,6 +21,12 @@ import org.springframework.web.filter.CorsFilter;
  */
 @Configuration
 public class CorsConfig {
+    
+    /**
+     * Lista de IPs permitidos (lida do application.properties).
+     */
+    @Value("${cors.allowed.ips:}")
+    private String allowedIps;
     
     /**
      * Construtor padrão.
@@ -49,6 +56,18 @@ public class CorsConfig {
         config.addAllowedOrigin("https://localhost:3001");
         config.addAllowedOrigin("https://localhost:3002");
         
+        // Adiciona IPs configurados no application.properties (ex: IPs da rede local)
+        if (allowedIps != null && !allowedIps.trim().isEmpty()) {
+            String[] ips = allowedIps.split(",");
+            for (String ip : ips) {
+                String trimmedIp = ip.trim();
+                if (!trimmedIp.isEmpty()) {
+                    config.addAllowedOrigin("https://" + trimmedIp + ":3000");
+                    System.out.println("CORS: Adicionado IP configurável: " + trimmedIp + " (HTTPS na porta 3000)");
+                }
+            }
+        }
+        
         // Permite todos os headers
         config.addAllowedHeader("*");
         
@@ -57,8 +76,9 @@ public class CorsConfig {
         
         source.registerCorsConfiguration("/api/**", config);
         
-        System.out.println("✓ CORS configurado para permitir frontend React");
+        System.out.println("CORS configurado para permitir frontend React");
         
         return new CorsFilter(source);
     }
 }
+

@@ -62,10 +62,10 @@ public class GatewayConnections {
             
             // Testar a conexão
             urlQueue.getQueueSize();
-            System.out.println(Utils.green("✓ Conectado ao URLQueue com sucesso!"));
+            System.out.println(Utils.green("Conectado ao URLQueue com sucesso!"));
             return urlQueue;
         } catch (Exception e) {
-            System.err.println(Utils.red("✗ Erro ao conectar ao URLQueue:"));
+            System.err.println(Utils.red("Erro ao conectar ao URLQueue:"));
             System.err.println("  Tipo: " + e.getClass().getSimpleName());
             System.err.println("  Mensagem: " + e.getMessage());
             e.printStackTrace();
